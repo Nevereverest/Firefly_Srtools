@@ -25,11 +25,11 @@ export interface LightconeJson {
 export interface AvatarData {
     rank: number,
     skills: Record<string, number>
-    skills_by_anchor_type?: Record<string,number>
+    skills_by_anchor_type?: Record<string, number> | null;
 }
 
 export interface AvatarJson {
-    owner_uid?: number;
+    owner_uid?: number | null;
     avatar_id: number;
     data: AvatarData;
     level: number;
@@ -37,12 +37,12 @@ export interface AvatarJson {
     techniques: number[];
     sp_value: number;
     sp_max: number;
-    enhanced_id?: number;
+    enhanced_id?: number | null;
 }
 export interface MonsterJson {
     monster_id: number;
     level: number;
-    amount: number;
+    amount?: number | null;
 }
 
 export interface DynamicKeyJson {
@@ -53,7 +53,7 @@ export interface DynamicKeyJson {
 export interface BattleBuffJson {
     level: number;
     id: number;
-    dynamic_key?: DynamicKeyJson;
+    dynamic_key?: DynamicKeyJson | null;
 }
 
 export interface BattleConfigJson {
@@ -71,12 +71,12 @@ type LoadoutJson = {
     relic_list: string[]
 }
 export interface FreeSRJson {
-    key?: string;
+    key?: string | null;
     lightcones: LightconeJson[];
     relics: RelicJson[];
     avatars: Record<string, AvatarJson>;
     battle_config: BattleConfigJson;
-    loadout?: LoadoutJson[];
+    loadout?: LoadoutJson[] | null;
 }
 
 

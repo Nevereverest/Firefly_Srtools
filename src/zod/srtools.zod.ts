@@ -29,11 +29,11 @@ export const lightconeJsonSchema = z.object({
 export const avatarDataSchema = z.object({
     rank: z.number(),
     skills: z.record(z.string(), z.number()),
-    skills_by_anchor_type: z.record(z.string(), z.number()).optional()
+    skills_by_anchor_type: z.record(z.string(), z.number()).nullish()
 });
 
 export const avatarJsonSchema = z.object({
-    owner_uid: z.number().optional(),
+    owner_uid: z.number().nullish(),
     avatar_id: z.number(),
     data: avatarDataSchema,
     level: z.number(),
@@ -41,13 +41,13 @@ export const avatarJsonSchema = z.object({
     techniques: z.array(z.number()),
     sp_value: z.number(),
     sp_max: z.number(),
-    enhanced_id: z.number().optional()
+    enhanced_id: z.number().nullish()
 });
 
 export const monsterJsonSchema = z.object({
     monster_id: z.number(),
     level: z.number(),
-    amount: z.number()
+    amount: z.number().nullish()
 });
 
 export const dynamicKeyJsonSchema = z.object({
@@ -58,7 +58,7 @@ export const dynamicKeyJsonSchema = z.object({
 export const battleBuffJsonSchema = z.object({
     level: z.number(),
     id: z.number(),
-    dynamic_key: dynamicKeyJsonSchema.optional()
+    dynamic_key: dynamicKeyJsonSchema.nullish()
 });
 
 export const battleConfigJsonSchema = z.object({
@@ -78,12 +78,12 @@ const loadoutJsonSchema = z.object({
 });
 
 export const freeSrJsonSchema = z.object({
-    key: z.string().optional(),
+    key: z.string().nullish(),
     lightcones: z.array(lightconeJsonSchema),
     relics: z.array(relicJsonSchema),
     avatars: z.record(z.string(), avatarJsonSchema),
     battle_config: battleConfigJsonSchema,
-    loadout: z.array(loadoutJsonSchema).optional()
+    loadout: z.array(loadoutJsonSchema).nullish()
 });
 
 const extraDataSchema = z.any();
@@ -91,5 +91,5 @@ const extraDataSchema = z.any();
 export const psResponseSchema = z.object({
     status: z.number(),
     message: z.string(),
-    extra_data: extraDataSchema.optional()
+    extra_data: extraDataSchema.nullish()
 });

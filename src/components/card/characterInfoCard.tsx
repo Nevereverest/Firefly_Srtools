@@ -93,7 +93,7 @@ export default function CharacterInfoCard({ character, selectedCharacters, onCha
             )}
 
             {/* Light Cone */}
-            {character.lightcone.item_id && (
+            {character.lightcone.item_id !== 0 && (
                 <div className="">
                     <div className="rounded-lg h-42 flex items-center justify-center">
                         <Image
