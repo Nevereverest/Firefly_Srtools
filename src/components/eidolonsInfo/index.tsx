@@ -51,7 +51,7 @@ export default function EidolonsInfo() {
                                 >
                                     <Image
                                         className={`w-60 object-contain mb-2 ${Number(rank.Rank) <= avatars[avatarSelected?.ID.toString() || ""]?.data?.rank ? "" : "grayscale"}`}
-                                        src={`${process.env.CDN_URL}/ui/ui3d/rank/_dependencies/textures/${avatarSelected?.ID}/${avatarSelected?.ID}_Rank_${rank.Rank}.png`}
+                                        src={`${process.env.CDN_URL}/ui/ui3d/rank/_dependencies/textures/${avatarSelected?.ID}/${avatarSelected?.ID}_rank_${rank.Rank}.png`}
                                         alt={`Rank ${rank.Rank} Image`}
                                         priority
                                         unoptimized
