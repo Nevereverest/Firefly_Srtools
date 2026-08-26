@@ -12,13 +12,26 @@ import { toast } from "react-toastify";
 import useCurrentDataStore from "@/stores/currentDataStore";
 import { StatusAdd } from '@/types/avatarDetail';
 import { SkillDescription } from "./skillDescription";
+import { useShallow } from "zustand/react/shallow";
 
 export default function SkillsInfo() {
     const transI18n = useTranslations("DataPage")
-    const { theme } = useLocaleStore()
-    const { avatarSelected, skillIDSelected, setSkillIDSelected } = useCurrentDataStore()
-    const { avatars, setAvatar } = useUserDataStore()
-    const { locale } = useLocaleStore()
+    const { theme, locale } = useLocaleStore(
+        useShallow((state) => ({ theme: state.theme, locale: state.locale }))
+    )
+    const { avatarSelected, skillIDSelected, setSkillIDSelected } = useCurrentDataStore(
+        useShallow((state) => ({
+            avatarSelected: state.avatarSelected,
+            skillIDSelected: state.skillIDSelected,
+            setSkillIDSelected: state.setSkillIDSelected,
+        }))
+    )
+    const { avatars, setAvatar } = useUserDataStore(
+        useShallow((state) => ({
+            avatars: state.avatars,
+            setAvatar: state.setAvatar,
+        }))
+    )
     const traceButtons = useMemo(() => {
         if (!avatarSelected) return
         return traceButtonsInfo[avatarSelected.BaseType]
@@ -116,268 +129,273 @@ export default function SkillsInfo() {
     }
 
     return (
-        <div className="w-full">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                <div className="rounded-xl p-6 shadow-lg">
-                    <h2 className="flex items-center gap-2 text-2xl font-bold mb-6 text-base-content">
-                        <div className="w-2 h-6 bg-linear-to-b from-primary to-primary/50 rounded-full"></div>
-                        {transI18n("skills")}
-                    </h2>
-                    <div className="flex flex-col items-center">
-                        <button className="btn btn-success" onClick={handlerMaxAll}>{transI18n("maxAll")}</button>
-                        {traceButtons && avatarSelected && (
-                            <div className="grid col-span-4 relative w-full aspect-square">
-                                <Image
-                                    unoptimized
-                                    crossOrigin="anonymous"
-                                    src={`/skilltree/${avatarSelected?.BaseType?.toUpperCase()}.webp`}
-                                    alt=""
-                                    width={312}
-                                    priority={true}
-                                    height={312}
-                                    style={{
-                                        filter: (theme === "winter" || theme === "cupcake") ? "invert(1)" : "none"
-                                    }}
-                                    className={`w-full h-full object-cover rounded-xl`}
-                                />
-                                {traceButtons.map((btn, index) => {
-                                    if (!avatarSelected?.SkillTrees?.[btn.id]) {
-                                        return null
-                                    }
-                                    return (
-                                        <div
-                                            key={`${btn.id} + ${index}`}
-                                            id={btn.id}
-                                            className={`
-                                            absolute rounded-full border border-black 
-                                            bg-no-repeat bg-contain 
-                                            cursor-pointer transition-all duration-200 ease-in-out 
-                                            shadow-[0_0_5px_white] flex justify-center items-center 
-                                            hover:scale-110z-10
-                                            ${btn.size === "small" ? "w-[6vw] h-[6vw] md:w-[2vw] md:h-[2vw] bg-white" : ""}
-                                            ${btn.size === "medium" ? "w-[8vw] h-[8vw] md:w-[3vw] md:h-[3vw] bg-white" : ""}
-                                            ${btn.size === "big" ? "w-[9vw] h-[9vw] md:w-[3.5vw] md:h-[3.5vw] bg-black" : ""}
-                                            ${btn.size === "special" ? "w-[9vw] h-[9vw] md:w-[3.5vw] md:h-[3.5vw] bg-white" : ""}
-                                            ${btn.size === "memory" ? "w-[9vw] h-[9vw] md:w-[3.5vw] md:h-[3.5vw] bg-black" : ""}
-                                            ${btn.size === "elation" ? "w-[9vw] h-[9vw] md:w-[3.5vw] md:h-[3.5vw] bg-black" : ""}
-                                            ${skillIDSelected === btn.id ? "border-4 border-primary" : ""}
-                                            ${!avatarData?.data.skills?.[avatarSkillTree?.[btn.id]?.["1"]?.PointID]
-                                                    ? "opacity-50 cursor-not-allowed"
-                                                    : ""}
-                                        `}
-                                            onClick={() => {
-                                                setSkillIDSelected(btn.id === skillIDSelected ? null : btn.id)
-                                            }}
-                                            style={{
-                                                left: btn.left,
-                                                top: btn.top,
-                                                transform: "translate(-50%, -50%)",
-                                            }}
-                                        >
-                                            <Image
-                                                src={`${process.env.CDN_URL}/${avatarSelected?.SkillTrees?.[btn.id]?.["1"]?.Icon}`}
-                                                alt={btn.id.replaceAll("Point", "")}
-                                                priority={true}
-                                                unoptimized
-                                                crossOrigin="anonymous"
-                                                width={124}
-                                                height={124}
-                                                style={{
-                                                    objectFit: "contain",
-                                                    padding: "2px",
-                                                    filter: (btn.size !== "big" && btn.size !== "memory" && btn.size !== "elation") ? "brightness(0%)" : ""
+        <div className="w-full space-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
+                {/* Left Panel: Skill Tree Visualizer */}
+                <div className="lg:col-span-6 space-y-4">
+                    <div className="glass-card rounded-2xl p-4 sm:p-6 border border-base-300 shadow-sm space-y-4">
+                        <div className="flex items-center justify-between pb-3 border-b border-base-300">
+                            <h2 className="text-lg sm:text-xl font-bold flex items-center gap-2.5">
+                                <div className="w-1.5 h-5 bg-linear-to-b from-primary to-accent rounded-full"></div>
+                                <span className="bg-clip-text text-transparent bg-linear-to-r from-primary to-accent font-bold tracking-tight">
+                                    {transI18n("skills")}
+                                </span>
+                            </h2>
+                            <button
+                                className="btn btn-sm btn-primary rounded-xl font-bold shadow-xs active-press"
+                                onClick={handlerMaxAll}
+                            >
+                                {transI18n("maxAll")}
+                            </button>
+                        </div>
+
+                        {/* Visual Skill Tree Container */}
+                        <div className="flex justify-center items-center py-2">
+                            {traceButtons && avatarSelected && (
+                                <div className="relative w-full max-w-md aspect-square">
+                                    <Image
+                                        unoptimized
+                                        crossOrigin="anonymous"
+                                        src={`/skilltree/${avatarSelected?.BaseType?.toUpperCase()}.webp`}
+                                        alt="Skill Tree"
+                                        width={312}
+                                        priority={true}
+                                        height={312}
+                                        style={{
+                                            filter: (theme === "winter" || theme === "cupcake") ? "invert(1)" : "none"
+                                        }}
+                                        className="w-full h-full object-cover"
+                                    />
+                                    {traceButtons.map((btn, index) => {
+                                        if (!avatarSelected?.SkillTrees?.[btn.id]) {
+                                            return null
+                                        }
+                                        const isSelected = skillIDSelected === btn.id;
+                                        const isLearned = !!avatarData?.data.skills?.[avatarSkillTree?.[btn.id]?.["1"]?.PointID];
+
+                                        const isMajor = btn.size === "big" || btn.size === "memory" || btn.size === "elation";
+
+                                        return (
+                                            <div
+                                                key={`${btn.id}-${index}`}
+                                                id={btn.id}
+                                                className={`
+                                                    absolute rounded-full border border-black/70 cursor-pointer transition-all duration-150 ease-out flex justify-center items-center select-none overflow-visible
+                                                    ${btn.size === "small" ? "w-[6.5vw] h-[6.5vw] md:w-[2.2vw] md:h-[2.2vw] bg-white" : ""}
+                                                    ${btn.size === "medium" ? "w-[8.5vw] h-[8.5vw] md:w-[3vw] md:h-[3vw] bg-white" : ""}
+                                                    ${btn.size === "big" ? "w-[9.5vw] h-[9.5vw] md:w-[3.5vw] md:h-[3.5vw] bg-black" : ""}
+                                                    ${btn.size === "special" ? "w-[9.5vw] h-[9.5vw] md:w-[3.5vw] md:h-[3.5vw] bg-white" : ""}
+                                                    ${btn.size === "memory" ? "w-[9.5vw] h-[9.5vw] md:w-[3.5vw] md:h-[3.5vw] bg-black" : ""}
+                                                    ${btn.size === "elation" ? "w-[9.5vw] h-[9.5vw] md:w-[3.5vw] md:h-[3.5vw] bg-black" : ""}
+                                                    ${isSelected ? "ring-3 ring-cyan-400 ring-offset-2 ring-offset-base-100 shadow-[0_0_12px_rgba(34,211,238,0.8)] z-20" : "hover:ring-2 hover:ring-primary/40 z-10"}
+                                                    ${!isLearned ? "opacity-40 grayscale" : "shadow-[0_0_6px_rgba(255,255,255,0.4)]"}
+                                                `}
+                                                onClick={() => {
+                                                    setSkillIDSelected(btn.id === skillIDSelected ? null : btn.id)
                                                 }}
-                                            />
-                                            {(btn.size === "big" || btn.size === "memory" || btn.size === "elation") && (
-                                                <p className="
-                                                z-12 text-sm sm:text-xs lg:text-sm xl:text-base 2xl:text-2xl
-                                                font-bold text-center rounded-full absolute
-                                                translate-y-full mt-1
-                                                bg-base-300 px-1
-                                                left-1/2 transform -translate-x-1/2
-                                                ">
-                                                    {`${avatarData?.data.skills?.[avatarSkillTree?.[btn.id]?.["1"]?.PointID] || 0}/${avatarSkillTree?.[btn.id]?.["1"]?.MaxLevel}`}
-                                                </p>
-
-                                            )}
-                                            {btn.size === "special" && (
-                                                <div
+                                                style={{
+                                                    left: btn.left,
+                                                    top: btn.top,
+                                                    transform: "translate(-50%, -50%)",
+                                                }}
+                                            >
+                                                <Image
+                                                    src={`${process.env.CDN_URL}/${avatarSelected?.SkillTrees?.[btn.id]?.["1"]?.Icon}`}
+                                                    alt={btn.id.replaceAll("Point", "")}
+                                                    priority={true}
+                                                    unoptimized
+                                                    crossOrigin="anonymous"
+                                                    width={124}
+                                                    height={124}
                                                     style={{
-                                                        position: "absolute",
-                                                        inset: 0,
-                                                        backgroundColor: "#4a6eff",
-                                                        mixBlendMode: "screen",
-                                                        opacity: 0.8,
-                                                        borderRadius: "50%"
+                                                        objectFit: "contain",
+                                                        padding: "2px",
+                                                        filter: !isMajor ? "brightness(0%)" : ""
                                                     }}
                                                 />
-                                            )}
-                                            {btn.size === "memory" && (
-                                                <div
-                                                    style={{
-                                                        position: "absolute",
-                                                        inset: 0,
-                                                        backgroundColor: "#9a89ff",
-                                                        mixBlendMode: "screen",
-                                                        opacity: 0.4,
-                                                        borderRadius: "50%"
-                                                    }}
-                                                />
-                                            )}
-                                            {btn.size === "elation" && (
-                                                <div
-                                                    style={{
-                                                        position: "absolute",
-                                                        inset: 0,
-                                                        backgroundColor: "#ff8c00",
-                                                        mixBlendMode: "screen",
-                                                        opacity: 0.5,
-                                                        borderRadius: "50%"
-                                                    }}
-                                                />
-                                            )}
-                                            {btn.size === "big" && (
-                                                <div
-                                                    style={{
-                                                        position: "absolute",
-                                                        inset: 0,
-                                                        backgroundColor: "#f5e4b0",
-                                                        mixBlendMode: "screen",
-                                                        opacity: 0.3,
-                                                        borderRadius: "50%"
-                                                    }}
-                                                />
-                                            )}
-                                        </div>
 
+                                                {/* Skill Type Color Overlays */}
+                                                {btn.size === "special" && (
+                                                    <div
+                                                        className="absolute inset-0 rounded-full pointer-events-none"
+                                                        style={{
+                                                            backgroundColor: "#4a6eff",
+                                                            mixBlendMode: "screen",
+                                                            opacity: 0.8,
+                                                        }}
+                                                    />
+                                                )}
+                                                {btn.size === "memory" && (
+                                                    <div
+                                                        className="absolute inset-0 rounded-full pointer-events-none"
+                                                        style={{
+                                                            backgroundColor: "#9a89ff",
+                                                            mixBlendMode: "screen",
+                                                            opacity: 0.45,
+                                                        }}
+                                                    />
+                                                )}
+                                                {btn.size === "elation" && (
+                                                    <div
+                                                        className="absolute inset-0 rounded-full pointer-events-none"
+                                                        style={{
+                                                            backgroundColor: "#ff8c00",
+                                                            mixBlendMode: "screen",
+                                                            opacity: 0.5,
+                                                        }}
+                                                    />
+                                                )}
+                                                {btn.size === "big" && (
+                                                    <div
+                                                        className="absolute inset-0 rounded-full pointer-events-none"
+                                                        style={{
+                                                            backgroundColor: "#f5e4b0",
+                                                            mixBlendMode: "screen",
+                                                            opacity: 0.35,
+                                                        }}
+                                                    />
+                                                )}
 
-                                    )
-                                })}
-                            </div>
-                        )}
-
-                        {!traceButtons && avatarSelected && (
-                            <div className="flex flex-col relative w-full aspect-square">
-
-                            </div>
-                        )}
+                                                {isMajor && (
+                                                    <p className="z-12 text-[10px] sm:text-xs font-mono font-bold text-center rounded-full absolute translate-y-full mt-0.5 bg-black/80 text-white px-1.5 py-0.2 border border-white/20 left-1/2 -translate-x-1/2 shadow-xs whitespace-nowrap">
+                                                        {`${avatarData?.data.skills?.[avatarSkillTree?.[btn.id]?.["1"]?.PointID] || 0}/${avatarSkillTree?.[btn.id]?.["1"]?.MaxLevel}`}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        )
+                                    })}
+                                </div>
+                            )}
+                        </div>
                     </div>
-
                 </div>
-                <div className="bg-base-100 rounded-xl p-6 shadow-lg">
-                    <h2 className="flex items-center gap-2 text-2xl font-bold mb-6 text-base-content">
-                        <div className="w-2 h-6 bg-linear-to-b from-primary to-primary/50 rounded-full"></div>
-                        {transI18n("details")}
-                    </h2>
-                    {skillIDSelected && avatarSelected?.SkillTrees && avatarData && (
-                        <div>
-                            {skillInfo?.MaxLevel && skillInfo?.MaxLevel > 1 ? (
-                                <div>
-                                    <div className="font-bold text-success">{transI18n("level")}</div>
-                                    <div className="w-full max-w-xs">
-                                        <input type="range"
-                                            min={1}
-                                            max={skillInfo?.MaxLevel || 1}
-                                            value={avatarData?.data.skills?.[skillInfo?.PointID] || 1}
-                                            onChange={(e) => {
-                                                const newData = structuredClone(avatarData)
-                                                newData.data.skills[skillInfo?.PointID] = parseInt(e.target.value)
-                                                setAvatar(newData)
-                                            }}
-                                            className="range range-success"
-                                            step="1" />
-                                        <div className="flex justify-between px-2.5 mt-2 text-xs">
-                                            {Array.from({ length: skillInfo?.MaxLevel }, (_, index) => index + 1).map((index) => (
-                                                <span key={index}>{index}</span>
-                                            ))}
+
+                {/* Right Panel: Skill Details */}
+                <div className="lg:col-span-6 space-y-4">
+                    <div className="glass-card rounded-2xl p-4 sm:p-6 border border-base-300 shadow-sm space-y-5">
+                        <div className="pb-3 border-b border-base-300">
+                            <h2 className="text-lg sm:text-xl font-bold flex items-center gap-2.5">
+                                <div className="w-1.5 h-5 bg-linear-to-b from-secondary to-primary rounded-full"></div>
+                                <span className="bg-clip-text text-transparent bg-linear-to-r from-secondary to-primary font-bold tracking-tight">
+                                    {transI18n("details")}
+                                </span>
+                            </h2>
+                        </div>
+
+                        {skillIDSelected && avatarSelected?.SkillTrees && avatarData ? (
+                            <div className="space-y-4">
+                                {/* Level Slider */}
+                                {skillInfo?.MaxLevel && skillInfo?.MaxLevel > 1 ? (
+                                    <div className="space-y-1.5 pb-2">
+                                        <div className="text-sm font-bold text-base-content/80">
+                                            {transI18n("level")}
+                                        </div>
+                                        <div className="w-full max-w-sm space-y-1">
+                                            <input
+                                                type="range"
+                                                min={1}
+                                                max={skillInfo?.MaxLevel || 1}
+                                                value={avatarData?.data.skills?.[skillInfo?.PointID] || 1}
+                                                onChange={(e) => {
+                                                    const newData = structuredClone(avatarData)
+                                                    newData.data.skills[skillInfo?.PointID] = parseInt(e.target.value)
+                                                    setAvatar(newData)
+                                                }}
+                                                className="range range-primary range-xs w-full"
+                                                step="1"
+                                            />
+                                            <div className="flex justify-between px-1 text-[11px] font-mono text-base-content/50">
+                                                {Array.from({ length: skillInfo?.MaxLevel || 1 }, (_, index) => index + 1).map((idx) => (
+                                                    <span key={idx}>{idx}</span>
+                                                ))}
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            ) : skillInfo?.MaxLevel && skillInfo?.MaxLevel === 1 && traceButtons?.find((btn) => btn.id === skillIDSelected)?.size !== "big" ? (
-                                <div className="flex items-center gap-2">
-                                    <input
-                                        type="checkbox"
-                                        checked={avatarData?.data.skills?.[skillInfo?.PointID] === 1}
-                                        className="toggle toggle-success"
-                                        onChange={(e) => {
-                                            if (traceButtons?.find((btn) => btn.id === skillIDSelected)?.size === "special") {
-                                                if (e.target.checked) {
+                                ) : skillInfo?.MaxLevel && skillInfo?.MaxLevel === 1 && traceButtons?.find((btn) => btn.id === skillIDSelected)?.size !== "big" ? (
+                                    <div className="flex items-center gap-3 pb-2">
+                                        <span className="text-sm font-bold text-base-content/80">{transI18n("status")}</span>
+                                        <input
+                                            type="checkbox"
+                                            checked={avatarData?.data.skills?.[skillInfo?.PointID] === 1}
+                                            className="toggle toggle-primary toggle-sm"
+                                            onChange={(e) => {
+                                                if (traceButtons?.find((btn) => btn.id === skillIDSelected)?.size === "special") {
+                                                    if (e.target.checked) {
+                                                        const newData = structuredClone(avatarData)
+                                                        newData.data.skills[skillInfo?.PointID] = 1
+                                                        setAvatar(newData)
+                                                        return
+                                                    }
                                                     const newData = structuredClone(avatarData)
-                                                    newData.data.skills[skillInfo?.PointID] = 1
+                                                    delete newData.data.skills[skillInfo?.PointID]
                                                     setAvatar(newData)
                                                     return
                                                 }
-                                                const newData = structuredClone(avatarData)
-                                                delete newData.data.skills[skillInfo?.PointID]
-                                                setAvatar(newData)
-                                                return
-                                            }
-                                            handlerChangeStatusTrace(e.target.checked)
-                                        }}
-                                    />
-                                    <div className="font-bold text-success">
-                                        {avatarData?.data.skills?.[skillInfo?.PointID] === 1 ? transI18n("active") : transI18n("inactive")}
+                                                handlerChangeStatusTrace(e.target.checked)
+                                            }}
+                                        />
+                                        <span className={`text-xs font-bold ${avatarData?.data.skills?.[skillInfo?.PointID] === 1 ? 'text-primary' : 'text-base-content/40'}`}>
+                                            {avatarData?.data.skills?.[skillInfo?.PointID] === 1 ? transI18n("active") : transI18n("inactive")}
+                                        </span>
                                     </div>
-                                </div>
-                            ) : (
-                                null
-                            )}
+                                ) : null}
 
-                            {((skillInfo?.PointName && skillInfo?.PointDesc) ||
-                                (skillInfo?.PointName && skillInfo?.StatusAddList.length > 0))
-                                && (
-                                    <div className="text-xl font-bold flex items-center gap-2 mt-2">
-                                        {getLocaleName(locale, skillInfo.PointName)}
+                                {/* Point Name & Stat Additions */}
+                                {((skillInfo?.PointName && skillInfo?.PointDesc) ||
+                                    (skillInfo?.PointName && skillInfo?.StatusAddList.length > 0)) && (
+                                    <div className="space-y-1.5">
+                                        <h3 className="text-lg font-extrabold text-base-content">
+                                            {getLocaleName(locale, skillInfo.PointName)}
+                                        </h3>
                                         {skillInfo.StatusAddList.length > 0 && (
-                                            <div>
+                                            <div className="flex flex-wrap gap-1.5">
                                                 {skillInfo.StatusAddList.map((status, index) => (
-                                                    <div key={index}>
-                                                        <div className="text-xl font-bold">{getTraceBuffDisplay(status)}</div>
-                                                    </div>
+                                                    <span key={index} className="text-xs font-mono font-bold px-2 py-0.5 rounded-lg bg-primary/10 text-primary border border-primary/20">
+                                                        +{getTraceBuffDisplay(status)}
+                                                    </span>
                                                 ))}
                                             </div>
                                         )}
                                     </div>
                                 )}
 
-                            {skillInfo?.PointDesc && (
-                                <div
-                                    dangerouslySetInnerHTML={{
-                                        __html: replaceByParam(
-                                            getLocaleName(locale, skillInfo?.PointDesc) || "",
-                                            skillInfo?.Param || []
-                                        )
-                                    }}
-                                />
-                            )}
+                                {/* Skill Description Prose */}
+                                {skillInfo?.PointDesc && (
+                                    <div
+                                        className="text-xs sm:text-sm text-base-content/85 leading-relaxed"
+                                        dangerouslySetInnerHTML={{
+                                            __html: replaceByParam(
+                                                getLocaleName(locale, skillInfo?.PointDesc) || "",
+                                                skillInfo?.Param || []
+                                            )
+                                        }}
+                                    />
+                                )}
 
-                            {skillInfo?.LevelUpSkillID
-                                && skillInfo?.LevelUpSkillID.length > 0
-                                && dataLevelUpSkill
-                                && (
-                                    <div className="mt-2 flex flex-col gap-2">
-
+                                {/* Level-up Skill Items (Major / Servant Skills) */}
+                                {skillInfo?.LevelUpSkillID && skillInfo?.LevelUpSkillID.length > 0 && dataLevelUpSkill && (
+                                    <div className="space-y-6 pt-1">
                                         {dataLevelUpSkill?.data?.map((skill, index) => (
-                                            <div key={index}>
-
-                                                <div className="text-xl font-bold text-primary">
-                                                    {transI18n(dataLevelUpSkill.isServant ? `${skill?.AttackType ? "severaltalent" : "servantskill"}` : `${skill?.AttackType ? skill?.AttackType.toLowerCase() : "talent"}`)}
-                                                    {` (${transI18n(skill?.SkillEffect?.toLowerCase())})`}
-                                                </div>
-
+                                            <div key={index} className={index > 0 ? "border-t border-base-content/10 pt-4" : ""}>
                                                 <SkillDescription
                                                     skill={skill}
                                                     locale={locale}
                                                     avatarData={avatarData}
                                                     skillInfo={skillInfo}
+                                                    attackTypeLabel={transI18n(dataLevelUpSkill.isServant ? (skill?.AttackType ? "severaltalent" : "servantskill") : (skill?.AttackType ? skill?.AttackType.toLowerCase() : "talent"))}
+                                                    skillEffectLabel={skill?.SkillEffect ? transI18n(skill.SkillEffect.toLowerCase()) : undefined}
                                                 />
                                             </div>
                                         ))}
-
                                     </div>
                                 )}
-                        </div>
-                    )}
+                            </div>
+                        ) : (
+                            <div className="text-center py-16 text-base-content/40 text-sm italic">
+                                Select a trace node from the skill tree to configure
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>

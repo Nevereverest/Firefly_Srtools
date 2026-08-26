@@ -286,6 +286,8 @@
 		"trailblazer": "Trazacaminos",
 		"listExtraEffect": "Lista de Efectos Extra",
 		"extra": "Extra",
-		"customLineup": "Alineación de equipo personalizada"
+		"customLineup": "Alineación de equipo personalizada",
+		"def": "DEF",
+		"language": "Idioma"
 	}
 }

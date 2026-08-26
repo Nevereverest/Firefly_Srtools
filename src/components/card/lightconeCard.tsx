@@ -2,6 +2,7 @@
 
 import { getLocaleName } from '@/helper';
 import useLocaleStore from '@/stores/localeStore';
+import { useShallow } from 'zustand/react/shallow';
 import ParseText from '../parseText';
 import Image from 'next/image';
 import { LightConeDetail } from '@/types';
@@ -11,43 +12,44 @@ interface LightconeCardProps {
 }
 
 export default function LightconeCard({ data }: LightconeCardProps) {
+    const { locale } = useLocaleStore(useShallow((state) => ({ locale: state.locale })));
+    const text = getLocaleName(locale, data.Name);
 
-    const { locale } = useLocaleStore();
-    const text = getLocaleName(locale, data.Name)
+    const is5Star = data.Rarity === "CombatPowerLightconeRarity5";
+    const is4Star = data.Rarity === "CombatPowerLightconeRarity4";
+
     return (
-        <li className="z-10 flex flex-col items-center rounded-md shadow-lg 
-            bg-linear-to-b from-customStart to-customEnd transform transition-transform duration-300 
-            hover:scale-105 cursor-pointer min-h-55"
-        >
+        <li className="group relative flex flex-col items-center rounded-xl overflow-hidden bg-base-100 border border-base-content/10 shadow-sm hover:shadow-md cursor-pointer select-none h-full">
+            {/* Artwork container with vibrant rarity background */}
             <div
-                className={`w-full rounded-md bg-linear-to-br ${data.Rarity === "CombatPowerLightconeRarity5"
-                    ? "from-yellow-400 via-yellow-600/70 to-yellow-800/50"
-                    : data.Rarity === "CombatPowerLightconeRarity4" ? "from-purple-400 via-purple-600/70 to-purple-800/50" :
-                        "from-blue-400 via-blue-600/70 to-blue-800/50"
-                    }`}
+                className={`w-full relative aspect-[3/4] flex items-center justify-center overflow-hidden bg-linear-to-b ${
+                    is5Star
+                        ? "from-yellow-400 via-amber-500/85 to-amber-700/70"
+                        : is4Star
+                        ? "from-purple-400 via-purple-600/80 to-purple-800/60"
+                        : "from-sky-400 via-blue-600/80 to-blue-800/60"
+                }`}
             >
-
-                <div className="relative w-full h-full">
-                    <Image
-                        loading="lazy"
-                        src={`${process.env.CDN_URL}/${data?.Image?.ThumbnailPath}`}
-                        unoptimized
-                        crossOrigin="anonymous"
-                        width={348}
-                        height={408}
-                        className="w-full h-full rounded-md object-cover"
-                        alt="ALT"
-                    />
-                </div>
+                <Image
+                    loading="lazy"
+                    src={`${process.env.CDN_URL}/${data?.Image?.ThumbnailPath}`}
+                    unoptimized
+                    crossOrigin="anonymous"
+                    width={348}
+                    height={408}
+                    className="w-full h-full object-cover transition-transform duration-300 ease-out group-hover:scale-105"
+                    alt={data?.Name?.en || "Lightcone"}
+                />
             </div>
 
-            <ParseText
-                locale={locale}
-                text={text}
-                className="mt-2 px-1 text-center text-sm sm:text-base  font-bold leading-tight"
-            />
+            {/* Name Label - Uniform Fixed-Height Footer */}
+            <div className="w-full h-11 px-1 py-0.5 text-center flex items-center justify-center bg-base-100">
+                <ParseText
+                    locale={locale}
+                    text={text}
+                    className="font-bold text-xs leading-tight line-clamp-2 text-base-content group-hover:text-primary transition-colors text-center"
+                />
+            </div>
         </li>
-
     );
-
 }

@@ -1,4 +1,4 @@
-import { BattleTarget, InfiniteWave, MazeBuff } from "./pfDetail";
+import { BattleTarget, InfiniteWave, Invasion, MazeBuff } from "./pfDetail";
 
 export interface PeakGroupDetail {
     ID: number;
@@ -37,5 +37,6 @@ export interface PeakEvent {
     Level: number;
     Release: boolean;
     MonsterList: number[][];
+    Invasion: Invasion | null;
     Infinite: InfiniteWave[] | null;
 }

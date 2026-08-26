@@ -1,6 +1,5 @@
 
 "use client"
-
 import NextImage from "next/image"
 import { AvatarDetail, RelicShowcaseType } from "@/types";
 
@@ -12,97 +11,84 @@ export default function RelicShowcase({
     avatarInfo: AvatarDetail;
 }) {
     return (
-        <>
-            <div
-                className="relative w-full flex flex-row items-center rounded-s-lg border-l-2 p-1 border-yellow-600/60  bg-linear-to-r from-yellow-600/20 to-transparent"
-            >
-                {/* Subtle glow overlay */}
-                <div className="absolute inset-0 rounded-s-lg  pointer-events-none"></div>
+        <div className="flex items-center gap-3 py-2 px-1 border-b border-base-content/10 last:border-b-0">
+            {/* Relic Figure Icon */}
+            <div className="relative shrink-0 flex flex-col items-center">
+                <NextImage
+                    src={relic?.img || ""}
+                    unoptimized
+                    crossOrigin="anonymous"
+                    width={48}
+                    height={48}
+                    alt="Relic"
+                    className="h-12 w-12 object-contain"
+                />
+            </div>
 
-                <div className="flex relative">
-                    <div className="absolute inset-0 rounded-lg blur-lg -z-10"></div>
-                    <NextImage
-                        src={relic?.img || ""}
-                        unoptimized
-                        crossOrigin="anonymous"
-                        width={78}
-                        height={78}
-                        alt="Relic Icon"
-                        className="h-19.5 w-19.5 rounded-lg"
-                    />
-
-                    <div
-                        className="absolute text-yellow-400 font-bold z-10 drop-shadow-[0_0_6px_rgba(251,191,36,0.8)]"
-                        style={{
-                            left: '0.65rem',
-                            bottom: '-0.45rem',
-                            fontSize: '1.05rem',
-                            letterSpacing: '-0.1em',
-                        }}
-                    >
-                        ✦✦✦✦✦
-                    </div>
-                </div>
-
-                <div className=" flex w-1/6 flex-col items-center justify-center">
-                    <div className="relative">
-                        <div className="absolute inset-0 bg-yellow-500/15 rounded-full blur-md -z-10"></div>
+            {/* Main Affix - Clean Display */}
+            <div className="flex w-20 shrink-0 flex-col items-start justify-center">
+                <div className="flex items-center gap-1">
+                    {relic?.mainAffix?.detail?.icon ? (
                         <NextImage
-                            src={`${process.env.CDN_URL}/${relic?.mainAffix?.detail?.icon}` || ""}
+                            src={`${process.env.CDN_URL}/${relic.mainAffix.detail.icon}`}
                             unoptimized
                             crossOrigin="anonymous"
-                            width={35}
-                            height={35}
-                            alt="Main Affix Icon"
-                            className="h-8.75 w-8.75"
+                            width={16}
+                            height={16}
+                            alt="Main Affix"
+                            className="h-4 w-4 theme-stat-icon shrink-0 object-contain"
                         />
-                    </div>
-                    <span className="text-base text-yellow-400 font-semibold drop-shadow-[0_0_4px_rgba(251,191,36,0.5)]">
-                        {relic?.mainAffix?.valueAffix + relic?.mainAffix?.detail?.unit}
-                    </span>
-                    <span className="bg-black/20 backdrop-blur-sm rounded px-1.5 py-0.5 text-xs border border-white/10">
-                        +{relic?.mainAffix?.level}
+                    ) : null}
+                    <span className="text-xs font-bold text-amber-600 dark:text-amber-400 font-mono">
+                        {relic?.mainAffix?.valueAffix + (relic?.mainAffix?.detail?.unit || "")}
                     </span>
                 </div>
-
-                <div style={{ opacity: 0.3, height: '78px', borderLeftWidth: '1px' }}></div>
-
-                <div className="grid w-[65%] m-2 grid-cols-2 gap-1">
-                    {relic?.subAffix?.map((subAffix, index) => {
-                        if (!subAffix) return null
-                        return (
-                            <div key={index} className="flex flex-col">
-                                <div className="relative flex flex-row items-center bg-black/20 backdrop-blur-sm rounded-md p-1 border border-white/5 min-w-0">
-                                    {subAffix?.detail?.icon ? (
-                                        <NextImage
-                                            src={`${process.env.CDN_URL}/${subAffix?.detail?.icon}` || ""}
-                                            unoptimized
-                                            crossOrigin="anonymous"
-                                            width={32}
-                                            height={32}
-                                            alt="Sub Affix Icon"
-                                            className="h-6 w-6 shrink-0"
-                                        />
-                                    ) : (
-                                        <div className="h-6 w-6 bg-black/60 rounded flex items-center justify-center border border-white/10 shrink-0">
-                                            <span className="text-xs text-white/50">?</span>
-                                        </div>
-                                    )}
-                                    <span className="text-xs text-gray-200 ml-0.5 truncate flex-1 min-w-0">
-                                        +{subAffix?.valueAffix + subAffix?.detail?.unit}
-                                    </span>
-                                    {
-                                        (avatarInfo?.Relics?.SubAffixPropertyList.findIndex((item) => item === subAffix?.property) !== -1) && (
-                                            <span className="ml-1 bg-yellow-600/20 text-yellow-400 rounded-full px-1 py-0.5 text-[10px] font-semibold border border-yellow-600/30 shrink-0 leading-none">
-                                                {subAffix?.count}
-                                            </span>
-                                        )}
-                                </div>
-                            </div>
-                        )
-                    })}
-                </div>
+                <span className="text-[10px] font-mono text-base-content/50 ml-0.5">
+                    +{relic?.mainAffix?.level}
+                </span>
             </div>
-        </>
+
+            {/* Sub Affixes Grid - Clean Flat Typography */}
+            <div className="grid flex-1 grid-cols-2 gap-x-3 gap-y-1">
+                {relic?.subAffix?.map((subAffix, index) => {
+                    if (!subAffix) return null
+                    const isOptimalStat = avatarInfo?.Relics?.SubAffixPropertyList?.includes(subAffix?.property)
+
+                    return (
+                        <div
+                            key={index}
+                            className={`flex items-center justify-between py-0.5 min-w-0 ${
+                                isOptimalStat
+                                    ? "text-amber-600 dark:text-amber-400 font-semibold"
+                                    : "text-base-content/75"
+                            }`}
+                        >
+                            <div className="flex items-center gap-1 min-w-0 flex-1">
+                                {subAffix?.detail?.icon ? (
+                                    <NextImage
+                                        src={`${process.env.CDN_URL}/${subAffix.detail.icon}`}
+                                        unoptimized
+                                        crossOrigin="anonymous"
+                                        width={14}
+                                        height={14}
+                                        alt="Sub Affix"
+                                        className="h-3.5 w-3.5 theme-stat-icon shrink-0 object-contain"
+                                    />
+                                ) : null}
+                                <span className="text-xs font-mono truncate">
+                                    +{subAffix?.valueAffix + (subAffix?.detail?.unit || "")}
+                                </span>
+                            </div>
+
+                            {isOptimalStat && subAffix?.count ? (
+                                <span className="ml-1 text-[10px] font-bold text-amber-600/80 dark:text-amber-400/80 shrink-0 font-mono">
+                                    ({subAffix?.count})
+                                </span>
+                            ) : null}
+                        </div>
+                    )
+                })}
+            </div>
+        </div>
     )
 }

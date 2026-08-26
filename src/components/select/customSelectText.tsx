@@ -7,6 +7,7 @@ import useLocaleStore from '@/stores/localeStore'
 import { themeColors } from '@/constant/constant'
 import type { Props as SelectProps } from "react-select"
 import { JSX } from "react"
+import { useShallow } from "zustand/react/shallow"
 
 const Select = dynamic(
   () => import("react-select").then(m => m.default),
@@ -32,7 +33,9 @@ type SelectCustomProp = {
 
 export default function SelectCustomText({ customSet, excludeSet, selectedCustomSet, placeholder, setSelectedCustomSet }: SelectCustomProp) {
   const options: SelectOption[] = customSet
-  const { theme } = useLocaleStore()
+  const { theme } = useLocaleStore(
+    useShallow((state) => ({ theme: state.theme }))
+  )
   const c = themeColors[theme] || themeColors.winter
 
   const customStyles = {
@@ -87,7 +90,9 @@ export default function SelectCustomText({ customSet, excludeSet, selectedCustom
           )
         }}
       />
-      {option.time && <div className='text-base'>{option.time}</div>}
+      {option.time && !option.time.includes("undefined") && (
+        <div className='text-sm opacity-70'>{option.time}</div>
+      )}
       {option.description && <div
         className="text-base"
         dangerouslySetInnerHTML={{

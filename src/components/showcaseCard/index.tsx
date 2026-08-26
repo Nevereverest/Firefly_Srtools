@@ -14,16 +14,33 @@ import RelicShowcase from './relicShowcase';
 import useDetailDataStore from '@/stores/detailDataStore';
 import useCurrentDataStore from '@/stores/currentDataStore';
 import { getLocaleName } from '@/helper';
+import { useShallow } from 'zustand/react/shallow';
 
 
 export default function ShowCaseInfo() {
-  const { avatarSelected } = useCurrentDataStore()
-  const { mainAffix, subAffix, mapRelicSet, mapAvatar, mapLightCone, baseType, damageType } = useDetailDataStore()
-  const { avatars } = useUserDataStore()
+  const { avatarSelected } = useCurrentDataStore(
+    useShallow((state) => ({ avatarSelected: state.avatarSelected }))
+  )
+  const { mainAffix, subAffix, mapRelicSet, mapAvatar, mapLightCone, baseType, damageType } = useDetailDataStore(
+    useShallow((state) => ({
+      mainAffix: state.mainAffix,
+      subAffix: state.subAffix,
+      mapRelicSet: state.mapRelicSet,
+      mapAvatar: state.mapAvatar,
+      mapLightCone: state.mapLightCone,
+      baseType: state.baseType,
+      damageType: state.damageType,
+    }))
+  )
+  const { avatars } = useUserDataStore(
+    useShallow((state) => ({ avatars: state.avatars }))
+  )
   const [avgColor, setAvgColor] = useState('#222');
   const imgRef = useRef(null);
   const cardRef = useRef(null)
-  const { locale } = useLocaleStore()
+  const { locale } = useLocaleStore(
+    useShallow((state) => ({ locale: state.locale }))
+  )
   const transI18n = useTranslations("DataPage")
 
   const handleSaveImage = useCallback(() => {
@@ -88,11 +105,11 @@ export default function ShowCaseInfo() {
 
   const avatarProfile = useMemo(() => {
     if (!avatarSelected || !avatarData) return
-    return avatarData?.profileList?.[avatarData?.profileSelect]
+    return avatarData?.profileList?.[avatarData?.profileSelect] ?? avatarData?.profileList?.[0]
   }, [avatarSelected, avatarData])
 
   const lightconeStats = useMemo(() => {
-    if (!avatarSelected || !avatarProfile?.lightcone || !mapLightCone[avatarProfile?.lightcone?.item_id]) return
+    if (!avatarSelected || !avatarProfile?.lightcone || !mapLightCone?.[avatarProfile?.lightcone?.item_id]) return
     const promotion = calcPromotion(avatarProfile?.lightcone?.level)
     const atkStat = calcBaseStat(
       mapLightCone[avatarProfile?.lightcone?.item_id]?.Stats?.[promotion]?.BaseAttack,
@@ -122,12 +139,11 @@ export default function ShowCaseInfo() {
   const relicEffects = useMemo(() => {
     const avatar = avatars[avatarSelected?.ID?.toString() || ""];
     const relicCount: { [key: string]: number } = {};
-    if (avatar) {
-      for (const relic of Object.values(avatar.profileList[avatar.profileSelect].relics)) {
-        if (relicCount[relic.relic_set_id]) {
-          relicCount[relic.relic_set_id]++;
-        } else {
-          relicCount[relic.relic_set_id] = 1;
+    const profile = avatar?.profileList?.[avatar?.profileSelect] ?? avatar?.profileList?.[0];
+    if (profile?.relics) {
+      for (const relic of Object.values(profile.relics)) {
+        if (relic && relic.relic_set_id) {
+          relicCount[relic.relic_set_id] = (relicCount[relic.relic_set_id] || 0) + 1;
         }
       }
     }
@@ -497,21 +513,34 @@ export default function ShowCaseInfo() {
   }, [])
 
   return (
-    <div className="flex flex-col justify-start m-1 text-white">
-      <div className="flex items-center justify-start mt-4 mb-4">
-        <button className="btn btn-success w-24 text-sm" onClick={handleSaveImage}>Save Img</button>
-      </div>
+    <div className="w-full space-y-4">
+      <div className="bg-base-100 rounded-2xl p-4 sm:p-6 border border-base-300 shadow-sm space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between pb-3 border-b border-base-content/10 flex-wrap gap-3">
+          <h2 className="text-xl sm:text-2xl font-extrabold flex items-center gap-2.5">
+            <div className="w-2 h-6 bg-linear-to-b from-primary to-accent rounded-full"></div>
+            <span className="bg-clip-text text-transparent bg-linear-to-r from-primary to-accent">
+              {transI18n("showcaseCard")}
+            </span>
+          </h2>
+          <button
+            className="btn btn-sm btn-primary rounded-xl font-bold shadow-xs active-press"
+            onClick={handleSaveImage}
+          >
+            {transI18n("save")}
+          </button>
+        </div>
 
-      <div className="overflow-auto">
-        <div
-          ref={cardRef}
-          className=" relative min-h-162.5 w-400 rounded-3xl transition-all duration-500 overflow-hidden"
-          style={{
-            backgroundColor: `${applyBrightness(avgColor, 0.3)}`,
-            backdropFilter: "blur(50px)",
-            WebkitBackdropFilter: "blur(50px)",
-          }}
-        >
+        <div className="overflow-auto rounded-2xl">
+          <div
+            ref={cardRef}
+            className="relative min-h-162.5 w-400 rounded-3xl transition-all duration-500 overflow-hidden text-white"
+            style={{
+              backgroundColor: `${applyBrightness(avgColor, 0.3)}`,
+              backdropFilter: "blur(50px)",
+              WebkitBackdropFilter: "blur(50px)",
+            }}
+          >
           <div className="absolute bottom-2 left-4 z-10">
             <span className="shadow-black [text-shadow:1px_1px_2px_var(--tw-shadow-color)]"></span>
           </div>
@@ -630,9 +659,9 @@ export default function ShowCaseInfo() {
                     </div>
                     <div className="flex flex-row items-center gap-4 mt-2">
                       <div className="text-2xl text-[#d8b46e]">Lv. <span className="text-white">{avatarData?.level}</span>/<span className="text-neutral-400">80</span></div>
-                      <span className="px-1.5 py-0.5 rounded-full text-lg font-bold text-[#E6D5B5] bg-[#5c4022] border-2 border-[#d8b46e] shadow-[0_0_10px_rgba(250,204,21,0.3)] select-none">
+                      <div className="flex items-center justify-center min-w-8 h-8 px-1.5 rounded-full text-base font-bold text-[#E6D5B5] bg-[#5c4022] border-2 border-[#d8b46e] shadow-[0_0_10px_rgba(250,204,21,0.3)] select-none">
                         {totalSubStats}
-                      </span>
+                      </div>
 
                       {avatarSelected && (
                         <div className="flex gap-1">
@@ -921,12 +950,12 @@ export default function ShowCaseInfo() {
 
               </div>
 
-              <div className="flex h-162.5 w-1/3 flex-col justify-between py-3 z-10">
-                <div className="flex w-full flex-col justify-between gap-y-0.5 text-base h-125">
+              <div className="flex h-162.5 w-1/3 flex-col justify-between py-3 z-10 text-white">
+                <div className="flex w-full flex-col justify-between gap-y-0.5 text-base h-125 text-white">
                   {Object.entries(characterStats || {})?.map(([key, stat], index) => {
                     if (!stat || (key.includes("Add") && stat.value === 0)) return null
                     return (
-                      <div key={index} className="flex flex-row items-center justify-between">
+                      <div key={index} className="flex flex-row items-center justify-between text-white">
                         <div className="flex flex-row items-center">
                           <NextImage src={`${process.env.CDN_URL}/${stat?.icon}`}
                             unoptimized
@@ -936,16 +965,16 @@ export default function ShowCaseInfo() {
                             height={40}
                             className="h-10 w-10 p-2"
                           />
-                          <span className="font-bold">{stat.name}</span>
+                          <span className="font-bold text-white">{stat.name}</span>
                         </div>
-                        <div className="ml-3 mr-3 grow border rounded opacity-50" />
-                        <div className="flex cursor-default flex-col text-right font-bold">{
+                        <div className="ml-3 mr-3 grow border-b border-white/20" />
+                        <div className="flex cursor-default flex-col text-right font-bold text-white">{
                           stat.value ? stat.unit === "%" ? (stat.value * 100).toFixed(stat.round) : stat.value.toFixed(stat.round) : 0
                         }{stat.unit}</div>
                       </div>
                     )
                   })}
-                  <hr />
+                  <hr className="border-white/20" />
                 </div>
 
                 <div className="flex flex-col items-center gap-1 w-full my-2">
@@ -1000,7 +1029,7 @@ export default function ShowCaseInfo() {
 
         </div>
       </div>
-
     </div>
+  </div>
   );
 }

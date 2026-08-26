@@ -11,6 +11,7 @@ import { toast } from "react-toastify";
 import { converterOneFreeSRDataToAvatarStore } from "@/helper";
 import { useTranslations } from "next-intl";
 import useDetailDataStore from "@/stores/detailDataStore";
+import { useShallow } from "zustand/react/shallow";
 import { z } from "zod";
 
 type FreeSRJsonInput = z.infer<typeof freeSrJsonSchema>;
@@ -38,12 +39,32 @@ const toCharacterInfoCard = (data: FreeSRJsonInput, character: FreeSRJsonInput["
 }
 
 export default function FreeSRImport() {
-    const { avatars, setAvatar } = useUserDataStore();
-    const { mapAvatar } = useDetailDataStore();
-    const { setIsOpenImport } = useModelStore()
+    const { avatars, setAvatar } = useUserDataStore(
+        useShallow((state) => ({
+            avatars: state.avatars,
+            setAvatar: state.setAvatar,
+        }))
+    );
+    const { mapAvatar } = useDetailDataStore(
+        useShallow((state) => ({
+            mapAvatar: state.mapAvatar,
+        }))
+    );
+    const { setIsOpenImport } = useModelStore(
+        useShallow((state) => ({
+            setIsOpenImport: state.setIsOpenImport,
+        }))
+    )
     const [isLoading, setIsLoading] = useState(false)
     const [Error, setError] = useState("")
-    const { freeSRData, setFreeSRData, selectedCharacters, setSelectedCharacters } = useFreeSRStore()
+    const { freeSRData, setFreeSRData, selectedCharacters, setSelectedCharacters } = useFreeSRStore(
+        useShallow((state) => ({
+            freeSRData: state.freeSRData,
+            setFreeSRData: state.setFreeSRData,
+            selectedCharacters: state.selectedCharacters,
+            setSelectedCharacters: state.setSelectedCharacters,
+        }))
+    )
     const transI18n = useTranslations("DataPage")
     const parsedFreeSRData = freeSrJsonSchema.safeParse(freeSRData)
     const validFreeSRData = parsedFreeSRData.success ? parsedFreeSRData.data : null
@@ -142,66 +163,79 @@ export default function FreeSRImport() {
         const listAvatars = { ...avatars }
         const filterData = Object.values(parsed.data.avatars).filter((character) => selectedCharacters.some((selectedCharacter) => selectedCharacter.avatar_id === character.avatar_id))
         filterData.forEach((character) => {
-            const newAvatar = { ...listAvatars[character.avatar_id] }
-            if (Object.keys(newAvatar).length !== 0) {
-                newAvatar.level = character.level
-                newAvatar.promotion = character.promotion
-                newAvatar.data = {
-                    rank: character.data.rank ?? 0,
-                    skills: character.data.skills
-                }
-                const newProfile = converterOneFreeSRDataToAvatarStore(parsed.data, newAvatar.profileList.length, character.avatar_id)
+            const currentAvatar = listAvatars[character.avatar_id]
+            if (currentAvatar && Object.keys(currentAvatar).length !== 0) {
+                const newProfileList = [...(currentAvatar.profileList || [])]
+                const newProfile = converterOneFreeSRDataToAvatarStore(parsed.data, newProfileList.length, character.avatar_id)
                 if (newProfile) {
-                    newAvatar.profileList.push(newProfile)
-                    newAvatar.profileSelect = newAvatar.profileList.length - 1
+                    newProfileList.push(newProfile)
+                }
+                const newAvatar = {
+                    ...currentAvatar,
+                    level: character.level,
+                    promotion: character.promotion,
+                    data: {
+                        rank: character.data.rank ?? 0,
+                        skills: character.data.skills
+                    },
+                    profileList: newProfileList,
+                    profileSelect: newProfile ? newProfileList.length - 1 : currentAvatar.profileSelect,
                 }
                 setAvatar(newAvatar)
             }
-
         })
         setIsOpenImport(false)
         toast.success(transI18n("importFreeSRDataSuccess"))
     }
 
     return (
-        <div className="bg-slate-900 p-6">
-            <div className="max-w-7xl mx-auto">
+        <div className="bg-base-100 p-4 sm:p-6 rounded-2xl">
+            <div className="max-w-7xl mx-auto space-y-6">
                 {/* Header */}
-                <div className="mb-8">
-                    <h1 className="text-white text-2xl font-bold mb-6">{transI18n("freeSRImport")}</h1>
+                <div className="space-y-4">
+                    <h1 className="text-base-content text-xl sm:text-2xl font-bold">{transI18n("freeSRImport")}</h1>
 
-                    <div className="flex gap-4 items-center mb-6">
+                    <div className="flex flex-wrap gap-4 items-center">
                         <fieldset className="fieldset">
-                            <legend className="fieldset-legend">{transI18n("pickAFile")}</legend>
-                            <input type="file" accept=".json" className="file-input file-input-info" onChange={handlerReadFile} />
-                            <label className="label">{transI18n("onlySupportFreeSRJsonFile")}</label>
+                            <legend className="fieldset-legend text-xs font-semibold">{transI18n("pickAFile")}</legend>
+                            <input type="file" accept=".json" className="file-input file-input-sm file-input-bordered rounded-xl" onChange={handlerReadFile} />
+                            <label className="label text-[11px] text-base-content/60">{transI18n("onlySupportFreeSRJsonFile")}</label>
                         </fieldset>
 
                         {selectedCharacters.length > 0 && (
-                            <button onClick={handleImport} className="btn btn-primary rounded-lg transition-colors">
+                            <button onClick={handleImport} className="btn btn-sm btn-primary rounded-xl font-bold shadow-xs">
                                 {transI18n("import")}
                             </button>
                         )}
                     </div>
                     {Error && (
-                        <div className="text-error text-base mt-2">😭 {Error}</div>
+                        <div className="text-error text-sm font-semibold mt-2">😭 {Error}</div>
                     )}
 
-
                     {/* Selection Info */}
-                    <div className="mt-6 flex items-center gap-4 bg-slate-800/50 p-4 rounded-lg">
-                        <span className="text-blue-400 font-medium">
-                            {transI18n("selectedCharacters")}: {selectedCharacters.length}
-                        </span>
-                        <button
-                            onClick={clearSelection}
-                            className="text-error/75 hover:text-error text-sm font-medium px-3 py-1 border border-error/75 rounded hover:bg-error/10 transition-colors cursor-pointer"
-                        >
-                            {transI18n("clearAll")}
-                        </button>
-                        <button onClick={selectAll} className="text-primary/75 hover:text-primary text-sm font-medium px-3 py-1 border border-primary/75 rounded hover:bg-primary/10 transition-colors cursor-pointer">
-                            {transI18n("selectAll")}
-                        </button>
+                    <div className="flex flex-wrap items-center justify-between gap-3 bg-base-200 border border-base-300 p-3.5 rounded-2xl shadow-xs">
+                        <div className="flex items-center gap-2">
+                            <span className="text-xs sm:text-sm font-bold text-base-content">
+                                {transI18n("selectedCharacters")}:
+                            </span>
+                            <span className="badge badge-primary font-mono font-bold text-xs">
+                                {selectedCharacters.length}
+                            </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={clearSelection}
+                                className="btn btn-xs sm:btn-sm btn-ghost text-error hover:bg-error/10 border border-error/30 rounded-xl"
+                            >
+                                {transI18n("clearAll")}
+                            </button>
+                            <button
+                                onClick={selectAll}
+                                className="btn btn-xs sm:btn-sm btn-ghost text-primary hover:bg-primary/10 border border-primary/30 rounded-xl"
+                            >
+                                {transI18n("selectAll")}
+                            </button>
+                        </div>
                     </div>
                 </div>
                 {isLoading && (

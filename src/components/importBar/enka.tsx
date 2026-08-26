@@ -12,6 +12,7 @@ import { useTranslations } from "next-intl";
 import { avatarEnkaDetailSchema, enkaResponseSchema } from "@/zod";
 import { z } from "zod";
 import useDetailDataStore from "@/stores/detailDataStore";
+import { useShallow } from "zustand/react/shallow";
 
 type AvatarEnkaDetailInput = z.infer<typeof avatarEnkaDetailSchema>;
 
@@ -40,11 +41,33 @@ export default function EnkaImport() {
         selectedCharacters,
         setSelectedCharacters,
         setEnkaData,
-    } = useEnkaStore();
+    } = useEnkaStore(
+        useShallow((state) => ({
+            uidInput: state.uidInput,
+            setUidInput: state.setUidInput,
+            enkaData: state.enkaData,
+            selectedCharacters: state.selectedCharacters,
+            setSelectedCharacters: state.setSelectedCharacters,
+            setEnkaData: state.setEnkaData,
+        }))
+    );
     const transI18n = useTranslations("DataPage")
-    const { avatars, setAvatar } = useUserDataStore();
-    const { setIsOpenImport } = useModelStore()
-    const { mapAvatar } = useDetailDataStore()
+    const { avatars, setAvatar } = useUserDataStore(
+        useShallow((state) => ({
+            avatars: state.avatars,
+            setAvatar: state.setAvatar,
+        }))
+    );
+    const { setIsOpenImport } = useModelStore(
+        useShallow((state) => ({
+            setIsOpenImport: state.setIsOpenImport,
+        }))
+    )
+    const { mapAvatar } = useDetailDataStore(
+        useShallow((state) => ({
+            mapAvatar: state.mapAvatar,
+        }))
+    )
     const [isLoading, setIsLoading] = useState(false)
     const [Error, setError] = useState("")
     const validCharacters = enkaData?.detailInfo.avatarDetailList.filter((character) => mapAvatar?.[character.avatarId]) ?? []
@@ -115,81 +138,95 @@ export default function EnkaImport() {
 
         const filterData = parsed.data.detailInfo.avatarDetailList.filter((character) => mapAvatar?.[character.avatarId] && selectedCharacters.some((selectedCharacter) => selectedCharacter.avatar_id === character.avatarId))
         filterData.forEach((character) => {
-            const newAvatar = { ...listAvatars[character.avatarId.toString()] }
-            if (Object.keys(newAvatar).length !== 0) {
-                newAvatar.level = character.level ?? 0
-                newAvatar.promotion = character.promotion ?? 0
-                newAvatar.data = {
-                    rank: character.rank ?? 0,
-                    skills: character.skillTreeList.reduce((acc, skill) => {
-                        acc[skill.pointId] = skill.level;
-                        return acc;
-                    }, {} as Record<string, number>),
-                }
-                const newProfile = converterOneEnkaDataToAvatarStore(character, newAvatar.profileList.length)
+            const currentAvatar = listAvatars[character.avatarId.toString()]
+            if (currentAvatar && Object.keys(currentAvatar).length !== 0) {
+                const newProfileList = [...(currentAvatar.profileList || [])]
+                const newProfile = converterOneEnkaDataToAvatarStore(character, newProfileList.length)
                 if (newProfile) {
-                    newAvatar.profileList.push(newProfile)
-                    newAvatar.profileSelect = newAvatar.profileList.length - 1
+                    newProfileList.push(newProfile)
+                }
+                const newAvatar = {
+                    ...currentAvatar,
+                    level: character.level ?? 0,
+                    promotion: character.promotion ?? 0,
+                    data: {
+                        rank: character.rank ?? 0,
+                        skills: character.skillTreeList.reduce((acc, skill) => {
+                            acc[skill.pointId] = skill.level;
+                            return acc;
+                        }, {} as Record<string, number>),
+                    },
+                    profileList: newProfileList,
+                    profileSelect: newProfile ? newProfileList.length - 1 : currentAvatar.profileSelect,
                 }
                 setAvatar(newAvatar)
             }
-
         })
         setIsOpenImport(false)
         toast.success(transI18n("importEnkaDataSuccess"))
     };
 
     return (
-        <div className="bg-slate-900 p-6">
-            <div className="max-w-7xl mx-auto">
+        <div className="bg-base-100 p-4 sm:p-6 rounded-2xl">
+            <div className="max-w-7xl mx-auto space-y-6">
                 {/* Header */}
-                <div className="mb-8">
-                    <h1 className="text-white text-2xl font-bold mb-6">HSR UID</h1>
+                <div className="space-y-4">
+                    <h1 className="text-base-content text-xl sm:text-2xl font-bold">HSR UID</h1>
 
-                    <div className="flex gap-4 items-center mb-6">
+                    <div className="flex flex-wrap gap-3 items-center">
                         <input
                             type="text"
                             value={uidInput}
                             onChange={(e) => setUidInput(e.target.value)}
-                            className="bg-slate-800 text-white px-4 py-3 rounded-lg border border-slate-700 flex-1 max-w-md focus:outline-none focus:border-blue-500"
+                            className="input input-bordered w-full max-w-xs rounded-xl bg-base-200 border-base-300 text-sm focus:border-primary"
                             placeholder="Enter UID"
                         />
-                        <button onClick={handlerFetchData} className="btn btn-success rounded-lg transition-colors">
+                        <button onClick={handlerFetchData} className="btn btn-sm btn-success rounded-xl font-bold">
                             {transI18n("getData")}
                         </button>
                         {selectedCharacters.length > 0 && (
-                            <button onClick={handleImport} className="btn btn-primary rounded-lg transition-colors">
+                            <button onClick={handleImport} className="btn btn-sm btn-primary rounded-xl font-bold shadow-xs">
                                 {transI18n("import")}
                             </button>
                         )}
                     </div>
                     {Error && (
-                        <div className="text-error text-base mt-2">😭 {Error}</div>
+                        <div className="text-error text-sm font-semibold mt-2">😭 {Error}</div>
                     )}
 
                     {/* Player Info */}
                     {enkaData && (
-                        <div className="text-white space-y-2">
-                            <div className="text-lg">Name: {enkaData.detailInfo.nickname}</div>
-                            <div className="text-lg">UID: {enkaData.detailInfo.uid}</div>
-                            <div className="text-lg">Level: {enkaData.detailInfo.level}</div>
+                        <div className="bg-base-200 p-4 rounded-xl border border-base-300 text-base-content space-y-1">
+                            <div className="text-sm font-semibold">Name: <span className="font-bold text-primary">{enkaData.detailInfo.nickname}</span></div>
+                            <div className="text-sm font-semibold">UID: <span className="font-mono">{enkaData.detailInfo.uid}</span></div>
+                            <div className="text-sm font-semibold">Level: <span className="font-bold">{enkaData.detailInfo.level}</span></div>
                         </div>
                     )}
 
                     {/* Selection Info */}
-                    <div className="mt-6 flex items-center gap-4 bg-slate-800/50 p-4 rounded-lg">
-                        <span className="text-blue-400 font-medium">
-                            {transI18n("selectedCharacters")}: {selectedCharacters.length}
-                        </span>
-                        <button
-                            onClick={clearSelection}
-                            className="text-error/75 hover:text-error text-sm font-medium px-3 py-1 border border-error/75 rounded hover:bg-error/10 transition-colors cursor-pointer"
-                        >
-                            {transI18n("clearAll")}
-                        </button>
-                        <button onClick={selectAll} className="text-primary/75 hover:text-primary text-sm font-medium px-3 py-1 border border-primary/75 rounded hover:bg-primary/10 transition-colors cursor-pointer">
-                            {transI18n("selectAll")}
-                        </button>
+                    <div className="flex flex-wrap items-center justify-between gap-3 bg-base-200 border border-base-300 p-3.5 rounded-2xl shadow-xs">
+                        <div className="flex items-center gap-2">
+                            <span className="text-xs sm:text-sm font-bold text-base-content">
+                                {transI18n("selectedCharacters")}:
+                            </span>
+                            <span className="badge badge-primary font-mono font-bold text-xs">
+                                {selectedCharacters.length}
+                            </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={clearSelection}
+                                className="btn btn-xs sm:btn-sm btn-ghost text-error hover:bg-error/10 border border-error/30 rounded-xl"
+                            >
+                                {transI18n("clearAll")}
+                            </button>
+                            <button
+                                onClick={selectAll}
+                                className="btn btn-xs sm:btn-sm btn-ghost text-primary hover:bg-primary/10 border border-primary/30 rounded-xl"
+                            >
+                                {transI18n("selectAll")}
+                            </button>
+                        </div>
                     </div>
                 </div>
                 {isLoading && (

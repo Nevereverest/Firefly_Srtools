@@ -4,9 +4,12 @@ import { getPFEventListApi } from '@/lib/api'
 import { useEffect } from 'react'
 import useDetailDataStore from '@/stores/detailDataStore'
 import { toast } from 'react-toastify'
+import { useShallow } from 'zustand/react/shallow'
 
 export const useFetchPFGroupData = () => {
-    const { setMapPF } = useDetailDataStore()
+    const { setMapPF } = useDetailDataStore(
+        useShallow((state) => ({ setMapPF: state.setMapPF }))
+    )
     const query = useQuery({
         queryKey: ['PFGroupData'],
         queryFn: getPFEventListApi,

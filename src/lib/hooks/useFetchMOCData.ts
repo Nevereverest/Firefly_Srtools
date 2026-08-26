@@ -4,9 +4,12 @@ import { getMOCEventListApi } from '@/lib/api'
 import { useEffect } from 'react'
 import useDetailDataStore from '@/stores/detailDataStore'
 import { toast } from 'react-toastify'
+import { useShallow } from 'zustand/react/shallow'
 
 export const useFetchMOCGroupData = () => {
-    const { setMapMoc } = useDetailDataStore()
+    const { setMapMoc } = useDetailDataStore(
+        useShallow((state) => ({ setMapMoc: state.setMapMoc }))
+    )
     const query = useQuery({
         queryKey: ['MOCGroupData'],
         queryFn: getMOCEventListApi,

@@ -11,12 +11,32 @@ import { useTranslations } from "next-intl";
 import SelectCustomImage from "../select/customSelectImage";
 import useCurrentDataStore from "@/stores/currentDataStore";
 import useDetailDataStore from "@/stores/detailDataStore";
+import { useShallow } from "zustand/react/shallow";
 
 export default function CopyImport() {
-    const { avatars, setAvatar } = useUserDataStore();
-    const { avatarSelected } = useCurrentDataStore()
-    const { mapAvatar, baseType, damageType } = useDetailDataStore()
-    const { locale } = useLocaleStore()
+    const { avatars, setAvatar } = useUserDataStore(
+        useShallow((state) => ({
+            avatars: state.avatars,
+            setAvatar: state.setAvatar,
+        }))
+    );
+    const { avatarSelected } = useCurrentDataStore(
+        useShallow((state) => ({
+            avatarSelected: state.avatarSelected,
+        }))
+    );
+    const { mapAvatar, baseType, damageType } = useDetailDataStore(
+        useShallow((state) => ({
+            mapAvatar: state.mapAvatar,
+            baseType: state.baseType,
+            damageType: state.damageType,
+        }))
+    );
+    const { locale } = useLocaleStore(
+        useShallow((state) => ({
+            locale: state.locale,
+        }))
+    );
     const {
         selectedProfiles,
         avatarCopySelected,
@@ -28,7 +48,20 @@ export default function CopyImport() {
         setListElement,
         setListPath,
         setListRank
-    } = useCopyProfileStore()
+    } = useCopyProfileStore(
+        useShallow((state) => ({
+            selectedProfiles: state.selectedProfiles,
+            avatarCopySelected: state.avatarCopySelected,
+            setSelectedProfiles: state.setSelectedProfiles,
+            setAvatarCopySelected: state.setAvatarCopySelected,
+            listElement: state.listElement,
+            listPath: state.listPath,
+            listRank: state.listRank,
+            setListElement: state.setListElement,
+            setListPath: state.setListPath,
+            setListRank: state.setListRank,
+        }))
+    );
     const transI18n = useTranslations("DataPage")
 
     const [message, setMessage] = useState({
@@ -129,15 +162,14 @@ export default function CopyImport() {
             if (!selectedKeys.has(index) || (!profile.lightcone?.item_id && Object.keys(profile.relics ?? {}).length == 0)) {
                 return null;
             }
-            return {
-                ...profile,
-                profile_name: profile.profile_name + ` - Copy: ${avatarCopySelected?.ID}`,
-            } as AvatarProfileStore
-        }).filter((profile) => profile !== null);
+            const cloned = structuredClone(profile);
+            cloned.profile_name = profile.profile_name + ` - Copy: ${avatarCopySelected?.ID}`;
+            return cloned as AvatarProfileStore;
+        }).filter((profile): profile is AvatarProfileStore => profile !== null);
 
         const newAvatar = {
             ...targetAvatar,
-            profileList: targetAvatar.profileList.concat(newListProfile),
+            profileList: [...targetAvatar.profileList, ...newListProfile],
             profileSelect: targetAvatar.profileList.length + newListProfile.length - 1,
         }
         setAvatar(newAvatar);
@@ -149,143 +181,168 @@ export default function CopyImport() {
     };
 
     return (
-        <div className="rounded-lg px-2 min-h-[60vh]">
-            <div className="max-w-7xl mx-auto">
-                {/* Header */}
-                <div className="mb-2">
-
-                    <div className="mt-2 w-full">
-
-                        <div className="flex items-start flex-col gap-2 mt-2 w-full">
-                            <div>{transI18n("filter")}</div>
-                            <div className="flex flex-wrap justify-start gap-5 md:gap-10 mt-2 w-full">
-                                {/* Path */}
-                                <div>
-                                    <div className="flex flex-wrap gap-2 justify-start items-center">
-                                        {Object.entries(baseType).filter(([key]) => key !== "").map(([key, value]) => (
-                                            <div
-                                                key={key}
-                                                onClick={() => {
-                                                    setListPath({ ...listPath, [key]: !listPath[key] })
-                                                }}
-                                                className="w-12.5 h-12.5 hover:bg-gray-600 grid items-center justify-items-center rounded-md shadow-md cursor-pointer"
-                                                style={{
-                                                    backgroundColor: listPath[key] ? "#374151" : "#6B7280"
-                                                }}>
-                                                <Image
-                                                    unoptimized
-                                                    crossOrigin="anonymous"
-                                                    src={`${process.env.CDN_URL}/${value.Icon}`}
-                                                    alt={key}
-                                                    className="h-8 w-8 object-contain rounded-md"
-                                                    width={200}
-                                                    height={200}
-                                                />
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                {/* Element */}
-                                <div>
-                                    <div className="flex flex-wrap gap-2 justify-start items-center">
-                                        {Object.entries(damageType).filter(([key]) => key !== "").map(([key, value]) => (
-                                            <div
-                                                key={key}
-                                                onClick={() => {
-                                                    setListElement({ ...listElement, [key]: !listElement[key] })
-                                                }}
-                                                className="w-12.5 h-12.5 hover:bg-gray-600 grid items-center justify-items-center rounded-md shadow-md cursor-pointer"
-                                                style={{
-                                                    backgroundColor: listElement[key] ? "#374151" : "#6B7280"
-                                                }}>
-                                                <Image
-                                                    unoptimized
-                                                    crossOrigin="anonymous"
-                                                    src={`${process.env.CDN_URL}/${value.Icon}`}
-                                                    alt={key}
-                                                    className="h-7 w-7 2xl:h-10 2xl:w-10 object-contain rounded-md"
-                                                    width={200}
-                                                    height={200}
-                                                />
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                {/* Rank */}
-                                <div>
-                                    <div className="flex flex-wrap gap-2 justify-end items-center">
-                                        {Object.entries(listRank).map(([key], index) => (
-                                            <div
-                                                key={index}
-                                                onClick={() => {
-                                                    setListRank({ ...listRank, [key]: !listRank[key] })
-                                                }}
-                                                className="w-12.5 h-12.5 hover:bg-gray-600 grid items-center justify-items-center rounded-md shadow-md cursor-pointer"
-                                                style={{
-                                                    backgroundColor: listRank[key] ? "#374151" : "#6B7280"
-                                                }}>
-                                                <div className="font-bold text-white h-8 w-8 text-center flex items-center justify-center">{key}*</div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
+        <div className="rounded-2xl p-2 sm:p-4 min-h-[50vh] space-y-4">
+            <div className="max-w-7xl mx-auto space-y-4">
+                {/* Header & Filters Card */}
+                <div className="bg-base-100 rounded-2xl p-4 border border-base-300 shadow-sm space-y-4">
+                    {/* Filters Section */}
+                    <div className="space-y-3">
+                        <div className="text-xs font-bold uppercase tracking-wider text-base-content/60">{transI18n("filter")}</div>
+                        
+                        <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+                            {/* Path Filters */}
+                            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                                {Object.entries(baseType).filter(([key]) => key !== "").map(([key, value]) => {
+                                    const isActive = !!listPath[key];
+                                    return (
+                                        <button
+                                            key={key}
+                                            type="button"
+                                            onClick={() => setListPath({ ...listPath, [key]: !listPath[key] })}
+                                            className={`h-10 w-10 sm:h-12 sm:w-12 rounded-2xl transition-all duration-150 active-press border flex items-center justify-center cursor-pointer ${
+                                                isActive
+                                                    ? "bg-primary/20 border-primary ring-2 ring-primary/50 shadow-sm scale-105"
+                                                    : "bg-base-200 hover:bg-base-300 border-base-300 opacity-80 hover:opacity-100"
+                                            }`}
+                                            title={key}
+                                        >
+                                            <Image
+                                                unoptimized
+                                                crossOrigin="anonymous"
+                                                src={`${process.env.CDN_URL}/${value.Icon}`}
+                                                alt={key}
+                                                className={`w-6 h-6 sm:w-7 sm:h-7 object-contain ${
+                                                    isActive ? "theme-path-icon-active" : "theme-path-icon"
+                                                }`}
+                                                width={32}
+                                                height={32}
+                                            />
+                                        </button>
+                                    );
+                                })}
                             </div>
 
-                        </div>
-                        <div className="grid grid-cols-1 gap-2">
+                            <div className="h-8 w-px bg-base-300 hidden md:block" />
 
-                            {listAvatar.length > 0 && (
-                                <div>
-                                    <div>{transI18n("characterName")}</div>
-                                    <SelectCustomImage
-                                        customSet={listAvatar.map((avatar) => ({
-                                            value: avatar.ID.toString(),
-                                            label: getNameChar(locale, transI18n, avatar),
-                                            imageUrl: `${process.env.CDN_URL}/${avatar.Image.AvatarIconPath}`
-                                        }))}
-                                        excludeSet={[]}
-                                        selectedCustomSet={avatarCopySelected?.ID.toString() || ""}
-                                        placeholder="Character Select"
-                                        setSelectedCustomSet={(value) => setAvatarCopySelected(mapAvatar[value] || null)}
-                                    />
-                                </div>
-                            )}
+                            {/* Element Filters */}
+                            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                                {Object.entries(damageType).filter(([key]) => key !== "").map(([key, value]) => {
+                                    const isActive = !!listElement[key];
+                                    return (
+                                        <button
+                                            key={key}
+                                            type="button"
+                                            onClick={() => setListElement({ ...listElement, [key]: !listElement[key] })}
+                                            className={`h-10 w-10 sm:h-12 sm:w-12 rounded-2xl transition-all duration-150 active-press border flex items-center justify-center cursor-pointer ${
+                                                isActive
+                                                    ? "bg-primary/20 border-primary ring-2 ring-primary/50 shadow-sm scale-105"
+                                                    : "bg-base-200 hover:bg-base-300 border-base-300 opacity-80 hover:opacity-100"
+                                            }`}
+                                            title={key}
+                                        >
+                                            <Image
+                                                unoptimized
+                                                crossOrigin="anonymous"
+                                                src={`${process.env.CDN_URL}/${value.Icon}`}
+                                                alt={key}
+                                                className="w-6 h-6 sm:w-7 sm:h-7 object-contain drop-shadow-xs"
+                                                width={32}
+                                                height={32}
+                                            />
+                                        </button>
+                                    );
+                                })}
+                            </div>
 
+                            <div className="h-8 w-px bg-base-300 hidden md:block" />
+
+                            {/* Rank Filters */}
+                            <div className="flex items-center gap-1.5 sm:gap-2">
+                                {Object.entries(listRank).map(([key], index) => {
+                                    const isActive = !!listRank[key];
+                                    return (
+                                        <button
+                                            key={index}
+                                            type="button"
+                                            onClick={() => setListRank({ ...listRank, [key]: !listRank[key] })}
+                                            className={`h-10 px-3.5 sm:h-12 sm:px-4.5 rounded-2xl transition-all duration-150 active-press border flex items-center justify-center text-xs sm:text-sm font-mono font-bold cursor-pointer ${
+                                                isActive
+                                                    ? "bg-primary text-primary-content border-primary shadow-sm scale-105"
+                                                    : "bg-base-200 hover:bg-base-300 text-base-content/70 border-base-300"
+                                            }`}
+                                        >
+                                            {key}★
+                                        </button>
+                                    );
+                                })}
+                            </div>
                         </div>
                     </div>
 
+                    {/* Character Select Dropdown */}
+                    {listAvatar.length > 0 && (
+                        <div className="space-y-1.5 pt-2 border-t border-base-300/60">
+                            <div className="text-xs font-bold text-base-content/70">{transI18n("characterName")}</div>
+                            <SelectCustomImage
+                                customSet={listAvatar.map((avatar) => ({
+                                    value: avatar.ID.toString(),
+                                    label: getNameChar(locale, transI18n, avatar),
+                                    imageUrl: `${process.env.CDN_URL}/${avatar.Image.AvatarIconPath}`
+                                }))}
+                                excludeSet={[]}
+                                selectedCustomSet={avatarCopySelected?.ID.toString() || ""}
+                                placeholder="Character Select"
+                                setSelectedCustomSet={(value) => setAvatarCopySelected(mapAvatar[value] || null)}
+                            />
+                        </div>
+                    )}
+                </div>
 
-
-                    {/* Selection Info */}
-                    <div className="mt-6 flex items-center gap-4 bg-slate-800/50 p-4 rounded-lg">
-                        <span className="text-blue-400 font-medium">
-                            {transI18n("selectedProfiles")}: {selectedProfiles.length}
+                {/* Selection Action Bar */}
+                <div className="bg-base-200 border border-base-300 rounded-2xl p-3.5 flex flex-wrap items-center justify-between gap-3 shadow-xs">
+                    <div className="flex items-center gap-2">
+                        <span className="text-xs sm:text-sm font-bold text-base-content">
+                            {transI18n("selectedProfiles")}:
                         </span>
+                        <span className="badge badge-primary font-mono font-bold text-xs">
+                            {selectedProfiles.length}
+                        </span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
                         <button
                             onClick={clearSelection}
-                            className="text-error/75 hover:text-error text-sm font-medium px-3 py-1 border border-error/75 rounded hover:bg-error/10 transition-colors cursor-pointer"
+                            className="btn btn-xs sm:btn-sm btn-ghost text-error hover:bg-error/10 border border-error/30 rounded-xl"
                         >
                             {transI18n("clearAll")}
                         </button>
                         <button
                             onClick={selectAll}
-                            className="text-primary/75 hover:text-primary text-sm font-medium px-3 py-1 border border-primary/75 rounded hover:bg-primary/10 transition-colors cursor-pointer">
+                            className="btn btn-xs sm:btn-sm btn-ghost text-primary hover:bg-primary/10 border border-primary/30 rounded-xl"
+                        >
                             {transI18n("selectAll")}
                         </button>
                         {selectedProfiles.length > 0 && (
                             <button
                                 onClick={handleCopy}
-                                className="text-success/75 hover:text-success text-sm font-medium px-3 py-1 border border-success/75 rounded hover:bg-success/10 transition-colors cursor-pointer">
+                                className="btn btn-xs sm:btn-sm btn-primary rounded-xl font-bold shadow-xs"
+                            >
                                 {transI18n("copy")}
                             </button>
                         )}
                     </div>
-                    {message.type && message.text && (
-                        <div className={(message.type == "error" ? "text-error" : "text-success") + " text-lg mt-2"} >{message.type == "error" ? "😭" : "🎉"} {message.text}</div>
-                    )}
                 </div>
+
+                {message.type && message.text && (
+                    <div className={`p-3 rounded-xl border text-xs sm:text-sm font-semibold flex items-center gap-2 ${
+                        message.type === "error"
+                            ? "bg-error/10 text-error border-error/30"
+                            : "bg-success/10 text-success border-success/30"
+                    }`}>
+                        <span>{message.type === "error" ? "⚠️" : "🎉"}</span>
+                        <span>{message.text}</span>
+                    </div>
+                )}
 
                 {/* Character Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

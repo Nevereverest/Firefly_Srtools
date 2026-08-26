@@ -126,7 +126,7 @@
 		"lightconeEquipment": "Trang bị nón ánh sáng",
 		"lightconeSettings": "Cài đặt nón ánh sáng",
 		"placeholderLevel": "Nhập cấp độ",
-		"superimpositionRank": "Bậc chồng kỹ năng",
+		"superimpositionRank": "Tích tầng",
 		"ranksNote": "Bậc càng cao hiệu ứng càng mạnh",
 		"changeLightcone": "Thay đổi nón ánh sáng",
 		"removeLightcone": "Gỡ nón ánh sáng",
@@ -285,6 +285,8 @@
 		"trailblazer": "Nhà khai phá",
 		"listExtraEffect": "Danh sách hiệu ứng bổ sung",
 		"extra": "Bổ sung",
-		"customLineup": "Đội hình tùy chỉnh"
+		"customLineup": "Đội hình tùy chỉnh",
+		"def": "Phòng thủ",
+		"language": "Ngôn ngữ"
 	}
 }

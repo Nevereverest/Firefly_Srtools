@@ -286,6 +286,8 @@
         "trailblazer": "Trailblazer",
         "listExtraEffect": "Daftar Efek Ekstra",
         "extra": "Ekstra",
-        "customLineup": "Lineup Kustom"
+        "customLineup": "Lineup Kustom",
+        "def": "DEF",
+        "language": "Bahasa"
     }
 }

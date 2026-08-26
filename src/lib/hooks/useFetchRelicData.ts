@@ -4,9 +4,12 @@ import { getRelicSetListApi } from '@/lib/api'
 import { useEffect } from 'react'
 import useDetailDataStore from '@/stores/detailDataStore'
 import { toast } from 'react-toastify'
+import { useShallow } from 'zustand/react/shallow'
 
 export const useFetchRelicSetData = () => {
-    const { setMapRelicSet } = useDetailDataStore()
+    const { setMapRelicSet } = useDetailDataStore(
+        useShallow((state) => ({ setMapRelicSet: state.setMapRelicSet }))
+    )
     const query = useQuery({
         queryKey: ['RelicSetData'],
         queryFn: getRelicSetListApi,

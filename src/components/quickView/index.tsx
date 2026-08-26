@@ -9,15 +9,29 @@ import RelicShowcase from "../showcaseCard/relicShowcase";
 import useLocaleStore from "@/stores/localeStore";
 import useDetailDataStore from "@/stores/detailDataStore";
 import useCurrentDataStore from "@/stores/currentDataStore";
+import { useShallow } from "zustand/react/shallow";
 
 export default function QuickView() {
-    const { avatars } = useUserDataStore()
+    const { avatars } = useUserDataStore(
+        useShallow((state) => ({ avatars: state.avatars }))
+    )
     const transI18n = useTranslations("DataPage")
-    const { locale } = useLocaleStore()
-    const { avatarSelected,  } = useCurrentDataStore()
-    const { mainAffix, subAffix, mapRelicSet, mapLightCone, mapAvatar  } = useDetailDataStore()
+    const { locale } = useLocaleStore(
+        useShallow((state) => ({ locale: state.locale }))
+    )
+    const { avatarSelected } = useCurrentDataStore(
+        useShallow((state) => ({ avatarSelected: state.avatarSelected }))
+    )
+    const { mainAffix, subAffix, mapRelicSet, mapLightCone, mapAvatar } = useDetailDataStore(
+        useShallow((state) => ({
+            mainAffix: state.mainAffix,
+            subAffix: state.subAffix,
+            mapRelicSet: state.mapRelicSet,
+            mapLightCone: state.mapLightCone,
+            mapAvatar: state.mapAvatar,
+        }))
+    )
 
- 
     const avatarSkillTree = useMemo(() => {
         if (!avatarSelected || !avatars[avatarSelected?.ID?.toString()]) return {}
         if (avatars[avatarSelected?.ID?.toString()].enhanced) {
@@ -33,18 +47,17 @@ export default function QuickView() {
 
     const avatarProfile = useMemo(() => {
         if (!avatarSelected || !avatarData) return
-        return avatarData?.profileList?.[avatarData?.profileSelect]
+        return avatarData?.profileList?.[avatarData?.profileSelect] ?? avatarData?.profileList?.[0]
     }, [avatarSelected, avatarData])
 
     const relicEffects = useMemo(() => {
         const avatar = avatars[avatarSelected?.ID?.toString() || ""];
         const relicCount: { [key: string]: number } = {};
-        if (avatar) {
-            for (const relic of Object.values(avatar.profileList[avatar.profileSelect].relics)) {
-                if (relicCount[relic.relic_set_id]) {
-                    relicCount[relic.relic_set_id]++;
-                } else {
-                    relicCount[relic.relic_set_id] = 1;
+        const profile = avatar?.profileList?.[avatar?.profileSelect] ?? avatar?.profileList?.[0];
+        if (profile?.relics) {
+            for (const relic of Object.values(profile.relics)) {
+                if (relic && relic.relic_set_id) {
+                    relicCount[relic.relic_set_id] = (relicCount[relic.relic_set_id] || 0) + 1;
                 }
             }
         }
@@ -108,7 +121,7 @@ export default function QuickView() {
                     mapAvatar?.[avatarSelected?.ID?.toString()]?.Stats[charPromotion]?.HPAdd,
                     avatarData.level
                 ),
-                name: "HP",
+                name: transI18n("hp"),
                 icon: "spriteoutput/ui/avatar/icon/IconMaxHP.png",
                 unit: "",
                 round: 0
@@ -124,7 +137,7 @@ export default function QuickView() {
                     mapAvatar?.[avatarSelected?.ID?.toString()]?.Stats[charPromotion]?.AttackAdd,
                     avatarData.level
                 ),
-                name: "ATK",
+                name: transI18n("atk"),
                 icon: "spriteoutput/ui/avatar/icon/IconAttack.png",
                 unit: "",
                 round: 0
@@ -140,7 +153,7 @@ export default function QuickView() {
                     mapAvatar?.[avatarSelected?.ID?.toString()]?.Stats[charPromotion]?.DefenceAdd,
                     avatarData.level
                 ),
-                name: "DEF",
+                name: transI18n("def"),
                 icon: "spriteoutput/ui/avatar/icon/IconDefence.png",
                 unit: "",
                 round: 0
@@ -148,7 +161,7 @@ export default function QuickView() {
             SPD: {
                 value: mapAvatar?.[avatarSelected?.ID?.toString()]?.Stats[charPromotion]?.SpeedBase || 0,
                 base: mapAvatar?.[avatarSelected?.ID?.toString()]?.Stats[charPromotion]?.SpeedBase || 0,
-                name: "SPD",
+                name: transI18n("speed"),
                 icon: "spriteoutput/ui/avatar/icon/IconSpeed.png",
                 unit: "",
                 round: 1
@@ -156,7 +169,7 @@ export default function QuickView() {
             CRITRate: {
                 value: mapAvatar?.[avatarSelected?.ID?.toString()]?.Stats[charPromotion]?.CriticalChance || 0,
                 base: mapAvatar?.[avatarSelected?.ID?.toString()]?.Stats[charPromotion]?.CriticalChance || 0,
-                name: "CRIT Rate",
+                name: transI18n("critRate"),
                 icon: "spriteoutput/ui/avatar/icon/IconCriticalChance.png",
                 unit: "%",
                 round: 1
@@ -164,7 +177,7 @@ export default function QuickView() {
             CRITDmg: {
                 value: mapAvatar?.[avatarSelected?.ID?.toString()]?.Stats[charPromotion]?.CriticalDamage || 0,
                 base: mapAvatar?.[avatarSelected?.ID?.toString()]?.Stats[charPromotion]?.CriticalDamage || 0,
-                name: "CRIT DMG",
+                name: transI18n("critDmg"),
                 icon: "spriteoutput/ui/avatar/icon/IconCriticalDamage.png",
                 unit: "%",
                 round: 1
@@ -172,7 +185,7 @@ export default function QuickView() {
             BreakEffect: {
                 value: 0,
                 base: 0,
-                name: "Break Effect",
+                name: transI18n("breakEffect"),
                 icon: "spriteoutput/ui/avatar/icon/IconBreakUp.png",
                 unit: "%",
                 round: 1
@@ -180,7 +193,7 @@ export default function QuickView() {
             EffectRES: {
                 value: 0,
                 base: 0,
-                name: "Effect RES",
+                name: transI18n("effectRes"),
                 icon: "spriteoutput/ui/avatar/icon/IconStatusResistance.png",
                 unit: "%",
                 round: 1
@@ -188,7 +201,7 @@ export default function QuickView() {
             EnergyRate: {
                 value: 0,
                 base: 0,
-                name: "Energy Rate",
+                name: transI18n("energyRegenerationRate"),
                 icon: "spriteoutput/ui/avatar/icon/IconEnergyRecovery.png",
                 unit: "%",
                 round: 1
@@ -196,7 +209,7 @@ export default function QuickView() {
             EffectHitRate: {
                 value: 0,
                 base: 0,
-                name: "Effect Hit Rate",
+                name: transI18n("effectHitRate"),
                 icon: "spriteoutput/ui/avatar/icon/IconStatusProbability.png",
                 unit: "%",
                 round: 1
@@ -204,7 +217,7 @@ export default function QuickView() {
             HealBoost: {
                 value: 0,
                 base: 0,
-                name: "Healing Boost",
+                name: transI18n("outgoingHealingBoost"),
                 icon: "spriteoutput/ui/avatar/icon/IconHealRatio.png",
                 unit: "%",
                 round: 1
@@ -212,7 +225,7 @@ export default function QuickView() {
             PhysicalAdd: {
                 value: 0,
                 base: 0,
-                name: "Physical Boost",
+                name: transI18n("physicalDmgBoost"),
                 icon: "spriteoutput/ui/avatar/icon/IconPhysicalAddedRatio.png",
                 unit: "%",
                 round: 1
@@ -220,7 +233,7 @@ export default function QuickView() {
             FireAdd: {
                 value: 0,
                 base: 0,
-                name: "Fire Boost",
+                name: transI18n("fireDmgBoost"),
                 icon: "spriteoutput/ui/avatar/icon/IconFireAddedRatio.png",
                 unit: "%",
                 round: 1
@@ -228,7 +241,7 @@ export default function QuickView() {
             IceAdd: {
                 value: 0,
                 base: 0,
-                name: "Ice Boost",
+                name: transI18n("iceDmgBoost"),
                 icon: "spriteoutput/ui/avatar/icon/IconIceAddedRatio.png",
                 unit: "%",
                 round: 1
@@ -236,7 +249,7 @@ export default function QuickView() {
             ThunderAdd: {
                 value: 0,
                 base: 0,
-                name: "Thunder Boost",
+                name: transI18n("thunderDmgBoost"),
                 icon: "spriteoutput/ui/avatar/icon/IconThunderAddedRatio.png",
                 unit: "%",
                 round: 1
@@ -244,7 +257,7 @@ export default function QuickView() {
             WindAdd: {
                 value: 0,
                 base: 0,
-                name: "Wind Boost",
+                name: transI18n("windDmgBoost"),
                 icon: "spriteoutput/ui/avatar/icon/IconWindAddedRatio.png",
                 unit: "%",
                 round: 1
@@ -252,7 +265,7 @@ export default function QuickView() {
             QuantumAdd: {
                 value: 0,
                 base: 0,
-                name: "Quantum Boost",
+                name: transI18n("quantumDmgBoost"),
                 icon: "spriteoutput/ui/avatar/icon/IconQuantumAddedRatio.png",
                 unit: "%",
                 round: 1
@@ -260,7 +273,7 @@ export default function QuickView() {
             ImaginaryAdd: {
                 value: 0,
                 base: 0,
-                name: "Imaginary Boost",
+                name: transI18n("imaginaryDmgBoost"),
                 icon: "spriteoutput/ui/avatar/icon/IconImaginaryAddedRatio.png",
                 unit: "%",
                 round: 1
@@ -268,7 +281,7 @@ export default function QuickView() {
             ElationAdd: {
                 value: 0,
                 base: 0,
-                name: "Elation Boost",
+                name: transI18n("elation"),
                 icon: "spriteoutput/ui/avatar/icon/IconJoy.png",
                 unit: "%",
                 round: 1
@@ -284,7 +297,7 @@ export default function QuickView() {
             )
             statsData.HP.base += calcBaseStatRaw(
                 mapLightCone?.[avatarProfile?.lightcone?.item_id]?.Stats?.[lightconePromotion]?.BaseHP,
-                mapLightCone?.[avatarProfile?.lightcone?.item_id]?.Stats?.[lightconePromotion]?.BaseHPAdd,
+                mapLightCone?.[avatarProfile?.lightcone?.item_id]?.Stats[lightconePromotion]?.BaseHPAdd,
                 avatarProfile?.lightcone?.level
             )
             statsData.ATK.value += calcBaseStatRaw(
@@ -342,8 +355,6 @@ export default function QuickView() {
             })
         }
 
-
-
         if (avatarProfile?.relics && mainAffix && subAffix) {
             Object.entries(avatarProfile?.relics).forEach(([key, value]) => {
                 const mainAffixMap = mainAffix["5" + key]
@@ -378,7 +389,6 @@ export default function QuickView() {
             })
         }
 
-
         return statsData
     }, [
         avatarSelected,
@@ -395,64 +405,89 @@ export default function QuickView() {
     ])
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="col-span-1 md:col-span-2 flex flex-col justify-between py-3">
-                <div className="flex w-full flex-col justify-between gap-y-0.5 text-base">
-                    {Object.entries(characterStats || {})?.map(([key, stat], index) => {
-                        if (!stat || (key.includes("Add") && stat.value === 0)) return null
-                        return (
-                            <div key={index} className="flex flex-row items-center justify-between">
-                                <div className="flex flex-row items-center">
-                                    <NextImage 
-                                        src={`${process.env.CDN_URL}/${stat?.icon}`} 
-                                        unoptimized
-                                        crossOrigin="anonymous"
-                                        alt="Stat Icon" 
-                                        width={40} 
-                                        height={40} 
-                                        className="h-10 w-10 p-1 mx-1 bg-black/20 rounded-full" 
-                                    />
-                                    <div className="font-bold">{stat.name}</div>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 pt-1">
+            {/* Stats Overview Column - Clean Minimal Grid, No Box-in-Box */}
+            <div className="lg:col-span-6 space-y-6">
+                <div className="space-y-3">
+                    <div className="flex items-center justify-between pb-2 border-b border-base-content/10">
+                        <div className="flex items-center gap-2">
+                            <span className="w-1 h-3.5 bg-primary rounded-full" />
+                            <h3 className="text-xs font-bold uppercase tracking-wider text-base-content/90">
+                                {transI18n("character")}
+                            </h3>
+                        </div>
+                        <span className="text-xs font-mono font-medium text-base-content/60">
+                            {transI18n("level")} {avatarData?.level || 1}
+                        </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-xs">
+                        {Object.entries(characterStats || {})?.map(([key, stat], index) => {
+                            if (!stat || (key.includes("Add") && stat.value === 0)) return null
+                            return (
+                                <div
+                                    key={index}
+                                    className="flex items-center justify-between py-1.5 border-b border-base-content/5"
+                                >
+                                    <div className="flex items-center gap-2 min-w-0 pr-2">
+                                        <NextImage
+                                            src={`${process.env.CDN_URL}/${stat?.icon}`}
+                                            unoptimized
+                                            crossOrigin="anonymous"
+                                            alt={stat.name}
+                                            width={20}
+                                            height={20}
+                                            className="h-5 w-5 theme-stat-icon shrink-0 object-contain"
+                                        />
+                                        <span className="font-medium text-base-content/80 truncate">{stat.name}</span>
+                                    </div>
+                                    <span className="font-mono font-semibold text-primary shrink-0 text-right">
+                                        {stat.value ? stat.unit === "%" ? (stat.value * 100).toFixed(stat.round) : stat.value.toFixed(stat.round) : 0}
+                                        <span className="text-[10px] font-normal opacity-80 ml-0.5">{stat.unit}</span>
+                                    </span>
                                 </div>
-                                <div className="ml-3 mr-3 grow border rounded opacity-50" />
-                                <div className="flex cursor-default flex-col text-right font-bold">{
-                                    stat.value ? stat.unit === "%" ? (stat.value * 100).toFixed(stat.round) : stat.value.toFixed(stat.round) : 0
-                                }{stat.unit}</div>
-                            </div>
-                        )
-                    })}
-                    <hr />
+                            )
+                        })}
+                    </div>
                 </div>
 
-                <div className="flex flex-col items-center gap-1 w-full my-2">
-                    {relicEffects.map((setEffect, index) => {
-                        const relicInfo = mapRelicSet[setEffect.key];
-                        if (!relicInfo) return null;
-                        return (
-                            <div key={index} className="flex w-full flex-row justify-between text-left">
-                                <div
-                                    className="font-bold truncate max-w-full mr-1"
-                                    style={{
-                                        fontSize: 'clamp(0.5rem, 2vw, 1rem)'
-                                    }}
-                                    dangerouslySetInnerHTML={{
-                                        __html: replaceByParam(
-                                            getLocaleName(locale, relicInfo.Name),
-                                            []
-                                        )
-                                    }}
-                                />
-                                <div>
-                                    <span className="black-blur bg-black/20 flex w-5 justify-center rounded px-1.5 py-0.5">{setEffect.count}</span>
-                                </div>
-                            </div>
-                        )
-                    })}
-                </div>
+                {/* Set Effects - Flat Minimalist Row */}
+                {relicEffects.length > 0 && (
+                    <div className="space-y-2 pt-2">
+                        <div className="flex items-center gap-2 pb-1 border-b border-base-content/10">
+                            <span className="w-1 h-3.5 bg-amber-500 rounded-full" />
+                            <h4 className="text-xs font-bold uppercase tracking-wider text-base-content/90">
+                                {transI18n("relics")}
+                            </h4>
+                        </div>
+                        <div className="space-y-1">
+                            {relicEffects.map((setEffect, index) => {
+                                const relicInfo = mapRelicSet[setEffect.key];
+                                if (!relicInfo) return null;
+                                return (
+                                    <div
+                                        key={index}
+                                        className="flex items-center justify-between text-xs py-1.5 border-b border-base-content/5"
+                                    >
+                                        <div
+                                            className="font-medium text-base-content/90 truncate max-w-[80%]"
+                                            dangerouslySetInnerHTML={{
+                                                __html: replaceByParam(getLocaleName(locale, relicInfo.Name), [])
+                                            }}
+                                        />
+                                        <span className="font-mono font-semibold text-amber-600 dark:text-amber-400 text-xs shrink-0">
+                                            {setEffect.count} Pc
+                                        </span>
+                                    </div>
+                                )
+                            })}
+                        </div>
+                    </div>
+                )}
             </div>
 
-            <div className="grid grid-cols-1 gap-2 justify-between py-3 text-lg">
-
+            {/* Relic Equipment Cards Column */}
+            <div className="lg:col-span-6 space-y-2">
                 {relicStats?.map((relic, index) => {
                     if (!relic || !avatarSelected) return null
                     return (
@@ -461,10 +496,8 @@ export default function QuickView() {
                 })}
 
                 {(!relicStats || !relicStats?.length) && (
-                    <div className="flex flex-col items-center justify-center">
-                        <div className="text-center p-6 rounded-lg bg-black/40 backdrop-blur-sm border border-white/10">
-                            <span className="text-lg text-gray-400">{transI18n("noRelicEquipped")}</span>
-                        </div>
+                    <div className="p-8 text-center text-base-content/40 text-xs italic">
+                        {transI18n("noRelicEquipped")}
                     </div>
                 )}
             </div>

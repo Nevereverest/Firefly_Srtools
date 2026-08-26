@@ -18,6 +18,12 @@ export interface MazeBuff {
     Desc: Record<string, string>;
 }
 
+export interface Invasion {
+    ID: number;
+    MazeBuff: MazeBuff;
+    Desc: Record<string, string>;
+}
+
 export interface PFTierceLevel {
     ID: number;
     PreChallenge: number;
@@ -55,7 +61,12 @@ export interface BattleTarget {
     Param: number[];
     Name: Record<string, string>;
 }
-
+export interface InfiniteWave {
+    ID: number;
+    MaxMonsterCount: number;
+    MonsterList: number[];
+    EliteGroup: number;
+}
 export interface PFEvent {
     ID: number;
     Name: Record<string, string>;
@@ -64,12 +75,7 @@ export interface PFEvent {
     Level: number;
     Release: boolean;
     MonsterList: number[][];
+    Invasion: Invasion | null;
     Infinite?: InfiniteWave[] | null;
 }
 
-export interface InfiniteWave {
-    ID: number;
-    MaxMonsterCount: number;
-    MonsterList: number[];
-    EliteGroup: number;
-}

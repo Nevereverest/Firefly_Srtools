@@ -1,4 +1,4 @@
-import { InfiniteWave, MazeBuff } from "./pfDetail";
+import { InfiniteWave, Invasion, MazeBuff } from "./pfDetail";
 
 export interface MOCGroupDetail {
     ID: number;
@@ -40,6 +40,7 @@ export interface MoCTarget {
     Param: number[];
 }
 
+
 export interface MoCEvent {
     ID: number;
     Name: Record<string, string>;
@@ -48,5 +49,6 @@ export interface MoCEvent {
     Level: number;
     Release: boolean;
     MonsterList: number[][];
+    Invasion: Invasion | null;
     Infinite: InfiniteWave[] | null;
 }

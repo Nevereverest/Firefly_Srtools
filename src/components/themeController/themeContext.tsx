@@ -1,6 +1,7 @@
 "use client";
-import { createContext, PropsWithChildren, useEffect } from "react";
+import { createContext, PropsWithChildren, useCallback } from "react";
 import useLocaleStore from "@/stores/localeStore";
+import { useShallow } from "zustand/react/shallow";
 
 interface ThemeContextType {
     theme?: string;
@@ -9,29 +10,20 @@ interface ThemeContextType {
 export const ThemeContext = createContext<ThemeContextType>({});
 
 export const ThemeProvider = ({ children }: PropsWithChildren) => {
+    const { theme, setTheme } = useLocaleStore(
+        useShallow((state) => ({
+            theme: state.theme,
+            setTheme: state.setTheme,
+        }))
+    );
 
-    const { theme, setTheme } = useLocaleStore()
-
-    useEffect(() => {
-        if (typeof window !== "undefined") {
-            const storedTheme = localStorage.getItem("theme");
-            if (storedTheme) setTheme(storedTheme);
-        }
-    }, [setTheme]);
-
-    const changeTheme = (nextTheme: string | null) => {
+    const changeTheme = useCallback((nextTheme: string | null) => {
         if (nextTheme) {
             setTheme(nextTheme);
-            if (typeof window !== "undefined") {
-                localStorage.setItem("theme", nextTheme);
-            }
         } else {
             setTheme(theme === "winter" ? "night" : "winter");
-            if (typeof window !== "undefined") {
-                localStorage.setItem("theme", theme);
-            }
         }
-    };
+    }, [theme, setTheme]);
 
     return (
         <ThemeContext.Provider value={{ theme, changeTheme }}>

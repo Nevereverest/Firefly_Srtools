@@ -4,9 +4,12 @@ import { getPeakEventListApi } from '@/lib/api'
 import { useEffect } from 'react'
 import useDetailDataStore from '@/stores/detailDataStore'
 import { toast } from 'react-toastify'
+import { useShallow } from 'zustand/react/shallow'
 
 export const useFetchPeakGroupData = () => {
-    const { setMapPeak } = useDetailDataStore()
+    const { setMapPeak } = useDetailDataStore(
+        useShallow((state) => ({ setMapPeak: state.setMapPeak }))
+    )
     const query = useQuery({
         queryKey: ['PeakGroupData'],
         queryFn: getPeakEventListApi,

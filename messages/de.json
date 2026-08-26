@@ -286,6 +286,8 @@
 		"trailblazer": "Trailblazer",
 		"listExtraEffect": "Liste Zusatzeffekte",
 		"extra": "Extra",
-		"customLineup": "Benutzerdefinierte Aufstellung"
+		"customLineup": "Benutzerdefinierte Aufstellung",
+		"def": "VTD",
+		"language": "Sprache"
 	}
 }

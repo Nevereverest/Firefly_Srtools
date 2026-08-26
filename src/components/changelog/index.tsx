@@ -1,33 +1,35 @@
-
 import useLocaleStore from '@/stores/localeStore';
-import { Check, Sparkles, Bug, Zap, Package, Calendar } from 'lucide-react';
+import { useShallow } from 'zustand/react/shallow';
+import { Sparkles, Bug, Zap, Package, Calendar } from 'lucide-react';
 
 export default function ChangelogBar() {
-    const { changelog } = useLocaleStore()
+    const { changelog } = useLocaleStore(
+        useShallow((state) => ({ changelog: state.changelog }))
+    )
 
     const getIcon = (type: string) => {
         switch (type) {
             case 'feature':
-                return <Sparkles className="w-3 h-3 md:w-4 md:h-4" />;
+                return <Sparkles className="w-3.5 h-3.5" />;
             case 'fix':
-                return <Bug className="w-3 h-3 md:w-4 md:h-4" />;
+                return <Bug className="w-3.5 h-3.5" />;
             case 'improvement':
-                return <Zap className="w-3 h-3 md:w-4 md:h-4" />;
+                return <Zap className="w-3.5 h-3.5" />;
             default:
-                return <Package className="w-3 h-3 md:w-4 md:h-4" />;
+                return <Package className="w-3.5 h-3.5" />;
         }
     };
 
     const getBadgeClass = (type: string) => {
         switch (type) {
             case 'feature':
-                return 'badge-success';
+                return 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30';
             case 'fix':
-                return 'badge-error';
+                return 'bg-rose-500/15 text-rose-400 border-rose-500/30';
             case 'improvement':
-                return 'badge-warning';
+                return 'bg-amber-500/15 text-amber-400 border-amber-500/30';
             default:
-                return 'badge-info';
+                return 'bg-primary/15 text-primary border-primary/30';
         }
     };
 
@@ -45,44 +47,37 @@ export default function ChangelogBar() {
     };
 
     return (
-        <div className="md:p-4">
-            {/* Alert */}
-            {/* <div className="alert alert-info mb-4 md:p-2 p-1">
-                <AlertCircle className="w-6 h-6" />
-            </div> */}
-
-            {/* Timeline */}
-            <div className="flex flex-col gap-4">
+        <div className="space-y-4">
+            <div className="space-y-3">
                 {changelog.map((change, index) => (
-                    <div key={index} className="bg-base-100 shadow-sm">
-                        <div className="flex flex-col gap-2">
-                            {/* Version Header */}
-                            <div className="flex flex-row items-center gap-2 md:gap-3">
-                                <div className={`badge ${getBadgeClass(change.type)} gap-1 md:gap-2 p-1`}>
+                    <div key={index} className="p-4 sm:p-5 rounded-2xl bg-base-200/60 border border-white/10 shadow-lg space-y-3">
+                        {/* Version Header */}
+                        <div className="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-base-content/10">
+                            <div className="flex items-center gap-2">
+                                <span className={`px-2.5 py-1 rounded-full text-xs font-mono font-bold flex items-center gap-1.5 border ${getBadgeClass(change.type)}`}>
                                     {getIcon(change.type)}
                                     {getTypeLabel(change.type)}
-                                </div>
-                                <h2 className="card-title text-sm md:text-lg">
+                                </span>
+                                <h3 className="font-extrabold text-sm sm:text-base tracking-tight">
                                     Version {change.version}
-                                </h2>
-                                <div className="flex items-center gap-1 md:gap-2 text-base-content/60 ml-auto">
-                                    <Calendar className="w-3 h-3 md:w-4 md:h-4" />
-                                    <span className="text-sm">{change.date}</span>
-                                </div>
+                                </h3>
                             </div>
 
-                            {/* Changes List */}
-                            <ul className="space-y-3">
-                                {change.items.map((item, itemIndex) => (
-                                    <li key={itemIndex} className="flex items-start gap-3">
-                                        <div className="mt-1">
-                                            <Check className="w-5 h-5 text-success" />
-                                        </div>
-                                        <span className="text-base-content">{item}</span>
-                                    </li>
-                                ))}
-                            </ul>
+                            <div className="flex items-center gap-1.5 text-xs text-base-content/50 font-mono">
+                                <Calendar className="w-3.5 h-3.5" />
+                                <span>{change.date}</span>
+                            </div>
                         </div>
+
+                        {/* Changes List */}
+                        <ul className="space-y-2 pt-1 text-xs sm:text-sm text-base-content/85">
+                            {change.items.map((item, itemIndex) => (
+                                <li key={itemIndex} className="flex items-start gap-2.5">
+                                    <div className="mt-1 w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
+                                    <span className="leading-relaxed">{item}</span>
+                                </li>
+                            ))}
+                        </ul>
                     </div>
                 ))}
             </div>

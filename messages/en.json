@@ -37,6 +37,7 @@
 		"wind": "Wind",
 		"hp": "Hp",
 		"atk": "Atk",
+		"def": "Def",
 		"speed": "Speed",
 		"critRate": "Crit Rate",
 		"critDmg": "Crit Dmg",
@@ -286,6 +287,7 @@
 		"trailblazer": "Trailblazer",
 		"listExtraEffect": "List Extra Effect",
 		"extra": "Extra",
-		"customLineup": "Custom Lineup"
+		"customLineup": "Custom Lineup",
+		"language": "Language"
 	}
 }

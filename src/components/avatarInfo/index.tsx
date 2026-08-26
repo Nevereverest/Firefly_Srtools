@@ -3,7 +3,6 @@
 
 import useUserDataStore from "@/stores/userDataStore";
 import { useEffect, useMemo } from "react";
-import { motion } from "framer-motion";
 import LightconeBar from '../lightconeBar'
 import { calcPromotion, calcRarity, replaceByParam } from '@/helper';
 import { getSkillTree } from '@/helper/getSkillTree';
@@ -15,19 +14,61 @@ import Image from 'next/image';
 import useCurrentDataStore from "@/stores/currentDataStore";
 import useDetailDataStore from "@/stores/detailDataStore";
 import { getLocaleName } from "@/helper/getName";
+import { useShallow } from "zustand/react/shallow";
+
 export default function AvatarInfo() {
-    const { avatarSelected, setResetDataLightcone } = useCurrentDataStore()
-    const { avatars, setAvatars, setAvatar } = useUserDataStore()
-    const { isOpenLightcone, setIsOpenLightcone } = useModelStore()
-    const { mapLightCone, baseType } = useDetailDataStore()
+    const { avatarSelected, setResetDataLightcone } = useCurrentDataStore(
+        useShallow((state) => ({
+            avatarSelected: state.avatarSelected,
+            setResetDataLightcone: state.setResetDataLightcone,
+        }))
+    )
+    const { avatars, setAvatars, setAvatar } = useUserDataStore(
+        useShallow((state) => ({
+            avatars: state.avatars,
+            setAvatars: state.setAvatars,
+            setAvatar: state.setAvatar,
+        }))
+    )
+    const { isOpenLightcone, setIsOpenLightcone } = useModelStore(
+        useShallow((state) => ({
+            isOpenLightcone: state.isOpenLightcone,
+            setIsOpenLightcone: state.setIsOpenLightcone,
+        }))
+    )
+    const { mapLightCone, baseType } = useDetailDataStore(
+        useShallow((state) => ({
+            mapLightCone: state.mapLightCone,
+            baseType: state.baseType,
+        }))
+    )
     const transI18n = useTranslations("DataPage")
-    const { locale } = useLocaleStore();
+    const { locale } = useLocaleStore(
+        useShallow((state) => ({ locale: state.locale }))
+    );
 
     const lightcone = useMemo(() => {
         if (!avatarSelected) return null;
         const avatar = avatars[avatarSelected.ID];
-        return avatar?.profileList[avatar.profileSelect]?.lightcone || null;
+        return avatar?.profileList?.[avatar?.profileSelect]?.lightcone ?? avatar?.profileList?.[0]?.lightcone ?? null;
     }, [avatarSelected, avatars]);
+
+    const handleUpdateLightcone = (updater: (lc: typeof lightcone) => typeof lightcone) => {
+        if (!avatarSelected || !avatars[avatarSelected.ID]) return;
+        const avatar = avatars[avatarSelected.ID];
+        const profileIndex = avatar.profileSelect;
+        const currentProfile = avatar.profileList?.[profileIndex];
+        if (!currentProfile) return;
+        const newProfileList = [...avatar.profileList];
+        newProfileList[profileIndex] = {
+            ...currentProfile,
+            lightcone: updater(currentProfile.lightcone),
+        };
+        setAvatar({
+            ...avatar,
+            profileList: newProfileList,
+        });
+    };
 
     const lightconeDetail = useMemo(() => {
         if (!mapLightCone || !lightcone?.item_id) return null;
@@ -70,460 +111,365 @@ export default function AvatarInfo() {
     }, [isOpenLightcone]);
 
     return (
-        <div className="bg-base-100 max-h-[77vh] min-h-[50vh] overflow-y-scroll overflow-x-hidden">
+        <div className="w-full space-y-4">
             {avatarSelected && avatars[avatarSelected?.ID.toString() || ""] && (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
-                    <div className="m-2 min-h-96">
-                        <div className="container">
-                            <div className="card bg-base-200 shadow-xl">
-                                <div className="card-body">
-                                    {/* Header */}
-                                    <div className="flex items-center justify-between mb-6">
-                                        <h2 className="card-title text-2xl font-bold flex items-center gap-2">
-                                            <div className="w-2 h-8 bg-linear-to-b from-success to-success/50 rounded-full"></div>
-                                            {transI18n("characterSettings")}
-                                        </h2>
-                                    </div>
-
-                                    <div className="space-y-6">
-                                        {/* Level Control */}
-                                        <div className="bg-base-100 rounded-xl p-6 border border-base-content/10">
-                                            <h4 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                                                <div className="w-2 h-6 bg-linear-to-b from-info to-info/50 rounded-full"></div>
-                                                {transI18n("levelConfiguration")}
-                                            </h4>
-
-                                            <div className="form-control">
-                                                <label className="label">
-                                                    <span className="label-text font-medium">{transI18n("characterLevel")}</span>
-                                                    <span className="label-text-alt text-info font-mono">{avatars[avatarSelected?.ID.toString() || ""]?.level}/80</span>
-                                                </label>
-                                                <div className="relative">
-                                                    <input
-                                                        type="number"
-                                                        min="1"
-                                                        max="80"
-                                                        value={avatars[avatarSelected?.ID.toString() || ""]?.level}
-                                                        onChange={(e) => {
-                                                            const newLevel = Math.min(80, Math.max(1, parseInt(e.target.value) || 1));
-
-                                                            setAvatars({ ...avatars, [avatarSelected?.ID.toString() || ""]: { ...avatars[avatarSelected?.ID.toString() || ""], level: newLevel, promotion: calcPromotion(newLevel) } });
-                                                        }}
-                                                        className="input input-bordered w-full pr-16 font-mono"
-                                                        placeholder={transI18n("placeholderLevel")}
-                                                    />
-                                                    <div
-                                                        onClick={() => {
-                                                            setAvatars({ ...avatars, [avatarSelected?.ID.toString() || ""]: { ...avatars[avatarSelected?.ID.toString() || ""], level: 80, promotion: calcPromotion(80) } });
-                                                        }}
-                                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-base-content/60 cursor-pointer">
-                                                        <span className="text-sm">{transI18n("max")}</span>
-                                                    </div>
-                                                </div>
-                                                <div className="mt-2">
-                                                    <input
-                                                        type="range"
-                                                        min="1"
-                                                        max="80"
-                                                        value={avatars[avatarSelected?.ID.toString() || ""]?.level}
-                                                        onChange={(e) => {
-                                                            const newLevel = Math.min(80, Math.max(1, parseInt(e.target.value) || 1));
-                                                            setAvatars({ ...avatars, [avatarSelected?.ID.toString() || ""]: { ...avatars[avatarSelected?.ID.toString() || ""], level: newLevel, promotion: calcPromotion(newLevel) } });
-                                                        }}
-                                                        className="range range-info range-sm w-full"
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Energy Control */}
-                                        <div className="bg-base-100 rounded-xl p-6 border border-base-content/10">
-                                            <h4 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                                                <div className="w-2 h-6 bg-linear-to-b from-warning to-warning/50 rounded-full"></div>
-                                                {transI18n("ultimateEnergy")}
-                                            </h4>
-
-                                            <div className="form-control">
-                                                <label className="label">
-                                                    <span className="label-text font-medium">{transI18n("currentEnergy")}</span>
-                                                    <span className="label-text text-warning font-mono">
-                                                        {Math.round(avatars[avatarSelected?.ID.toString() || ""]?.sp_value)}/{avatars[avatarSelected?.ID.toString() || ""]?.sp_max}
-                                                    </span>
-                                                </label>
-                                                <input
-                                                    type="range"
-                                                    min="0"
-                                                    max={avatars[avatarSelected?.ID.toString() || ""]?.sp_max}
-                                                    value={avatars[avatarSelected?.ID.toString() || ""]?.sp_value}
-                                                    onChange={(e) => {
-                                                        if (!avatars[avatarSelected?.ID.toString() || ""]?.can_change_sp) return
-                                                        const newSpValue = Math.min(avatars[avatarSelected?.ID.toString() || ""]?.sp_max, Math.max(0, parseInt(e.target.value) || 0));
-                                                        setAvatars({ ...avatars, [avatarSelected?.ID.toString() || ""]: { ...avatars[avatarSelected?.ID.toString() || ""], sp_value: newSpValue } });
-                                                    }}
-                                                    className="range range-warning range-sm w-full"
-                                                />
-                                                <div className="flex justify-between text-sm text-base-content/60 mt-1">
-                                                    <span>0%</span>
-                                                    <span className="font-mono text-warning">{((avatars[avatarSelected?.ID.toString() || ""]?.sp_value / avatars[avatarSelected?.ID.toString() || ""]?.sp_max) * 100).toFixed(1)}%</span>
-                                                    <span>100%</span>
-                                                </div>
-                                                <div className="mt-3">
-                                                    <button
-                                                        className="btn btn-sm btn-outline btn-warning"
-                                                        onClick={() => {
-                                                            if (!avatars[avatarSelected?.ID.toString() || ""]?.can_change_sp) return
-                                                            const newSpValue = Math.ceil(avatars[avatarSelected?.ID.toString() || ""]?.sp_max / 2);
-                                                            const newAvatar = { ...avatars[avatarSelected?.ID.toString() || ""], sp_value: newSpValue }
-                                                            setAvatar(newAvatar)
-                                                        }}
-                                                    >
-                                                        {transI18n("setTo50")}
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Technique Toggle */}
-                                        <div className="bg-base-100 rounded-xl p-6 border border-base-content/10">
-                                            <h4 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                                                <div className="w-2 h-6 bg-linear-to-b from-accent to-accent/50 rounded-full"></div>
-                                                {transI18n("battleConfiguration")}
-                                            </h4>
-
-                                            <div className="form-control">
-                                                <label className="grid grid-cols-1 gap-2 sm:grid-cols-2 label cursor-pointer">
-                                                    <div className="flex items-center gap-2">
-                                                        <svg className="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                                                        </svg>
-                                                        <span className="label-text font-medium">{transI18n("useTechnique")}</span>
-                                                    </div>
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={avatars[avatarSelected?.ID.toString() || ""]?.techniques.length > 0 }
-                                                        onChange={(e) => {
-                                                            if (!avatarSelected || avatarSelected?.MazeBuff?.length == 0) return
-                                                            const techniques = e.target.checked ? avatarSelected?.MazeBuff : [];
-                                                            const newAvatar = { ...avatars[avatarSelected?.ID.toString() || ""], techniques: techniques };
-                                                            setAvatar(newAvatar);
-                                                        }}
-                                                        className="toggle toggle-accent"
-                                                    />
-                                                </label>
-                                                <div className="text-xs text-base-content/60 mt-1">
-                                                    {transI18n("techniqueNote")}
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Enhancement Selection */}
-                                        {avatarSelected?.Enhanced && (
-                                            <div className="bg-base-100 rounded-xl p-6 border border-base-content/10">
-                                                <h4 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                                                    <svg className="w-5 h-5 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 0 0 4.486-6.336l-3.276 3.277a3.004 3.004 0 0 1-2.25-2.25l3.276-3.276a4.5 4.5 0 0 0-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437 1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008Z" />
-                                                    </svg>
-                                                    {transI18n("enhancement")}
-                                                </h4>
-
-                                                <div className="form-control">
-                                                    <label className="label">
-                                                        <span className="label-text font-medium">{transI18n("enhancementLevel")}</span>
-                                                        <span className="label-text-alt text-secondary font-mono">
-                                                            {avatars[avatarSelected?.ID.toString() || ""]?.enhanced || transI18n("origin")}
-                                                        </span>
-                                                    </label>
-                                                    <select
-                                                        value={avatars[avatarSelected?.ID.toString() || ""]?.enhanced || ""}
-                                                        onChange={(e) => {
-                                                            const newAvatar = avatars[avatarSelected?.ID.toString() || ""]
-                                                            if (newAvatar) {
-                                                                newAvatar.enhanced = e.target.value
-                                                                const skillTree = getSkillTree(avatarSelected, e.target.value)
-                                                                if (skillTree) {
-                                                                    newAvatar.data.skills = skillTree
-                                                                }
-                                                                setAvatar(newAvatar)
-                                                            }
-                                                        }}
-                                                        className="select select-bordered select-secondary"
-                                                    >
-                                                        <option value="">{transI18n("origin")}</option>
-                                                        {Object.keys(avatarSelected?.Enhanced || {}).map((key) => (
-                                                            <option key={key} value={key}>
-                                                                {key}
-                                                            </option>
-                                                        ))}
-                                                    </select>
-                                                    <div className="text-xs text-base-content/60 mt-1">
-                                                        {transI18n("enhancedNote")}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 w-full items-start">
+                    {/* Left Column: Character Configuration */}
+                    <div className="glass-card rounded-2xl p-5 sm:p-6 border border-base-content/10 shadow-xs flex flex-col justify-between">
+                        <div>
+                            {/* Card Header */}
+                            <div className="flex items-center justify-between pb-4 mb-2 border-b border-base-content/10">
+                                <h2 className="text-base sm:text-lg font-bold flex items-center gap-2.5">
+                                    <div className="w-1.5 h-5 bg-linear-to-b from-primary to-accent rounded-full"></div>
+                                    <span className="bg-clip-text text-transparent bg-linear-to-r from-primary to-accent font-bold tracking-tight">
+                                        {transI18n("characterSettings")}
+                                    </span>
+                                </h2>
+                                <span className="text-xs font-mono font-semibold px-2.5 py-1 rounded-md bg-primary/10 text-primary border border-primary/20">
+                                    ID: #{avatarSelected.ID}
+                                </span>
                             </div>
 
+                            <div className="divide-y divide-base-content/10">
+                                {/* Level Control */}
+                                <div className="py-4 space-y-2.5">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-sm font-bold text-base-content tracking-tight flex items-center gap-1.5">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                                            {transI18n("characterLevel")}
+                                        </span>
+                                        <span className="text-xs font-mono font-bold px-2.5 py-1 rounded-md bg-primary/15 text-primary border border-primary/25">
+                                            {avatars[avatarSelected?.ID.toString() || ""]?.level} / 80
+                                        </span>
+                                    </div>
+
+                                    <div className="flex items-center gap-3 pt-0.5">
+                                        <input
+                                            type="range"
+                                            min="1"
+                                            max="80"
+                                            value={avatars[avatarSelected?.ID.toString() || ""]?.level}
+                                            onChange={(e) => {
+                                                const newLevel = Math.min(80, Math.max(1, parseInt(e.target.value) || 1));
+                                                setAvatars({ ...avatars, [avatarSelected?.ID.toString() || ""]: { ...avatars[avatarSelected?.ID.toString() || ""], level: newLevel, promotion: calcPromotion(newLevel) } });
+                                            }}
+                                            className="range range-primary range-sm flex-1"
+                                        />
+                                        <button
+                                            onClick={() => {
+                                                setAvatars({ ...avatars, [avatarSelected?.ID.toString() || ""]: { ...avatars[avatarSelected?.ID.toString() || ""], level: 80, promotion: calcPromotion(80) } });
+                                            }}
+                                            className="btn btn-sm btn-primary btn-outline h-8 min-h-8 rounded-lg font-bold px-3"
+                                        >
+                                            {transI18n("max")}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Ultimate Energy Control */}
+                                <div className="py-4 space-y-2.5">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-sm font-bold text-base-content tracking-tight flex items-center gap-1.5">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                                            {transI18n("ultimateEnergy")}
+                                        </span>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xs font-mono font-bold text-amber-500">
+                                                {Math.round(avatars[avatarSelected?.ID.toString() || ""]?.sp_value)} / {avatars[avatarSelected?.ID.toString() || ""]?.sp_max}
+                                            </span>
+                                            <span className="text-xs font-mono text-base-content/70 font-semibold">
+                                                ({((avatars[avatarSelected?.ID.toString() || ""]?.sp_value / avatars[avatarSelected?.ID.toString() || ""]?.sp_max) * 100).toFixed(0)}%)
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-3 pt-0.5">
+                                        <input
+                                            type="range"
+                                            min="0"
+                                            max={avatars[avatarSelected?.ID.toString() || ""]?.sp_max}
+                                            value={avatars[avatarSelected?.ID.toString() || ""]?.sp_value}
+                                            onChange={(e) => {
+                                                if (!avatars[avatarSelected?.ID.toString() || ""]?.can_change_sp) return
+                                                const newSpValue = Math.min(avatars[avatarSelected?.ID.toString() || ""]?.sp_max, Math.max(0, parseInt(e.target.value) || 0));
+                                                setAvatars({ ...avatars, [avatarSelected?.ID.toString() || ""]: { ...avatars[avatarSelected?.ID.toString() || ""], sp_value: newSpValue } });
+                                            }}
+                                            className="range range-warning range-sm flex-1"
+                                        />
+                                        <button
+                                            className="btn btn-sm btn-warning btn-outline h-8 min-h-8 font-bold px-3 rounded-lg shadow-xs active-press"
+                                            onClick={() => {
+                                                if (!avatars[avatarSelected?.ID.toString() || ""]?.can_change_sp) return
+                                                const newSpValue = Math.ceil(avatars[avatarSelected?.ID.toString() || ""]?.sp_max / 2);
+                                                const newAvatar = { ...avatars[avatarSelected?.ID.toString() || ""], sp_value: newSpValue }
+                                                setAvatar(newAvatar)
+                                            }}
+                                        >
+                                            {transI18n("setTo50")}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Technique Toggle */}
+                                <div className="py-4 flex items-center justify-between gap-4">
+                                    <div className="space-y-1">
+                                        <span className="text-sm font-bold text-base-content tracking-tight flex items-center gap-1.5">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-secondary" />
+                                            {transI18n("useTechnique")}
+                                        </span>
+                                        <p className="text-xs text-base-content/70 font-medium pl-3">{transI18n("techniqueNote")}</p>
+                                    </div>
+                                    <input
+                                        type="checkbox"
+                                        checked={avatars[avatarSelected?.ID.toString() || ""]?.techniques.length > 0}
+                                        onChange={(e) => {
+                                            if (!avatarSelected || avatarSelected?.MazeBuff?.length == 0) return
+                                             const techniques = e.target.checked ? avatarSelected?.MazeBuff : [];
+                                            const newAvatar = { ...avatars[avatarSelected?.ID.toString() || ""], techniques: techniques };
+                                            setAvatar(newAvatar);
+                                        }}
+                                        className="toggle toggle-primary"
+                                    />
+                                </div>
+
+                                {/* Enhancement Selection */}
+                                {avatarSelected?.Enhanced && (
+                                    <div className="py-4 space-y-2">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-sm font-bold text-base-content tracking-tight flex items-center gap-1.5">
+                                                <span className="w-1.5 h-1.5 rounded-full bg-accent" />
+                                                {transI18n("enhancement")}
+                                            </span>
+                                            <span className="text-xs font-mono text-secondary font-bold">
+                                                {avatars[avatarSelected?.ID.toString() || ""]?.enhanced || transI18n("origin")}
+                                            </span>
+                                        </div>
+                                        <select
+                                            value={avatars[avatarSelected?.ID.toString() || ""]?.enhanced || ""}
+                                            onChange={(e) => {
+                                                const newAvatar = avatars[avatarSelected?.ID.toString() || ""]
+                                                if (newAvatar) {
+                                                    newAvatar.enhanced = e.target.value
+                                                    const skillTree = getSkillTree(avatarSelected, e.target.value)
+                                                    if (skillTree) {
+                                                        newAvatar.data.skills = skillTree
+                                                    }
+                                                    setAvatar(newAvatar)
+                                                }
+                                            }}
+                                            className="select select-sm select-bordered w-full rounded-xl bg-base-200/50"
+                                        >
+                                            <option value="">{transI18n("origin")}</option>
+                                            {Object.keys(avatarSelected?.Enhanced || {}).map((key) => (
+                                                <option key={key} value={key}>
+                                                    {key}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <p className="text-xs text-base-content/60 font-medium">{transI18n("enhancedNote")}</p>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
-                    <div className="m-2 min-h-96">
-                        <div className="container">
-                            <div className="card bg-base-200 shadow-xl">
-                                <div className="card-body">
-                                    {/* Header */}
-                                    <div className="flex items-center justify-between mb-6">
-                                        <h2 className="card-title text-2xl font-bold flex items-center gap-2">
-                                            <div className="w-2 h-8 bg-linear-to-b from-primary to-secondary rounded-full"></div>
-                                            {transI18n("lightconeEquipment")}
-                                        </h2>
+
+                    {/* Right Column: Lightcone Equipment */}
+                    <div className="glass-card rounded-2xl p-5 sm:p-6 border border-base-content/10 shadow-xs flex flex-col justify-between">
+                        <div>
+                            {/* Card Header */}
+                            <div className="flex items-center justify-between pb-4 mb-2 border-b border-base-content/10">
+                                <h2 className="text-base sm:text-lg font-bold flex items-center gap-2.5">
+                                    <div className="w-1.5 h-5 bg-linear-to-b from-secondary to-primary rounded-full"></div>
+                                    <span className="bg-clip-text text-transparent bg-linear-to-r from-secondary to-primary font-bold tracking-tight">
+                                        {transI18n("lightconeEquipment")}
+                                    </span>
+                                </h2>
+                                {lightcone && (
+                                    <span className="text-xs font-mono font-semibold px-2.5 py-1 rounded-md bg-secondary/10 text-secondary border border-secondary/20">
+                                        S{lightcone.rank} • Lv.{lightcone.level}
+                                    </span>
+                                )}
+                            </div>
+
+                            {lightcone && lightconeDetail ? (
+                                <div className="space-y-4">
+                                    {/* Lightcone Hero Block */}
+                                    <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center">
+                                        {/* Artwork */}
+                                        <div className="sm:col-span-4 aspect-[3/4] rounded-xl overflow-hidden bg-base-200/60 flex items-center justify-center border border-base-content/10 shadow-xs">
+                                            <Image
+                                                unoptimized
+                                                crossOrigin="anonymous"
+                                                width={904}
+                                                height={1260}
+                                                priority
+                                                src={`${process.env.CDN_URL}/${lightconeDetail?.Image?.ImagePath}`}
+                                                className="w-full h-full object-cover"
+                                                alt="Lightcone"
+                                            />
+                                        </div>
+
+                                        {/* Meta & Stats */}
+                                        <div className="sm:col-span-8 space-y-3">
+                                            <div>
+                                                <h3 className="text-base sm:text-lg font-bold tracking-tight text-base-content">
+                                                    <ParseText
+                                                        locale={locale}
+                                                        text={getLocaleName(locale, lightconeDetail.Name)}
+                                                    />
+                                                </h3>
+                                                <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                                                    <span className="text-xs px-2.5 py-0.5 rounded-md bg-base-200 font-semibold text-base-content/80 border border-base-content/10">
+                                                        {transI18n(lightconeDetail.BaseType.toLowerCase())}
+                                                    </span>
+                                                    <span className="text-xs px-2.5 py-0.5 rounded-md bg-amber-500/15 text-amber-500 font-bold border border-amber-500/25">
+                                                        {calcRarity(lightconeDetail.Rarity)}★
+                                                    </span>
+                                                    <span className="text-xs font-mono text-base-content/60 font-medium">#{lightcone.item_id}</span>
+                                                </div>
+                                            </div>
+
+                                            {/* Level Slider */}
+                                            <div className="space-y-1.5">
+                                                <div className="flex items-center justify-between text-xs font-semibold">
+                                                    <span className="text-base-content/80">{transI18n("level")}</span>
+                                                    <span className="font-mono text-primary font-bold">{lightcone.level}/80</span>
+                                                </div>
+                                                <input
+                                                    type="range"
+                                                    min="1"
+                                                    max="80"
+                                                    value={lightcone.level || 1}
+                                                    onChange={(e) => {
+                                                        const newLightconeLevel = Math.min(80, Math.max(1, parseInt(e.target.value) || 1))
+                                                        handleUpdateLightcone((lc) => lc ? { ...lc, level: newLightconeLevel, promotion: calcPromotion(newLightconeLevel) } : null)
+                                                    }}
+                                                    className="range range-primary range-sm w-full"
+                                                />
+                                            </div>
+
+                                            {/* Superimposition Rank (S1-S5) */}
+                                            <div className="space-y-1.5">
+                                                <div className="flex items-center justify-between text-xs font-semibold">
+                                                    <span className="text-base-content/80">{transI18n("superimpositionRank")}</span>
+                                                    <span className="font-mono text-info font-bold">S{lightcone.rank}</span>
+                                                </div>
+                                                <div className="grid grid-cols-5 gap-1.5">
+                                                    {[1, 2, 3, 4, 5].map((r) => (
+                                                        <button
+                                                            key={r}
+                                                            onClick={() => {
+                                                                handleUpdateLightcone((lc) => lc ? { ...lc, rank: r } : null)
+                                                            }}
+                                                            className={`btn btn-xs rounded-lg font-mono font-bold transition-all ${
+                                                                lightcone.rank === r
+                                                                    ? 'btn-primary shadow-xs'
+                                                                    : 'btn-ghost bg-base-200 hover:bg-base-300 text-base-content/80'
+                                                            }`}
+                                                        >
+                                                            S{r}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
 
-                                    {lightcone && lightconeDetail ? (
-                                        <div className="grid lg:grid-cols-3 gap-6">
-                                            <div className="lg:col-span-3">
-                                                {/* Level & Rank Controls */}
-                                                <div className="bg-base-100 rounded-xl p-6 border border-base-content/10">
-                                                    <h4 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                                                        <div className="w-2 h-6 bg-linear-to-b from-accent to-accent/50 rounded-full"></div>
-                                                        {transI18n("lightconeSettings")}
-                                                    </h4>
+                                    {/* Skill Description */}
+                                    <div className="p-3.5 rounded-xl bg-base-200/50 border border-base-content/10">
+                                        <div
+                                            className="text-xs sm:text-sm text-base-content/90 leading-relaxed font-normal"
+                                            dangerouslySetInnerHTML={{
+                                                __html: replaceByParam(
+                                                    getLocaleName(locale, lightconeDetail.Skills.Desc),
+                                                    lightconeDetail.Skills.Level[lightcone.rank.toString()]?.Param || []
+                                                )
+                                            }}
+                                        />
+                                    </div>
 
-                                                    <div className="grid md:grid-cols-2 gap-6">
-                                                        {/* Level Input */}
-                                                        <div className="form-control">
-                                                            <label className="label">
-                                                                <span className="label-text font-medium">{transI18n("level")}</span>
-                                                                <span className="label-text-alt text-primary font-mono">{lightcone.level}/80</span>
-                                                            </label>
-                                                            <div className="relative">
-                                                                <input
-                                                                    type="number"
-                                                                    min="1"
-                                                                    max="80"
-                                                                    value={lightcone.level || 1}
-                                                                    onChange={(e) => {
-                                                                        const newLightconeLevel = Math.min(80, Math.max(1, parseInt(e.target.value) || 1))
-                                                                        const newLightcone = { ...lightcone, level: newLightconeLevel, promotion: calcPromotion(newLightconeLevel) }
-                                                                        const newAvatar = { ...avatars[avatarSelected.ID] }
-                                                                        newAvatar.profileList[newAvatar.profileSelect].lightcone = newLightcone
-                                                                        setAvatar(newAvatar)
-                                                                    }}
-                                                                    className="input input-bordered w-full pr-16 font-mono"
-                                                                    placeholder={transI18n("placeholderLevel")}
-                                                                />
-                                                                <div
-                                                                    onClick={() => {
-                                                                        const newLightcone = { ...lightcone, level: 80, promotion: calcPromotion(80) }
-                                                                        const newAvatar = { ...avatars[avatarSelected.ID] }
-                                                                        newAvatar.profileList[newAvatar.profileSelect].lightcone = newLightcone
-                                                                        setAvatar(newAvatar)
-                                                                    }}
-                                                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-base-content/60 cursor-pointer">
-                                                                    <span className="text-sm">{transI18n("max")}</span>
-                                                                </div>
-                                                            </div>
-                                                            <div className="mt-2">
-                                                                <input
-                                                                    type="range"
-                                                                    min="1"
-                                                                    max="80"
-                                                                    value={lightcone.level || 1}
-                                                                    onChange={(e) => {
-                                                                        const newLightconeLevel = Math.min(80, Math.max(1, parseInt(e.target.value) || 1))
-                                                                        const newLightcone = { ...lightcone, level: newLightconeLevel, promotion: calcPromotion(newLightconeLevel) }
-                                                                        const newAvatar = { ...avatars[avatarSelected.ID] }
-                                                                        newAvatar.profileList[newAvatar.profileSelect].lightcone = newLightcone
-                                                                        setAvatar(newAvatar)
-                                                                    }}
-                                                                    className="range range-primary range-sm"
-                                                                />
-                                                            </div>
-                                                        </div>
-
-                                                        {/* Rank Selection */}
-                                                        <div className="form-control space-y-3">
-                                                            {/* Header */}
-                                                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                                                                <span className="font-medium text-sm sm:text-base">{transI18n("superimpositionRank")}</span>
-                                                                <span className="text-info font-mono text-lg sm:text-xl font-semibold">S{lightcone.rank}</span>
-                                                            </div>
-
-                                                            {/* Rank Buttons */}
-                                                            <div className="w-full">
-                                                                <div className="grid grid-cols-5 gap-1.5 sm:gap-2 md:grid-cols-3 xl:grid-cols-5 max-w-sm mx-auto sm:mx-0">
-                                                                    {[1, 2, 3, 4, 5].map((r) => (
-                                                                        <button
-                                                                            key={r}
-                                                                            onClick={() => {
-                                                                                const newLightcone = { ...lightcone, rank: r }
-                                                                                const newAvatar = { ...avatars[avatarSelected.ID] }
-                                                                                newAvatar.profileList[newAvatar.profileSelect].lightcone = newLightcone
-                                                                                setAvatar(newAvatar)
-                                                                            }}
-                                                                            className={`
-                                                                                btn btn-sm sm:btn-md font-mono font-semibold
-                                                                                transition-all duration-200 hover:scale-105
-                                                                                ${lightcone.rank === r
-                                                                                    ? 'btn-primary shadow-lg'
-                                                                                    : 'btn-outline btn-primary hover:btn-primary'
-                                                                                }`}
-                                                                        >
-                                                                            S{r}
-                                                                        </button>
-                                                                    ))}
-                                                                </div>
-                                                            </div>
-
-                                                            {/* Help Text */}
-                                                            <div className="text-xs sm:text-sm text-base-content/60 text-center sm:text-left mt-2">
-                                                                {transI18n("ranksNote")}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                {/* Action Buttons */}
-                                                <div className="flex flex-wrap gap-3 mt-2">
-                                                    <button
-                                                        onClick={() => {
-                                                            if (avatarSelected) {
-                                                                setResetDataLightcone(avatarSelected, baseType)
-                                                                handleShow("action_detail_modal")
-                                                            }
-                                                        }}
-                                                        className="btn btn-primary btn-lg flex-1 min-w-fit"
-                                                    >
-                                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-                                                        </svg>
-                                                        {transI18n("changeLightcone")}
-                                                    </button>
-                                                    <button
-                                                        onClick={() => {
-                                                            const newAvatar = { ...avatars[avatarSelected.ID] }
-                                                            newAvatar.profileList[newAvatar.profileSelect].lightcone = null
-                                                            setAvatar(newAvatar)
-                                                        }}
-                                                        className="btn btn-warning btn-lg flex-1 min-w-fit"
-                                                    >
-                                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                        </svg>
-                                                        {transI18n("removeLightcone")}
-                                                    </button>
-                                                </div>
-                                            </div>
-
-                                            {/* Lightcone Image */}
-                                            <div className="lg:col-span-1">
-                                                <div className="">
-                                                    <Image
-                                                        unoptimized
-                                                        crossOrigin="anonymous"
-                                                        width={904}
-                                                        height={1260}
-                                                        priority
-                                                        src={`${process.env.CDN_URL}/${lightconeDetail?.Image?.ImagePath}`}
-                                                        className="w-full h-full rounded-lg object-cover shadow-lg"
-                                                        alt="Lightcone"
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            {/* Lightcone Info & Controls */}
-                                            <div className="lg:col-span-2 space-y-6">
-                                                {/* Basic Info */}
-                                                {lightconeDetail && (
-                                                    <div className="bg-base-300 rounded-xl p-6 border border-base-content/10">
-                                                        <div className="flex flex-wrap items-center gap-3 mb-4">
-                                                            <h3 className="text-2xl font-bold text-base-content">
-                                                                <ParseText
-                                                                    locale={locale}
-                                                                    text={getLocaleName(locale, lightconeDetail.Name)}
-                                                                />
-                                                            </h3>
-                                                            <div className="badge badge-outline badge-lg">
-                                                                {transI18n(lightconeDetail.BaseType.toLowerCase())}
-                                                            </div>
-                                                            <div className="badge badge-outline badge-lg">
-                                                                {calcRarity(lightconeDetail.Rarity) + "⭐"}
-                                                            </div>
-                                                            <div className="badge badge-outline badge-lg">
-                                                                {"id: " + lightcone.item_id}
-                                                            </div>
-                                                        </div>
-
-                                                        <div className="prose prose-sm max-w-none">
-                                                            <div
-                                                                className="text-base-content/80 leading-relaxed"
-                                                                dangerouslySetInnerHTML={{
-                                                                    __html: replaceByParam(
-                                                                       getLocaleName(locale, lightconeDetail.Skills.Desc),
-                                                                       lightconeDetail.Skills.Level[lightcone.rank.toString()]?.Param || []
-                                                                    )
-                                                                }}
-                                                            />
-                                                        </div>
-                                                    </div>
-                                                )}
-
-
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        /* No Lightcone Equipped State */
-                                        <div className="text-center py-12">
-                                            <div
-                                                onClick={() => handleShow("action_detail_modal")}
-                                                className="w-24 h-24 mx-auto mb-6 bg-base-300 rounded-full flex items-center justify-center cursor-pointer"
-                                            >
-                                                <svg className="w-12 h-12 text-base-content/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                                </svg>
-                                            </div>
-                                            <h3 className="text-xl font-semibold mb-2">{transI18n("noLightconeEquipped")}</h3>
-                                            <p className="text-base-content/60 mb-6">{transI18n("equipLightconeNote")}</p>
-                                            <button
-                                                onClick={() => {
-                                                    if (avatarSelected) {
-                                                        setResetDataLightcone(avatarSelected, baseType)
-                                                        handleShow("action_detail_modal")
-                                                    }
-                                                }}
-                                                className="btn btn-success btn-lg"
-                                            >
-                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                                </svg>
-                                                {transI18n("equipLightcone")}
-                                            </button>
-                                        </div>
-                                    )}
+                                    {/* Action Buttons */}
+                                    <div className="flex items-center gap-3 pt-2">
+                                        <button
+                                            onClick={() => {
+                                                if (avatarSelected) {
+                                                    setResetDataLightcone(avatarSelected, baseType)
+                                                    handleShow("action_detail_modal")
+                                                }
+                                            }}
+                                            className="btn btn-primary btn-sm flex-1 rounded-xl font-bold shadow-xs"
+                                        >
+                                            {transI18n("changeLightcone")}
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                handleUpdateLightcone(() => null)
+                                            }}
+                                            className="btn btn-error btn-outline hover:btn-error btn-sm rounded-xl font-bold px-3.5 gap-1.5 transition-all"
+                                            title={transI18n("removeLightcone")}
+                                        >
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                            <span className="text-xs">{transI18n("removeLightcone")}</span>
+                                        </button>
+                                    </div>
                                 </div>
-                            </div>
+                            ) : (
+                                /* Empty Lightcone State */
+                                <div className="text-center py-8 space-y-3.5">
+                                    <div
+                                        onClick={() => handleShow("action_detail_modal")}
+                                        className="w-16 h-16 mx-auto bg-base-200/70 rounded-2xl border-2 border-dashed border-base-content/30 flex items-center justify-center cursor-pointer hover:border-primary hover:scale-105 transition-all group"
+                                    >
+                                        <svg className="w-7 h-7 text-base-content/50 group-hover:text-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h3 className="text-sm font-bold text-base-content">{transI18n("noLightconeEquipped")}</h3>
+                                        <p className="text-xs text-base-content/60 font-medium mt-0.5">{transI18n("equipLightconeNote")}</p>
+                                    </div>
+                                    <button
+                                        onClick={() => {
+                                            if (avatarSelected) {
+                                                setResetDataLightcone(avatarSelected, baseType)
+                                                handleShow("action_detail_modal")
+                                            }
+                                        }}
+                                        className="btn btn-primary btn-sm rounded-xl font-bold px-6 shadow-xs"
+                                    >
+                                        {transI18n("equipLightcone")}
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
             )}
 
-            <dialog id="action_detail_modal" className="modal backdrop-blur-sm">
-                <div className="modal-box w-11/12 max-w-5xl max-h-[85vh] bg-base-100 text-base-content border border-purple-500/50 shadow-lg shadow-purple-500/20">
-                    <div className="sticky top-0 z-10">
-                        <motion.button
-                            whileHover={{ scale: 1.1, rotate: 90 }}
-                            transition={{ duration: 0.2 }}
-                            className="btn btn-circle btn-md absolute right-2 top-2 bg-red-600 hover:bg-red-700 text-white border-none"
+            {/* Lightcone Selection Modal */}
+            <dialog id="action_detail_modal" className="modal">
+                <div className="modal-box w-11/12 max-w-[92vw] sm:max-w-[88vw] max-h-[90vh] bg-base-100 text-base-content border border-white/10 shadow-2xl rounded-2xl p-0 overflow-hidden">
+                    <div className="sticky top-0 z-20 flex items-center justify-between px-6 py-4 border-b border-base-content/10 bg-base-100">
+                        <h3 className="font-bold text-xl tracking-tight bg-clip-text text-transparent bg-linear-to-r from-primary via-accent to-secondary">
+                            {transI18n("lightconeEquipment")}
+                        </h3>
+                        <button
+                            className="btn btn-sm btn-circle btn-ghost text-base-content/60 hover:text-base-content hover:bg-base-200 transition-colors"
                             onClick={() => handleCloseModal("action_detail_modal")}
                         >
                             ✕
-                        </motion.button>
+                        </button>
                     </div>
-                    <LightconeBar />
+                    <div className="p-4 sm:p-6 overflow-y-auto max-h-[calc(90vh-5rem)]">
+                        <LightconeBar />
+                    </div>
                 </div>
-
+                <form method="dialog" className="modal-backdrop">
+                    <button onClick={() => handleCloseModal("action_detail_modal")}>close</button>
+                </form>
             </dialog>
         </div>
-
     );
 }

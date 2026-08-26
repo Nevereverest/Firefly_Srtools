@@ -6,9 +6,15 @@ import AsBar from "./as";
 import { useTranslations } from "next-intl";
 import CeBar from "./ce";
 import PeakBar from "./peak";
+import { useShallow } from "zustand/react/shallow";
 
 export default function MonsterBar() {
-    const { battle_type, setBattleType } = useUserDataStore()
+    const { battle_type, setBattleType } = useUserDataStore(
+        useShallow((state) => ({
+            battle_type: state.battle_type,
+            setBattleType: state.setBattleType,
+        }))
+    )
     const transI18n = useTranslations("DataPage")
 
     const navItems = [
@@ -23,9 +29,9 @@ export default function MonsterBar() {
 
 
     return (
-        <div className="min-h-screen">
+        <div className="w-full">
             {/* Header Navigation */}
-            <nav className="border-b border-warning/30 relative pb-2">
+            <nav className="border-b border-base-content/10 relative pb-3">
                 <div className="flex items-center justify-center">
                     {/* Mobile Select */}
                     <div className="block md:hidden w-full">
@@ -43,38 +49,48 @@ export default function MonsterBar() {
                     </div>
 
                     {/* Desktop Tabs */}
-                    <div className="hidden md:grid grid-cols-3 lg:grid-cols-6 gap-1">
-                        {navItems.map((item) => (
-                            <button
-                                key={item.name}
-                                onClick={() => setBattleType(item.value.toUpperCase())}
-                                className={`px-4 py-2 rounded-lg transition-all cursor-pointer duration-300 flex items-center space-x-2 ${battle_type.toUpperCase() === item.value.toUpperCase()
-                                    ? 'bg-success/30 shadow-lg'
-                                    : 'bg-base-200/20 hover:bg-base-200/40 '
+                    <div className="hidden md:grid grid-cols-3 lg:grid-cols-6 gap-2 w-full">
+                        {navItems.map((item) => {
+                            const isSelected = battle_type.toUpperCase() === item.value.toUpperCase()
+                            return (
+                                <button
+                                    key={item.name}
+                                    onClick={() => setBattleType(item.value.toUpperCase())}
+                                    className={`px-4 py-2.5 rounded-xl transition-all cursor-pointer duration-300 flex items-center justify-center space-x-2 text-sm font-semibold border ${
+                                        isSelected
+                                            ? 'bg-success/20 border-warning shadow-lg text-base-content'
+                                            : 'bg-base-200/20 hover:bg-base-200/40 border-transparent text-base-content/80'
                                     }`}
-                            >
-                                <span
-                                    style={
-                                        battle_type.toUpperCase() === item.value.toUpperCase()
-                                            ? {
-                                                filter:
-                                                    'brightness(0) saturate(100%) invert(63%) sepia(78%) saturate(643%) hue-rotate(1deg) brightness(93%) contrast(89%)',
-                                            }
-                                            : undefined
-                                    }
                                 >
-                                    <Image
-                                        unoptimized
-                                        crossOrigin="anonymous"
-                                        src={`/icon/${item.icon}.webp`}
-                                        alt={item.name}
-                                        width={24}
-                                        height={24}
-                                    />
-                                </span>
-                                <span>{item.name}</span>
-                            </button>
-                        ))}
+                                    <span
+                                        className={
+                                            isSelected
+                                                ? ""
+                                                : "theme-path-icon"
+                                        }
+                                        style={
+                                            isSelected
+                                                ? {
+                                                    filter:
+                                                        'brightness(0) saturate(100%) invert(63%) sepia(78%) saturate(643%) hue-rotate(1deg) brightness(93%) contrast(89%)',
+                                                }
+                                                : undefined
+                                        }
+                                    >
+                                        <Image
+                                            unoptimized
+                                            crossOrigin="anonymous"
+                                            src={`/icon/${item.icon}.webp`}
+                                            alt={item.name}
+                                            width={24}
+                                            height={24}
+                                            className="w-5 h-5 object-contain"
+                                        />
+                                    </span>
+                                    <span>{item.name}</span>
+                                </button>
+                            )
+                        })}
                     </div>
                 </div>
             </nav>

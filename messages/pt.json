@@ -286,6 +286,8 @@
         "trailblazer": "Desbravador",
         "listExtraEffect": "Lista de Efeitos Extras",
         "extra": "Extra",
-        "customLineup": "Formação Personalizada"
+        "customLineup": "Formação Personalizada",
+        "def": "DEF",
+        "language": "Idioma"
     }
 }

@@ -64,9 +64,9 @@ export default async function RootLayout({
   const locale = await getLocale()
 
   return (
-    <html lang={locale} suppressHydrationWarning>
+    <html lang={locale} suppressHydrationWarning className="overflow-x-hidden">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased overflow-x-hidden max-w-full`}
         suppressHydrationWarning
       >
         <NextIntlClientProvider messages={messages}>
@@ -74,17 +74,19 @@ export default async function RootLayout({
             <ThemeProvider>
               <ClientThemeWrapper>
                 <ClientDataFetcher >
-                  <div className="min-h-screen w-full">
+                  <div className="min-h-screen w-full flex flex-col justify-between bg-ambient-mesh selection:bg-primary/20 selection:text-primary">
                     <Header />
-                    <div className="grid grid-cols-12 w-full">
-                      <div className="hidden sm:block md:col-span-4 lg:col-span-3 sticky top-0 self-start h-fit">
+                    <main className="grid grid-cols-12 w-full flex-1">
+                      <aside className="hidden sm:block sm:col-span-4 md:col-span-4 lg:col-span-3 sticky top-16 self-start h-[calc(100vh-4rem)] overflow-hidden border-r border-base-content/10 bg-base-100/30 backdrop-blur-sm">
                         <AvatarBar />
-                      </div>
-                      <div className="col-span-12 sm:col-span-8 lg:col-span-9">
+                      </aside>
+                      <section className="col-span-12 sm:col-span-8 md:col-span-8 lg:col-span-9 flex flex-col min-w-0">
                         <ActionBar />
-                        {children}
-                      </div>
-                    </div>
+                        <div className="flex-1 p-2 sm:p-3 sm:pt-1">
+                          {children}
+                        </div>
+                      </section>
+                    </main>
 
                     <Footer />
                   </div>

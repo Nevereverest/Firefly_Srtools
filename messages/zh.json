@@ -285,6 +285,8 @@
 		"trailblazer": "开拓者",
 		"listExtraEffect": "额外效果列表",
 		"extra": "额外",
-		"customLineup": "自定义阵容"
+		"customLineup": "自定义阵容",
+		"def": "防御力",
+		"language": "语言"
 	}
 }

@@ -17,19 +17,37 @@ import { useTranslations } from "next-intl";
 import useGlobalStore from "@/stores/globalStore";
 import useDetailDataStore from "@/stores/detailDataStore";
 import { MonsterDetail } from "@/types";
-
+import { useShallow } from "zustand/react/shallow";
 
 export default function CeBar() {
     const [searchTerm, setSearchTerm] = useState("");
     const [showSearchWaveId, setShowSearchWaveId] = useState<number | null>(null);
-    const { ce_config, setCeConfig } = useUserDataStore()
-    const { mapMonster, stage, damageType } = useDetailDataStore()
-    const { locale } = useLocaleStore()
+    const { ce_config, setCeConfig } = useUserDataStore(
+        useShallow((state) => ({
+            ce_config: state.ce_config,
+            setCeConfig: state.setCeConfig,
+        }))
+    )
+    const { mapMonster, stage, damageType } = useDetailDataStore(
+        useShallow((state) => ({
+            mapMonster: state.mapMonster,
+            stage: state.stage,
+            damageType: state.damageType,
+        }))
+    )
+    const { locale } = useLocaleStore(
+        useShallow((state) => ({ locale: state.locale }))
+    )
     const transI18n = useTranslations("DataPage")
     const [showSearchStage, setShowSearchStage] = useState(false)
     const [stageSearchTerm, setStageSearchTerm] = useState("")
     const [stagePage, setStagePage] = useState(1)
-    const { extraData, setExtraData } = useGlobalStore()
+    const { extraData, setExtraData } = useGlobalStore(
+        useShallow((state) => ({
+            extraData: state.extraData,
+            setExtraData: state.setExtraData,
+        }))
+    )
 
     const pageSize = 30
 
@@ -59,10 +77,6 @@ export default function CeBar() {
         [monsterPage, filteredMonsters]
     )
 
-    useEffect(() => {
-        setMonsterPage(1)
-    }, [searchTerm])
-
     const stageList = useMemo(() => Object.values(stage).map((item) => ({
         id: item.ID.toString(),
         name: `${getLocaleName(locale, item.Name)} (${item.ID})`,
@@ -78,11 +92,6 @@ export default function CeBar() {
     ), [filteredStages, stagePage, pageSize])
 
     const hasMorePages = useMemo(() => stagePage * pageSize < filteredStages.length, [stagePage, filteredStages])
-
-    useEffect(() => {
-        setStagePage(1)
-    }, [stageSearchTerm])
-
 
     useEffect(() => {
         if (!ce_config) return
@@ -110,27 +119,26 @@ export default function CeBar() {
 
 
     return (
-        <div className="z-4 py-8 h-full w-full" onClick={() => {
-
+        <div className="z-4 pt-4 pb-2 h-full w-full space-y-4" onClick={() => {
             setShowSearchWaveId(null)
             setShowSearchStage(false)
         }}>
 
-            <div className="mb-4 w-full relative">
+            <div className="w-full relative">
                 <div className="flex items-center justify-center gap-2">
                     <button
-                        className="btn btn-outline w-full text-left flex items-center gap-2"
+                        className="btn btn-outline btn-warning w-full text-left flex items-center gap-2.5 rounded-xl shadow-xs"
                         onClick={(e) => {
                             e.stopPropagation()
                             setShowSearchStage(!showSearchStage)
                         }}
                     >
-                        <Search className="w-6 h-6" />
-                        <span className="text-left"> {transI18n("stage")}: {stageList.find((s) => s.id === ce_config.stage_id.toString())?.name || transI18n("selectStage")}</span>
+                        <Search className="w-4 h-4" />
+                        <span className="text-left font-medium"> {transI18n("stage")}: {stageList.find((s) => s.id === ce_config.stage_id.toString())?.name || transI18n("selectStage")}</span>
                     </button>
                 </div>
                 {showSearchStage && (
-                    <div onClick={(e) => e.stopPropagation()} className="absolute top-full mt-2 w-full z-50 border bg-base-200 border-slate-600 rounded-lg p-4 shadow-lg">
+                    <div onClick={(e) => e.stopPropagation()} className="absolute top-full mt-2 w-full z-50 border bg-base-200 border-base-content/20 rounded-xl p-4 shadow-xl">
                         <div className="flex items-center gap-2 mb-2">
 
                             <label className="input w-full">
@@ -147,46 +155,44 @@ export default function CeBar() {
                                     </g>
                                 </svg>
                                 <input
-                                    type="search" className="grow"
-                                    placeholder={transI18n("searchStage")}
                                     value={stageSearchTerm}
-                                    onChange={(e) => setStageSearchTerm(e.target.value)}
-                                    autoFocus
+                                    onChange={(e) => {
+                                        setStageSearchTerm(e.target.value)
+                                        setStagePage(1)
+                                    }}
+                                    type="search"
+                                    required
+                                    placeholder={transI18n("searchStage")}
                                 />
-
                             </label>
                         </div>
-
-                        <div className="max-h-60 overflow-y-auto space-y-1">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 max-h-[48vh] overflow-y-auto pr-1">
                             {paginatedStages.length > 0 ? (
-                                <>
-                                    {paginatedStages.map((stage) => (
-                                        <div
-                                            key={stage.id}
-                                            className="p-2 hover:bg-primary/20 rounded cursor-pointer"
-                                            onClick={() => {
-                                                if (ce_config.stage_id !== Number(stage.id)) {
-                                                    setCeConfig({ ...ce_config, stage_id: Number(stage.id), cycle_count: 30 })
-                                                }
-                                                setShowSearchStage(false)
-                                                setStageSearchTerm("")
-                                            }}
-                                        >
-                                            {stage.name}
-                                        </div>
-                                    ))}
-
-
-                                </>
+                                paginatedStages.map((stage) => (
+                                    <button
+                                        key={stage.id}
+                                        className="btn btn-sm btn-outline justify-start"
+                                        onClick={(e) => {
+                                            e.stopPropagation()
+                                            if (ce_config.stage_id !== Number(stage.id)) {
+                                                setCeConfig({ ...ce_config, stage_id: Number(stage.id), cycle_count: 30 })
+                                            }
+                                            setShowSearchStage(false)
+                                            setStageSearchTerm("")
+                                        }}
+                                    >
+                                        <span className="truncate">{stage.name}</span>
+                                    </button>
+                                ))
                             ) : (
                                 <div className="text-sm text-center py-4">{transI18n("noStageFound")}</div>
                             )}
                         </div>
                         {paginatedStages.length > 0 && (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-4">
                                 <button
                                     disabled={stagePage === 1}
-                                    className="btn btn-sm btn-outline btn-success mt-2"
+                                    className="btn btn-sm btn-outline btn-success"
                                     onClick={(e) => {
                                         e.stopPropagation()
                                         setStagePage(stagePage - 1)
@@ -197,7 +203,7 @@ export default function CeBar() {
 
                                 <button
                                     disabled={!hasMorePages}
-                                    className="btn btn-sm btn-outline btn-success mt-2"
+                                    className="btn btn-sm btn-outline btn-success"
                                     onClick={(e) => {
                                         e.stopPropagation()
                                         setStagePage(stagePage + 1)
@@ -211,12 +217,12 @@ export default function CeBar() {
                 )}
             </div>
 
-            <div className="relative max-w-7xl mx-auto space-y-6">
+            <div className="relative w-full space-y-4">
                 {ce_config.monsters.map((wave, waveIndex) => (
-                    <div key={waveIndex} className="card border border-slate-700/50 ">
-                        <div className="card-body p-6">
+                    <div key={waveIndex} className="rounded-xl border border-warning p-4 bg-base-100">
+                        <div className="w-full">
                             <div className="flex items-center flex-wrap justify-between mb-4">
-                                <h2 className="text-xl font-bold text-white">{transI18n("wave")} {waveIndex + 1}</h2>
+                                <h2 className="text-xl font-bold text-info">{transI18n("wave")} {waveIndex + 1}</h2>
                                 <div className="flex gap-2">
                                     <button
                                         disabled={waveIndex === 0}
@@ -430,7 +436,10 @@ export default function CeBar() {
                                                         type="search" className="grow"
                                                         placeholder={transI18n("searchMonster")}
                                                         value={searchTerm}
-                                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                                        onChange={(e) => {
+                                                            setSearchTerm(e.target.value)
+                                                            setMonsterPage(1)
+                                                        }}
                                                         autoFocus
                                                     />
 
@@ -513,20 +522,17 @@ export default function CeBar() {
                 ))}
 
                 {/* Add New Wave Button */}
-                <div className="card border border-slate-700/50 border-dashed">
-                    <div className="card-body p-8">
-                        <button
-                            onClick={() => {
-                                const newCeConfig = structuredClone(ce_config)
-                                newCeConfig.monsters.push([])
-                                setCeConfig(newCeConfig)
-                            }}
-                            className="btn btn-primary btn-lg w-full">
-                            <Plus className="w-6 h-6 mr-2" />
-                            {transI18n("addNewWave")}
-                        </button>
-                    </div>
-                </div>
+                <button
+                    onClick={() => {
+                        const newCeConfig = structuredClone(ce_config)
+                        newCeConfig.monsters.push([])
+                        setCeConfig(newCeConfig)
+                    }}
+                    className="btn btn-outline btn-warning w-full flex items-center justify-center gap-2 rounded-xl shadow-xs font-semibold"
+                >
+                    <Plus className="w-4 h-4" />
+                    <span>{transI18n("addNewWave")}</span>
+                </button>
             </div>
         </div>
     );

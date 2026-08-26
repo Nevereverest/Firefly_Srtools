@@ -15,13 +15,37 @@ import useCurrentDataStore from '@/stores/currentDataStore';
 import { RelicSetDetail, SubAffixData } from '@/types';
 import useLocaleStore from '@/stores/localeStore';
 import { mappingRelicSlot } from "@/constant/constant";
+import { useShallow } from 'zustand/react/shallow';
 
 export default function RelicMaker() {
-    const { avatars, setAvatars } = useUserDataStore()
-    const { avatarSelected } = useCurrentDataStore()
-    const { setIsOpenRelic } = useModelStore()
-    const { mainAffix, subAffix, mapRelicSet } = useDetailDataStore()
-    const { locale } = useLocaleStore()
+    const { avatars, setAvatar } = useUserDataStore(
+        useShallow((state) => ({
+            avatars: state.avatars,
+            setAvatar: state.setAvatar,
+        }))
+    )
+    const { avatarSelected } = useCurrentDataStore(
+        useShallow((state) => ({
+            avatarSelected: state.avatarSelected,
+        }))
+    )
+    const { setIsOpenRelic } = useModelStore(
+        useShallow((state) => ({
+            setIsOpenRelic: state.setIsOpenRelic,
+        }))
+    )
+    const { mainAffix, subAffix, mapRelicSet } = useDetailDataStore(
+        useShallow((state) => ({
+            mainAffix: state.mainAffix,
+            subAffix: state.subAffix,
+            mapRelicSet: state.mapRelicSet,
+        }))
+    )
+    const { locale } = useLocaleStore(
+        useShallow((state) => ({
+            locale: state.locale,
+        }))
+    )
     const transI18n = useTranslations("DataPage")
     const {
         selectedRelicSlot,
@@ -37,7 +61,23 @@ export default function RelicMaker() {
         resetHistory,
         popHistory,
         addHistory,
-    } = useRelicMakerStore()
+    } = useRelicMakerStore(
+        useShallow((state) => ({
+            selectedRelicSlot: state.selectedRelicSlot,
+            selectedRelicSet: state.selectedRelicSet,
+            selectedMainStat: state.selectedMainStat,
+            listSelectedSubStats: state.listSelectedSubStats,
+            selectedRelicLevel: state.selectedRelicLevel,
+            preSelectedSubStats: state.preSelectedSubStats,
+            setSelectedRelicSet: state.setSelectedRelicSet,
+            setSelectedMainStat: state.setSelectedMainStat,
+            setSelectedRelicLevel: state.setSelectedRelicLevel,
+            setListSelectedSubStats: state.setListSelectedSubStats,
+            resetHistory: state.resetHistory,
+            popHistory: state.popHistory,
+            addHistory: state.addHistory,
+        }))
+    )
     const [error, setError] = useState<string>("");
 
     const relicSets = useMemo(() => {
@@ -218,46 +258,57 @@ export default function RelicMaker() {
         };
 
         if (avatar) {
-            avatar.profileList[avatar.profileSelect].relics[selectedRelicSlot] = {
-                level: selectedRelicLevel,
-                relic_id: Number(`6${selectedRelicSet}${selectedRelicSlot}`),
-                relic_set_id: Number(selectedRelicSet),
-                main_affix_id: Number(selectedMainStat),
-                sub_affixes: listSelectedSubStats.map((item) => {
-                    return {
-                        sub_affix_id: Number(item.affixId),
-                        count: item.rollCount,
-                        step: item.stepCount
+            const profileIndex = avatar.profileSelect;
+            const currentProfile = avatar.profileList[profileIndex];
+            if (currentProfile) {
+                const newProfileList = [...avatar.profileList];
+                newProfileList[profileIndex] = {
+                    ...currentProfile,
+                    relics: {
+                        ...currentProfile.relics,
+                        [selectedRelicSlot]: {
+                            level: selectedRelicLevel,
+                            relic_id: Number(`6${selectedRelicSet}${selectedRelicSlot}`),
+                            relic_set_id: Number(selectedRelicSet),
+                            main_affix_id: Number(selectedMainStat),
+                            sub_affixes: listSelectedSubStats.map((item) => ({
+                                sub_affix_id: Number(item.affixId),
+                                count: item.rollCount,
+                                step: item.stepCount
+                            }))
+                        }
                     }
-                })
+                };
+                setAvatar({
+                    ...avatar,
+                    profileList: newProfileList
+                });
             }
         }
-        setAvatars({ ...avatars });
         setIsOpenRelic(false);
 
         toast.success(transI18n("relicSavedSuccessfully"));
     }
 
     return (
-        <div>
-            <div className="border-b border-purple-500/30 px-6 py-4 mb-4">
-                <h3 className="font-bold text-2xl text-transparent bg-clip-text bg-linear-to-r from-pink-400 to-cyan-400">
-                    {transI18n("relicMaker")}
-                </h3>
-            </div>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
+        <div className="space-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+                {/* Left Panel: Main Stat & Set Configuration */}
+                <div className="lg:col-span-5 space-y-4">
+                    <div className="p-4 sm:p-5 rounded-2xl bg-base-200/50 border border-base-content/10 shadow-xs space-y-4">
+                        <div className="pb-3 border-b border-base-content/10">
+                            <h2 className="text-base font-bold text-primary flex items-center gap-2">
+                                <span className="w-1.5 h-4 bg-primary rounded-full"></span>
+                                {transI18n("mainSettings")}
+                            </h2>
+                        </div>
 
-                {/* Left Panel */}
-                <div className="space-y-6">
-
-                    {/* Set Configuration */}
-                    <div className="bg-base-100 rounded-xl p-6 border border-slate-700">
-                        <h2 className="text-xl font-bold mb-6 text-warning">{transI18n("mainSettings")}</h2>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                            {/* Main Stat */}
+                        <div className="space-y-3.5">
+                            {/* Main Stat Picker */}
                             <div>
-                                <label className="block text-lg font-medium mb-2">{transI18n("mainStat")}</label>
+                                <label className="block text-xs font-bold uppercase tracking-wider text-base-content/75 mb-1.5">
+                                    {transI18n("mainStat")}
+                                </label>
                                 <SelectCustomImage
                                     customSet={Object.entries(mainAffix["5" + selectedRelicSlot] || {}).map(([key, value]) => ({
                                         value: key,
@@ -270,9 +321,12 @@ export default function RelicMaker() {
                                     setSelectedCustomSet={setSelectedMainStat}
                                 />
                             </div>
-                            {/* Relic Set Selection */}
+
+                            {/* Relic Set Picker */}
                             <div>
-                                <label className="block text-lg font-medium mb-2">{transI18n("set")}</label>
+                                <label className="block text-xs font-bold uppercase tracking-wider text-base-content/75 mb-1.5">
+                                    {transI18n("set")}
+                                </label>
                                 <SelectCustomImage
                                     customSet={Object.entries(relicSets).map(([key, value]) => ({
                                         value: key,
@@ -285,212 +339,198 @@ export default function RelicMaker() {
                                     setSelectedCustomSet={setSelectedRelicSet}
                                 />
                             </div>
-                        </div>
 
-                        {/* Set Bonus Display */}
-                        <div className="mb-6 py-4 bg-base-100 rounded-lg">
-                            {selectedRelicSet !== "" ? Object.entries(mapRelicSet[selectedRelicSet].Skills).map(([key, value]) => (
-                                <div key={key} className="text-blue-300 text-sm mb-1">
-                                    <span className="text-info font-bold">{key}-Pc:
-                                        <div
-                                            className="text-warning leading-relaxed font-bold"
-                                            dangerouslySetInnerHTML={{
-                                                __html: replaceByParam(
-                                                    getLocaleName(locale, value.Desc),
-                                                    value.Param || []
-                                                )
-                                            }}
-                                        /> </span>
-                                </div>
-                            )) : <p className="text-blue-300 text-sm font-bold mb-1">{transI18n("pleaseSelectASet")}</p>}
-                        </div>
-
-
-                        {/* Rarity */}
-                        <div className="grid grid-cols-2 items-center gap-4 mb-6">
-                            <label className="block text-lg font-medium mb-2">{transI18n("rarity")}: {5} ⭐</label>
-                            <label className="block text-lg font-medium mb-2">{transI18n("effectBonus")}: <span className="text-warning font-bold">{effectBonus}</span></label>
-                        </div>
-
-                        {/* Level */}
-                        <div className="mb-6">
-                            <label className="block text-lg font-medium mb-2">{transI18n("level")}</label>
-                            <div className="bg-base-200 rounded-lg p-4">
-                                <input
-                                    type="range"
-                                    min="0"
-                                    max="15"
-                                    value={selectedRelicLevel}
-                                    onChange={(e) => setSelectedRelicLevel(parseInt(e.target.value))}
-                                    className="range range-primary w-full"
-                                />
-                                <div className="text-center text-2xl font-bold mt-2">{selectedRelicLevel}</div>
+                            {/* Set Bonus Display */}
+                            <div className="py-2 px-1 text-xs border-t border-b border-base-content/10">
+                                {selectedRelicSet !== "" && mapRelicSet[selectedRelicSet] ? (
+                                    Object.entries(mapRelicSet[selectedRelicSet].Skills).map(([key, value]) => (
+                                        <div key={key} className="mb-2 last:mb-0 space-y-0.5">
+                                            <span className="font-bold text-amber-500">{key}-Piece:</span>
+                                            <div
+                                                className="text-base-content/80 leading-relaxed pl-1"
+                                                dangerouslySetInnerHTML={{
+                                                    __html: replaceByParam(
+                                                        getLocaleName(locale, value.Desc),
+                                                        value.Param || []
+                                                    )
+                                                }}
+                                            />
+                                        </div>
+                                    ))
+                                ) : (
+                                    <p className="text-base-content/40 italic py-1">{transI18n("pleaseSelectASet")}</p>
+                                )}
                             </div>
+
+                            {/* Effect Bonus & Level */}
+                            <div className="space-y-3 pt-1">
+                                <div className="flex items-center justify-between text-xs font-semibold">
+                                    <span className="text-base-content/75">{transI18n("effectBonus")}:</span>
+                                    <span className="font-mono text-primary font-bold text-sm">+{effectBonus}</span>
+                                </div>
+
+                                <div className="space-y-1.5">
+                                    <div className="flex items-center justify-between text-xs font-semibold">
+                                        <span className="text-base-content/75">{transI18n("level")}</span>
+                                        <span className="font-mono text-primary font-bold">+{selectedRelicLevel}</span>
+                                    </div>
+                                    <input
+                                        type="range"
+                                        min="0"
+                                        max="15"
+                                        value={selectedRelicLevel}
+                                        onChange={(e) => setSelectedRelicLevel(parseInt(e.target.value))}
+                                        className="range range-primary range-xs w-full"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Error Message */}
+                            <AnimatePresence>
+                                {error && (
+                                    <motion.p
+                                        key="error"
+                                        initial={{ opacity: 0, y: -4 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0 }}
+                                        className="text-xs text-error font-bold text-center bg-error/10 p-2 rounded-lg border border-error/20"
+                                    >
+                                        {error}
+                                    </motion.p>
+                                )}
+                            </AnimatePresence>
+
+                            {/* Save Button */}
+                            <button
+                                onClick={handlerSaveRelic}
+                                className="btn btn-primary w-full rounded-xl font-bold shadow-xs mt-2"
+                            >
+                                {transI18n("save")}
+                            </button>
                         </div>
-                        <AnimatePresence>
-                            {error && (
-                                <motion.p
-                                    key="error"
-                                    initial={{ x: 0 }}
-                                    animate={{ x: [0, -2, 2, -2, 2, 0] }}
-                                    transition={{
-                                        duration: 6,
-                                        repeat: Infinity,
-                                        ease: "easeInOut",
-                                        repeatDelay: 1.5,
-                                    }}
-                                    className="text-error my-2 text-center font-bold"
-                                >
-                                    {error}!
-                                </motion.p>
-                            )}
-                        </AnimatePresence>
-
-
-
-                        {/* Save Button */}
-                        <button onClick={handlerSaveRelic} className="btn btn-success w-full">
-                            {transI18n("save")}
-                        </button>
                     </div>
                 </div>
 
-                {/* Right Panel - Sub Stats */}
-                <div className="space-y-4">
-                    {/* Total Roll */}
-                    <div className="bg-base-100 rounded-xl p-4 border border-slate-700 z-1">
-                        <h3 className="text-lg font-bold mb-4">{transI18n("totalRoll")} {listSelectedSubStats.reduce((a, b) => a + b.rollCount, 0)}</h3>
+                {/* Right Panel: Sub Stats Configurator */}
+                <div className="lg:col-span-7 space-y-3">
+                    {/* Header with Total Rolls & Randomizers */}
+                    <div className="p-3 rounded-2xl bg-base-200/50 border border-base-content/10 flex flex-wrap items-center justify-between gap-2 shadow-xs">
+                        <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold uppercase tracking-wider text-base-content/75">{transI18n("totalRoll")}:</span>
+                            <span className="text-sm font-mono font-bold px-2 py-0.5 rounded-full bg-primary/20 text-primary border border-primary/30">
+                                {listSelectedSubStats.reduce((a, b) => a + b.rollCount, 0)}
+                            </span>
+                        </div>
 
-                        <div className="grid grid-cols-2 gap-2">
+                        <div className="flex items-center gap-2">
                             <button
-                                className="btn btn-outline btn-success sm:btn-sm"
+                                className="btn btn-xs btn-outline btn-primary rounded-lg font-semibold"
                                 onClick={randomizeStats}
                             >
                                 {transI18n("randomizeStats")}
                             </button>
                             <button
-                                className="btn btn-outline btn-success sm:btn-sm"
+                                className="btn btn-xs btn-outline btn-accent rounded-lg font-semibold"
                                 onClick={randomizeRolls}
                             >
                                 {transI18n("randomizeRolls")}
                             </button>
                         </div>
                     </div>
-                    {listSelectedSubStats.map((v, index) => (
-                        <div key={index} className={`bg-base-100 rounded-xl p-4 border border-slate-700`}>
-                            <div className="grid grid-cols-12 gap-2 items-center">
 
-                                {/* Stat Selection */}
-                                <div className="col-span-8">
-                                    <SelectCustomImage
-                                        customSet={Object.entries(subAffixOptions).map(([key, value]) => ({
-                                            value: key,
-                                            label: mappingStats[value.Property].name + " " + mappingStats[value.Property].unit,
-                                            imageUrl: `${process.env.CDN_URL}/${mappingStats[value.Property].icon}`
-                                        }))}
-                                        excludeSet={Object.entries(exSubAffixOptions).map(([key, value]) => ({
-                                            value: key,
-                                            label: mappingStats[value.Property].name + " " + mappingStats[value.Property].unit,
-                                            imageUrl: `${process.env.CDN_URL}/${mappingStats[value.Property].icon}`
-                                        }))}
-                                        selectedCustomSet={v.affixId}
-                                        placeholder={transI18n("selectASubStat")}
-                                        setSelectedCustomSet={(key) => handleSubStatChange(key, index, 0, 0)}
-                                    />
-                                </div>
-
-                                {/* Current Value */}
-                                <div className="col-span-4 text-center flex items-center justify-center gap-2">
-                                    <span className="text-2xl font-mono">+{ }</span>
-                                    <div className="text-xl font-bold text-info">{calcAffixBonus(subAffixOptions[v.affixId], v.stepCount, v.rollCount)}{mappingStats?.[subAffixOptions[v.affixId]?.Property]?.unit || ""}</div>
-                                </div>
-
-                                {/* Up Roll Values */}
-                                <div className="col-span-12">
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <ChevronUp className="w-4 h-4 text-success" />
-                                        <span className="text-sm font-semibold text-success">{transI18n("upRoll")}</span>
+                    {/* 4 Sub-Stat Slots */}
+                    <div className="space-y-2.5">
+                        {listSelectedSubStats.map((v, index) => (
+                            <div key={index} className="p-3.5 rounded-2xl bg-base-200/40 border border-base-content/10 space-y-2.5 shadow-xs">
+                                <div className="flex items-center justify-between gap-2">
+                                    <div className="flex-1">
+                                        <SelectCustomImage
+                                            customSet={Object.entries(subAffixOptions).map(([key, value]) => ({
+                                                value: key,
+                                                label: mappingStats[value.Property].name + " " + mappingStats[value.Property].unit,
+                                                imageUrl: `${process.env.CDN_URL}/${mappingStats[value.Property].icon}`
+                                            }))}
+                                            excludeSet={Object.entries(exSubAffixOptions).map(([key, value]) => ({
+                                                value: key,
+                                                label: mappingStats[value.Property].name + " " + mappingStats[value.Property].unit,
+                                                imageUrl: `${process.env.CDN_URL}/${mappingStats[value.Property].icon}`
+                                            }))}
+                                            selectedCustomSet={v.affixId}
+                                            placeholder={transI18n("selectASubStat")}
+                                            setSelectedCustomSet={(key) => handleSubStatChange(key, index, 0, 0)}
+                                        />
                                     </div>
-                                    <div className="grid grid-cols-3 gap-1">
-                                        <button
-                                            onClick={() => handleSubStatChange(v.affixId, index, v.rollCount + 1, v.stepCount + 0)}
-                                            className="btn btn-sm btn-info border-0"
-                                        >
-                                            {calcAffixBonus(subAffixOptions[v.affixId], 0, v.rollCount + 1)}{mappingStats?.[subAffixOptions[v.affixId]?.Property]?.unit || ""}
-                                        </button>
-                                        <button
-                                            onClick={() => handleSubStatChange(v.affixId, index, v.rollCount + 1, v.stepCount + 1)}
-                                            className="btn btn-sm btn-info border-0"
-                                        >
-                                            {calcAffixBonus(subAffixOptions[v.affixId], v.stepCount + 1, v.rollCount + 1)}{mappingStats?.[subAffixOptions[v.affixId]?.Property]?.unit || ""}
-                                        </button>
-                                        <button
-                                            onClick={() => handleSubStatChange(v.affixId, index, v.rollCount + 1, v.stepCount + 2)}
-                                            className="btn btn-sm btn-info border-0"
-                                        >
-                                            {calcAffixBonus(subAffixOptions[v.affixId], v.stepCount + 2, v.rollCount + 1)}{mappingStats?.[subAffixOptions[v.affixId]?.Property]?.unit || ""}
-                                        </button>
+
+                                    {/* Stat Value Readout */}
+                                    <div className="px-3 py-1 rounded-xl bg-base-100 border border-base-content/10 text-right min-w-24 shadow-xs">
+                                        <span className="text-sm font-mono font-extrabold text-primary block">
+                                            +{calcAffixBonus(subAffixOptions[v.affixId], v.stepCount, v.rollCount)}{mappingStats?.[subAffixOptions[v.affixId]?.Property]?.unit || ""}
+                                        </span>
+                                        <span className="text-[11px] text-base-content/60 font-mono font-semibold">
+                                            Roll: {v.rollCount} | Step: {v.stepCount}
+                                        </span>
                                     </div>
                                 </div>
 
-                                {/* Down Roll Values */}
-                                <div className="col-span-12">
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <ChevronDown className="w-4 h-4 text-error" />
-                                        <span className="text-sm font-semibold text-error">{transI18n("downRoll")}</span>
-                                    </div>
-                                    <div className="grid grid-cols-3 gap-1">
-                                        <button
-                                            onClick={() => handleSubStatChange(v.affixId, index, Math.max(v.rollCount - 1, 0), Math.max(v.stepCount, 0))}
-                                            className="btn btn-sm btn-info border-0"
-                                        >
-                                            {calcAffixBonus(subAffixOptions[v.affixId], 0, Math.max(v.rollCount - 1, 0))}{mappingStats?.[subAffixOptions[v.affixId]?.Property]?.unit || ""}
-                                        </button>
-                                        <button
-                                            onClick={() => handleSubStatChange(v.affixId, index, Math.max(v.rollCount - 1, 0), Math.max(v.stepCount - 1, 0))}
-                                            className="btn btn-sm btn-info border-0"
-                                        >
-                                            {calcAffixBonus(subAffixOptions[v.affixId], Math.max(v.stepCount - 1, 0), Math.max(v.rollCount - 1, 0))}{mappingStats?.[subAffixOptions[v.affixId]?.Property]?.unit || ""}
-                                        </button>
-                                        <button
-                                            onClick={() => handleSubStatChange(v.affixId, index, Math.max(v.rollCount - 1, 0), Math.max(v.stepCount - 2, 0))}
-                                            className="btn btn-sm btn-info border-0"
-                                        >
-                                            {calcAffixBonus(subAffixOptions[v.affixId], Math.max(v.stepCount - 2, 0), Math.max(v.rollCount - 1, 0))}{mappingStats?.[subAffixOptions[v.affixId]?.Property]?.unit || ""}
-                                        </button>
-                                    </div>
-                                </div>
-
-                                {/* Reset Button & Roll Info */}
-                                <div className="col-span-12 text-center w-full">
-                                    <div className="grid grid-rows-2 gap-1 items-center justify-items-start w-full">
-                                        <div className="grid grid-cols-2 gap-2 items-center w-full">
-                                            <button
-                                                className="btn btn-error btn-sm mb-1"
-                                                onClick={() => resetSubStat(index)}
-                                            >
-                                                {transI18n("reset")}
-                                            </button>
-                                            <button
-                                                className="btn btn-warning btn-sm mb-1"
-                                                onClick={() => handlerRollback(index)}
-                                            >
-                                                {transI18n("rollBack")}
-                                            </button>
+                                {/* Up / Down Steppers */}
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-0.5">
+                                    {/* Up Rolls */}
+                                    <div className="space-y-1">
+                                        <div className="flex items-center gap-1 text-[11px] font-bold text-success">
+                                            <ChevronUp className="w-3.5 h-3.5" />
+                                            <span>{transI18n("upRoll")}</span>
                                         </div>
+                                        <div className="grid grid-cols-3 gap-1.5">
+                                            {[0, 1, 2].map((stepOffset) => (
+                                                <button
+                                                    key={stepOffset}
+                                                    onClick={() => handleSubStatChange(v.affixId, index, v.rollCount + 1, v.stepCount + stepOffset)}
+                                                    className="btn btn-xs btn-success rounded-xl font-mono font-bold shadow-xs"
+                                                >
+                                                    +{calcAffixBonus(subAffixOptions[v.affixId], v.stepCount + stepOffset, v.rollCount + 1)}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
 
-                                        <div className="grid grid-cols-2 gap-2 items-center w-full">
-                                            <span className="font-bold">{transI18n("roll")}: <span className="text-info">{v.rollCount}</span></span>
-                                            <span className="font-bold">{transI18n("step")}: <span className="text-info">{v.stepCount}</span></span>
+                                    {/* Down Rolls */}
+                                    <div className="space-y-1">
+                                        <div className="flex items-center gap-1 text-[11px] font-bold text-error">
+                                            <ChevronDown className="w-3.5 h-3.5" />
+                                            <span>{transI18n("downRoll")}</span>
+                                        </div>
+                                        <div className="grid grid-cols-3 gap-1.5">
+                                            {[0, 1, 2].map((stepOffset) => (
+                                                <button
+                                                    key={stepOffset}
+                                                    onClick={() => handleSubStatChange(v.affixId, index, Math.max(v.rollCount - 1, 0), Math.max(v.stepCount - stepOffset, 0))}
+                                                    className="btn btn-xs btn-error rounded-xl font-mono font-bold shadow-xs"
+                                                >
+                                                    -{calcAffixBonus(subAffixOptions[v.affixId], Math.max(v.stepCount - stepOffset, 0), Math.max(v.rollCount - 1, 0))}
+                                                </button>
+                                            ))}
                                         </div>
                                     </div>
                                 </div>
 
+                                {/* Reset & Rollback actions */}
+                                <div className="flex items-center justify-end gap-2 pt-1 border-t border-base-content/10">
+                                    <button
+                                        className="btn btn-ghost btn-xs text-warning hover:bg-warning/10 rounded-lg text-xs font-bold"
+                                        onClick={() => handlerRollback(index)}
+                                    >
+                                        {transI18n("rollBack")}
+                                    </button>
+                                    <button
+                                        className="btn btn-ghost btn-xs text-error hover:bg-error/10 rounded-lg text-xs font-bold"
+                                        onClick={() => resetSubStat(index)}
+                                    >
+                                        {transI18n("reset")}
+                                    </button>
+                                </div>
                             </div>
-                        </div>
-                    ))}
-
-
+                        ))}
+                    </div>
                 </div>
             </div>
         </div>

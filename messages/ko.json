@@ -285,6 +285,8 @@
 		"trailblazer": "개척자",
 		"listExtraEffect": "추가 효과 목록",
 		"extra": "추가",
-		"customLineup": "커스텀 편성"
+		"customLineup": "커스텀 편성",
+		"def": "방어력",
+		"language": "언어"
 	}
 }

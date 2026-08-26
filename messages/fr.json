@@ -286,6 +286,8 @@
         "trailblazer": "Pionnier",
         "listExtraEffect": "Liste des effets supplémentaires",
         "extra": "Extra",
-        "customLineup": "Composition personnalisée"
+        "customLineup": "Composition personnalisée",
+        "def": "DÉF",
+        "language": "Langue"
     }
 }

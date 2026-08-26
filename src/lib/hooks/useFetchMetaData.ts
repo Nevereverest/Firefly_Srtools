@@ -5,10 +5,15 @@ import { toast } from 'react-toastify'
 import { getMetadataApi } from '@/lib/api'
 import useCurrentDataStore from '@/stores/currentDataStore'
 import useDetailDataStore from '@/stores/detailDataStore'
+import { useShallow } from 'zustand/react/shallow'
 
 export const useFetchConfigData = () => {
-    const { setMetaData } = useDetailDataStore()
-    const { setSettingData } = useCurrentDataStore()
+    const { setMetaData } = useDetailDataStore(
+        useShallow((state) => ({ setMetaData: state.setMetaData }))
+    )
+    const { setSettingData } = useCurrentDataStore(
+        useShallow((state) => ({ setSettingData: state.setSettingData }))
+    )
 
     const query = useQuery({
         queryKey: ['initialConfigData'],

@@ -286,6 +286,8 @@
         "trailblazer": "ผู้บุกเบิก",
         "listExtraEffect": "รายการเอฟเฟกต์พิเศษ",
         "extra": "พิเศษ",
-        "customLineup": "จัดทีมแบบกำหนดเอง"
+        "customLineup": "จัดทีมแบบกำหนดเอง",
+        "def": "DEF",
+        "language": "ภาษา"
     }
 }

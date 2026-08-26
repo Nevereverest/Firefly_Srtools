@@ -1,6 +1,5 @@
 @import "tailwindcss";
 
-
 @plugin "daisyui" {
   exclude: properties;
   themes: winter --default, night --prefersdark, cupcake, coffee;
@@ -9,9 +8,8 @@
 @tailwind utilities;
 
 @plugin 'tailwind-scrollbar' {
-    nocompatible: true;
+  nocompatible: true;
 }
-
 
 :root {
   --size-big: 4vw;
@@ -19,9 +17,10 @@
   --size-small: 2vw;
 }
 
+/* Smooth Modern Ultra-Sleek Scrollbars */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 4px;
+  height: 4px;
 }
 
 ::-webkit-scrollbar-track {
@@ -29,10 +28,83 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: #9ca3af; 
-  border-radius: 0; 
+  background: rgba(156, 163, 175, 0.28);
+  border-radius: 9999px;
+  transition: background-color 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(156, 163, 175, 0.55);
 }
 
 ::-webkit-scrollbar-button {
-  display: none; 
+  display: none;
 }
+
+/* Custom UI Utilities for Gaming Companion Aesthetic */
+@layer utilities {
+  .glass-card {
+    background-color: var(--color-base-100);
+    border: 1px solid color-mix(in srgb, var(--color-base-content) 10%, transparent);
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+  }
+
+  .glass-panel {
+    background-color: var(--color-base-100);
+    border: 1px solid color-mix(in srgb, var(--color-base-content) 10%, transparent);
+  }
+
+  .hover-lift {
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease;
+  }
+  .hover-lift:hover {
+    transform: translateY(-2px);
+  }
+
+  .active-press {
+    transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .active-press:active {
+    transform: scale(0.97);
+  }
+
+  /* Rarity Glow Effects */
+  .glow-5star {
+    box-shadow: 0 0 16px -2px rgba(245, 158, 11, 0.35);
+  }
+
+  .glow-4star {
+    box-shadow: 0 0 16px -2px rgba(168, 85, 247, 0.35);
+  }
+
+  /* Ambient Background - Clean Canvas */
+  .bg-ambient-mesh {
+    background-color: var(--color-base-100);
+  }
+
+  /* Theme Adaptive Path & Stat Icon Filters - High Accessibility Contrast */
+  .theme-path-icon {
+    filter: brightness(0.2) opacity(0.85);
+  }
+  [data-theme="night"] .theme-path-icon,
+  [data-theme="coffee"] .theme-path-icon {
+    filter: brightness(0.8) opacity(0.85);
+  }
+  .theme-path-icon-active {
+    filter: brightness(0);
+  }
+  [data-theme="night"] .theme-path-icon-active,
+  [data-theme="coffee"] .theme-path-icon-active {
+    filter: brightness(1);
+  }
+
+  /* Stat icons (HSR raw sprite icons are white pngs, need dark filter on light themes) */
+  .theme-stat-icon {
+    filter: brightness(0.15) opacity(0.8);
+  }
+  [data-theme="night"] .theme-stat-icon,
+  [data-theme="coffee"] .theme-stat-icon {
+    filter: brightness(0.95) opacity(1);
+  }
+}
+

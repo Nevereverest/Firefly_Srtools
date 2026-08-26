@@ -5,10 +5,19 @@ import { useEffect } from 'react'
 import { toast } from 'react-toastify'
 import useModelStore from '@/stores/modelStore'
 import useLocaleStore from '@/stores/localeStore'
+import { useShallow } from 'zustand/react/shallow'
 
 export const useFetchChangelog = () => {
-    const { currentVersion, setChangelog, setCurrentVersion } = useLocaleStore()
-    const { setIsChangelog } = useModelStore()
+    const { currentVersion, setChangelog, setCurrentVersion } = useLocaleStore(
+        useShallow((state) => ({
+            currentVersion: state.currentVersion,
+            setChangelog: state.setChangelog,
+            setCurrentVersion: state.setCurrentVersion,
+        }))
+    )
+    const { setIsChangelog } = useModelStore(
+        useShallow((state) => ({ setIsChangelog: state.setIsChangelog }))
+    )
     const query = useQuery({
         queryKey: ['changelog'],
         queryFn: getChangelog,

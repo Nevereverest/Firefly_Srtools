@@ -9,14 +9,30 @@ import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { MoCEvent, MonsterStore } from "@/types";
 import useDetailDataStore from "@/stores/detailDataStore";
+import { useShallow } from "zustand/react/shallow";
 
 export default function MocBar() {
-    const { locale } = useLocaleStore()
+    const { locale } = useLocaleStore(
+        useShallow((state) => ({ locale: state.locale }))
+    )
     const {
         moc_config,
         setMocConfig
-    } = useUserDataStore()
-    const { mapMonster, mapMoc, damageType, hardLevelConfig, eliteConfig } = useDetailDataStore()
+    } = useUserDataStore(
+        useShallow((state) => ({
+            moc_config: state.moc_config,
+            setMocConfig: state.setMocConfig,
+        }))
+    )
+    const { mapMonster, mapMoc, damageType, hardLevelConfig, eliteConfig } = useDetailDataStore(
+        useShallow((state) => ({
+            mapMonster: state.mapMonster,
+            mapMoc: state.mapMoc,
+            damageType: state.damageType,
+            hardLevelConfig: state.hardLevelConfig,
+            eliteConfig: state.eliteConfig,
+        }))
+    )
 
     const transI18n = useTranslations("DataPage")
 
@@ -86,6 +102,14 @@ export default function MocBar() {
 
         if (targetEventList.length > 0) {
             newBattleConfig.stage_id = targetEventList[0].ID
+            
+            if (targetEventList[0].Invasion) {
+                newBattleConfig.blessings.push({
+                    id: targetEventList[0].Invasion.MazeBuff.ID,
+                    level: 1
+                })
+            }
+
             for (const wave of targetEventList[0].MonsterList) {
                 const newWave: MonsterStore[] = []
                 for (const value of Object.values(wave)) {
@@ -115,10 +139,10 @@ export default function MocBar() {
     if (!mapMoc) return null
 
     return (
-        <div className="py-8 relative">
+        <div className="pt-4 pb-2 relative space-y-4">
 
             {/* Title Card */}
-            <div className="rounded-xl p-4 mb-2 border border-warning">
+            <div className="rounded-xl p-4 border border-warning">
                 <div className="mb-4 w-full">
                     <SelectCustomText
                         customSet={Object.values(mapMoc).sort((a, b) => b.ID - a.ID).map((moc) => ({
@@ -197,8 +221,8 @@ export default function MocBar() {
                 <div className="label-text font-bold text-success mb-2">StageId: {moc_config?.stage_id}</div>
 
                 {/* Turbulence Buff */}
-                <div className="bg-base-200/20 rounded-lg p-4 border border-purple-500/20">
-                    <div className="flex items-center space-x-2 mb-2">
+                <div className="pt-3 border-t border-base-content/10 space-y-2">
+                    <div className="flex items-center space-x-2">
                         <input
                             type="checkbox"
                             checked={moc_config.use_turbulence_buff}
@@ -215,7 +239,7 @@ export default function MocBar() {
                         challengeSelected.MazeBuff.map((buff, i) => (
                             <div
                                 key={i}
-                                className="text-base"
+                                className="text-sm text-base-content/85 leading-relaxed"
                                 dangerouslySetInnerHTML={{
                                     __html: replaceByParam(
                                         getLocaleName(locale, buff?.Desc) || "",
@@ -225,7 +249,7 @@ export default function MocBar() {
                             />
                         ))
                     ) : (
-                        <div className="text-base">{transI18n("noTurbulenceBuff")}</div>
+                        <div className="text-sm text-base-content/50 italic">{transI18n("noTurbulenceBuff")}</div>
                     )}
                 </div>
             </div>
@@ -246,7 +270,7 @@ export default function MocBar() {
                         const targetEvent = eventList[0];
 
                         return (
-                            <div key={i} className="rounded-xl p-4 mt-2 border border-warning">
+                            <div key={i} className="rounded-xl p-4 border border-warning">
                                 <h2 className="text-2xl font-bold mb-6 text-info">{side.wave}</h2>
 
                                 {targetEvent?.MonsterList?.map((wave, waveIndex) => (

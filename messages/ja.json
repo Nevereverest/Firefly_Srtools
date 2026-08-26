@@ -285,6 +285,8 @@
 		"trailblazer": "開拓者",
 		"listExtraEffect": "追加効果一覧",
 		"extra": "追加",
-		"customLineup": "カスタム編成"
+		"customLineup": "カスタム編成",
+		"def": "防御力",
+		"language": "言語"
 	}
 }

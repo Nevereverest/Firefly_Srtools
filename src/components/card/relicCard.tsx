@@ -2,6 +2,7 @@
 
 import useRelicMakerStore from "@/stores/relicMakerStore";
 import useUserDataStore from "@/stores/userDataStore";
+import { useShallow } from "zustand/react/shallow";
 import Image from "next/image";
 import { useMemo } from "react";
 
@@ -9,188 +10,126 @@ interface RelicCardProps {
     slot: string
     avatarId: string
 }
+
 const getRarityColor = (rarity: string) => {
     switch (rarity) {
-        case '3': return 'border-green-500 shadow-green-500/50 bg-linear-to-br from-green-700 via-green-400 to-green-500';
-        case '4': return 'border-blue-500 shadow-blue-500/50 bg-linear-to-br from-blue-700 via-blue-400 to-blue-500';
-        case '5': return 'border-purple-500 shadow-purple-500/50 bg-linear-to-br from-purple-700 via-purple-400 to-purple-500';
-        case '6': return 'border-yellow-500 shadow-yellow-500/50 bg-linear-to-br from-yellow-700 via-yellow-400 to-yellow-500';
-        default: return 'border-gray-500 shadow-gray-500/50';
+        case '6': 
+            return 'border-amber-400/90 shadow-[0_0_16px_rgba(251,191,36,0.4)] bg-linear-to-br from-amber-600 via-amber-400 to-amber-500';
+        case '5': 
+            return 'border-purple-400/90 shadow-[0_0_16px_rgba(192,132,252,0.4)] bg-linear-to-br from-purple-700 via-purple-400 to-purple-500';
+        case '4': 
+            return 'border-sky-400/90 shadow-[0_0_16px_rgba(56,189,248,0.4)] bg-linear-to-br from-blue-700 via-blue-400 to-sky-500';
+        case '3': 
+            return 'border-emerald-400/90 shadow-[0_0_16px_rgba(52,211,153,0.4)] bg-linear-to-br from-emerald-700 via-emerald-400 to-emerald-500';
+        default: 
+            return 'border-base-content/20 bg-base-300';
     }
 };
 
-const getRarityName = (slot: string) => {
-    switch (slot) {
-        case '1': return (
-            <div className="flex items-center gap-1">
-                <Image
-                    unoptimized
-                    crossOrigin="anonymous"
-                    src="/relics/HEAD.png"
-                    alt="Head"
-                    width={20}
-                    height={20}
-                    className="bg-black/50 rounded-full"
-                />
-                <h2>Head</h2>
-            </div>
-        );
-        case '2': return (
-            <div className="flex items-center gap-1">
-                <Image
-                    unoptimized
-                    crossOrigin="anonymous"
-                    src="/relics/HAND.png"
-                    alt="Hand"
-                    width={20}
-                    height={20}
-                    className="bg-black/50 rounded-full"
-                />
-                <h2>Hands</h2>
-            </div>
-        );
-        case '3': return (
-            <div className="flex items-center gap-1">
-                <Image
-                    unoptimized
-                    crossOrigin="anonymous"
-                    src="/relics/BODY.png"
-                    alt="Body"
-                    width={20}
-                    height={20}
-                    className="bg-black/50 rounded-full"
-                />
-                <h2>Body</h2>
-            </div>
-        );
-        case '4': return (
-            <div className="flex items-center gap-1">
-                <Image
-                    unoptimized
-                    crossOrigin="anonymous"
-                    src="/relics/FOOT.png"
-                    alt="Foot"
-                    width={20}
-                    height={20}
-                    className="bg-black/50 rounded-full"
-                />
-                <h2>Feet</h2>
-            </div>
-        );
-        case '5': return (
-            <div className="flex items-center gap-1">
-                <Image
-                    unoptimized
-                    crossOrigin="anonymous"
-                    src="/relics/NECK.png"
-                    alt="Neck"
-                    width={20}
-                    height={20}
-                    className="bg-black/50 rounded-full"
-                />
-                <h2>Planar sphere</h2>
-            </div>
-        );
-        case '6': return (
-            <div className="flex items-center gap-1">
-                <Image
-                    unoptimized
-                    crossOrigin="anonymous"
-                    src="/relics/OBJECT.png"
-                    alt="Object"
-                    width={20}
-                    height={20}
-                    className="bg-black/50 rounded-full"
-                />
-                <h2>Link rope</h2>
-            </div>
-        );
-        default: return '';
-    }
+const getSlotIconAndName = (slot: string) => {
+    const slotMap: Record<string, { icon: string; name: string }> = {
+        '1': { icon: '/relics/HEAD.png', name: 'Head' },
+        '2': { icon: '/relics/HAND.png', name: 'Hands' },
+        '3': { icon: '/relics/BODY.png', name: 'Body' },
+        '4': { icon: '/relics/FOOT.png', name: 'Feet' },
+        '5': { icon: '/relics/NECK.png', name: 'Planar Sphere' },
+        '6': { icon: '/relics/OBJECT.png', name: 'Link Rope' },
+    };
+
+    const current = slotMap[slot];
+    if (!current) return null;
+
+    return (
+        <div className="flex items-center gap-1.5 justify-center mt-2.5">
+            <Image
+                unoptimized
+                crossOrigin="anonymous"
+                src={current.icon}
+                alt={current.name}
+                width={18}
+                height={18}
+                className="w-4 h-4 object-contain theme-stat-icon opacity-85"
+            />
+            <span className="text-xs font-bold text-base-content">{current.name}</span>
+        </div>
+    );
 };
+
 export default function RelicCard({ slot, avatarId }: RelicCardProps) {
-    const { avatars } = useUserDataStore()
-    const { selectedRelicSlot } = useRelicMakerStore()
+    const { avatars } = useUserDataStore(
+        useShallow((state) => ({ avatars: state.avatars }))
+    )
+    const { selectedRelicSlot } = useRelicMakerStore(
+        useShallow((state) => ({ selectedRelicSlot: state.selectedRelicSlot }))
+    )
 
     const relicDetail = useMemo(() => {
         const avatar = avatars[avatarId];
         if (avatar) {
-            if (avatar.profileList[avatar.profileSelect].relics[slot]) {
-                return avatar.profileList[avatar.profileSelect].relics[slot];
-            }
-            return null;
+            const profile = avatar.profileList?.[avatar.profileSelect] ?? avatar.profileList?.[0];
+            return profile?.relics?.[slot] || null;
         }
         return null;
     }, [avatars, avatarId, slot]);
 
+    const isSelected = selectedRelicSlot === slot;
+
     return (
-        <div>
+        <div className="flex flex-col items-center select-none group cursor-pointer">
             {relicDetail ? (
-                <div
-                    className="flex flex-col items-center cursor-pointer ">
+                <div className="flex flex-col items-center">
                     <div
                         className={`
-                              relative w-24 h-24 rounded-full
-                              ${getRarityColor(relicDetail.relic_id.toString()[0])}
-                              shadow-xl
-                              flex items-center justify-center
-                              cursor-pointer transition-transform
-                              ${selectedRelicSlot === slot ? 'ring-5 ring-success scale-105' : 'ring-3 ring-primary'}
-                            `}
+                            relative w-22 h-22 sm:w-24 sm:h-24 rounded-full border-3
+                            ${getRarityColor(relicDetail.relic_id.toString()[0])}
+                            flex items-center justify-center
+                            transition-all duration-200
+                            ${isSelected ? 'ring-2 ring-primary/70 shadow-md ring-offset-2 ring-offset-base-100' : 'hover:border-primary/60'}
+                        `}
                     >
-                        <span>
-                            <Image
-                                unoptimized
-                                crossOrigin="anonymous"
-                                src={`${process.env.CDN_URL}/spriteoutput/relicfigures/IconRelic_${relicDetail.relic_set_id}_${slot}.png`}
-                                alt="Relic"
-                                width={124}
-                                height={124}
-                                className="w-14 h-14 object-contain"
-                            />
-                        </span>
+                        <Image
+                            unoptimized
+                            crossOrigin="anonymous"
+                            src={`${process.env.CDN_URL}/spriteoutput/relicfigures/IconRelic_${relicDetail.relic_set_id}_${slot}.png`}
+                            alt="Relic"
+                            width={124}
+                            height={124}
+                            className="w-14 h-14 sm:w-16 sm:h-16 object-contain drop-shadow-md"
+                        />
 
                         {/* Level Badge */}
-                        <div className="absolute -bottom-2 bg-base-100 border-2 border-base-300 rounded-full px-2 py-1">
-                            <span className="text-sm font-bold text-primary">+{relicDetail.level}</span>
+                        <div className="absolute -bottom-2 bg-base-100 border border-base-content/15 shadow-md rounded-full px-2 py-0.5">
+                            <span className="text-xs font-mono font-bold text-primary">+{relicDetail.level}</span>
                         </div>
                     </div>
 
-                    <div className="mt-3 text-center">
-                        <div className="text-sm font-medium text-base-content">{getRarityName(slot)}</div>
-                    </div>
+                    {getSlotIconAndName(slot)}
                 </div>
             ) : (
-                <div
-                    className="flex flex-col items-center cursor-pointer">
+                <div className="flex flex-col items-center">
                     <div
                         className={`
-                              relative w-24 h-24 rounded-full border-4 
-                              ${getRarityColor("None")}
-                              bg-base-300 shadow-xl
-                              flex items-center justify-center
-                              cursor-pointer hover:scale-105 transition-transform
-                              ring-4 ring-primary
-                            `}
+                            relative w-22 h-22 sm:w-24 sm:h-24 rounded-full border-2 border-dashed border-base-content/20
+                            bg-base-200/60 flex items-center justify-center
+                            transition-all duration-200 group-hover:border-primary/60
+                            ${isSelected ? 'ring-2 ring-primary/70 border-solid bg-primary/10 ring-offset-2 ring-offset-base-100' : ''}
+                        `}
                     >
-                        <span className="text-3xl">
-                            <svg className="w-12 h-12 text-base-content/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="flex flex-col items-center justify-center gap-1 text-base-content/40 group-hover:text-primary transition-colors">
+                            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                             </svg>
-                        </span>
+                        </div>
 
                         {/* Level Badge */}
-                        <div className="absolute -bottom-2 bg-base-100 border-2 border-base-300 rounded-full px-2 py-1">
-                            <span className="text-sm font-bold text-primary">+{0}</span>
+                        <div className="absolute -bottom-2 bg-base-100 border border-base-content/15 shadow-md rounded-full px-2 py-0.5">
+                            <span className="text-xs font-mono font-bold text-base-content/40">+0</span>
                         </div>
                     </div>
 
-                    <div className="mt-3 text-center">
-                        <div>{getRarityName(slot)}</div>
-                    </div>
+                    {getSlotIconAndName(slot)}
                 </div>
             )}
-
         </div>
     )
 }

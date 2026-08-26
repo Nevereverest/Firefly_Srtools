@@ -4,9 +4,12 @@ import { getMonsterListApi } from '@/lib/api'
 import { useEffect } from 'react'
 import useDetailDataStore from '@/stores/detailDataStore'
 import { toast } from 'react-toastify'
+import { useShallow } from 'zustand/react/shallow'
 
 export const useFetchMonsterData = () => {
-    const { setMapMonster } = useDetailDataStore()
+    const { setMapMonster } = useDetailDataStore(
+        useShallow((state) => ({ setMapMonster: state.setMapMonster }))
+    )
     const query = useQuery({
         queryKey: ['MonsterData'],
         queryFn: getMonsterListApi,

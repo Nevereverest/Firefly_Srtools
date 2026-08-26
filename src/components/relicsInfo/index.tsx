@@ -2,7 +2,6 @@
 "use client";
 import { useCallback, useEffect, useMemo } from "react";
 import RelicMaker from "../relicBar";
-import { motion } from "framer-motion";
 import useUserDataStore from "@/stores/userDataStore";
 import { useTranslations } from "next-intl";
 import RelicCard from "../card/relicCard";
@@ -15,9 +14,15 @@ import useCurrentDataStore from "@/stores/currentDataStore";
 import useDetailDataStore from "@/stores/detailDataStore";
 import { getLocaleName } from '@/helper';
 import useLocaleStore from "@/stores/localeStore";
+import { useShallow } from 'zustand/react/shallow';
 
 export default function RelicsInfo() {
-  const { avatars, setAvatars } = useUserDataStore()
+  const { avatars, setAvatar } = useUserDataStore(
+    useShallow((state) => ({
+      avatars: state.avatars,
+      setAvatar: state.setAvatar,
+    }))
+  )
   const {
     setSelectedRelicSlot,
     selectedRelicSlot,
@@ -28,18 +33,50 @@ export default function RelicsInfo() {
     resetHistory,
     resetSubStat,
     listSelectedSubStats,
-  } = useRelicMakerStore()
+  } = useRelicMakerStore(
+    useShallow((state) => ({
+      setSelectedRelicSlot: state.setSelectedRelicSlot,
+      selectedRelicSlot: state.selectedRelicSlot,
+      setSelectedMainStat: state.setSelectedMainStat,
+      setSelectedRelicSet: state.setSelectedRelicSet,
+      setSelectedRelicLevel: state.setSelectedRelicLevel,
+      setListSelectedSubStats: state.setListSelectedSubStats,
+      resetHistory: state.resetHistory,
+      resetSubStat: state.resetSubStat,
+      listSelectedSubStats: state.listSelectedSubStats,
+    }))
+  )
 
   const {
     isOpenRelic,
     setIsOpenRelic,
     isOpenQuickView,
     setIsOpenQuickView
-  } = useModelStore()
+  } = useModelStore(
+    useShallow((state) => ({
+      isOpenRelic: state.isOpenRelic,
+      setIsOpenRelic: state.setIsOpenRelic,
+      isOpenQuickView: state.isOpenQuickView,
+      setIsOpenQuickView: state.setIsOpenQuickView,
+    }))
+  )
   const transI18n = useTranslations("DataPage")
-  const { avatarSelected } = useCurrentDataStore()
-  const { mapRelicSet, subAffix } = useDetailDataStore()
-  const { locale } = useLocaleStore()
+  const { avatarSelected } = useCurrentDataStore(
+    useShallow((state) => ({
+      avatarSelected: state.avatarSelected,
+    }))
+  )
+  const { mapRelicSet, subAffix } = useDetailDataStore(
+    useShallow((state) => ({
+      mapRelicSet: state.mapRelicSet,
+      subAffix: state.subAffix,
+    }))
+  )
+  const { locale } = useLocaleStore(
+    useShallow((state) => ({
+      locale: state.locale,
+    }))
+  )
 
   const handleShow = (modalId: string) => {
     const modal = document.getElementById(modalId) as HTMLDialogElement | null;
@@ -60,18 +97,33 @@ export default function RelicsInfo() {
   const getRelic = useCallback((slot: string) => {
     const avatar = avatars[avatarSelected?.ID.toString() || ""];
     if (avatar) {
-      return avatar.profileList[avatar.profileSelect]?.relics[slot] || null;
+      const profile = avatar.profileList?.[avatar.profileSelect] ?? avatar.profileList?.[0];
+      return profile?.relics?.[slot] || null;
     }
     return null;
   }, [avatars, avatarSelected]);
 
   const handlerDeleteRelic = (slot: string) => {
-    const avatar = avatars[avatarSelected?.ID.toString() || ""];
+    const avatarKey = avatarSelected?.ID.toString() || "";
+    const avatar = avatars[avatarKey];
     if (avatar) {
-      delete avatar.profileList[avatar.profileSelect].relics[slot]
-      setAvatars({ ...avatars });
+      const profileIndex = avatar.profileSelect;
+      const currentProfile = avatar.profileList?.[profileIndex];
+      if (currentProfile) {
+        const newRelics = { ...currentProfile.relics };
+        delete newRelics[slot];
+        const newProfileList = [...avatar.profileList];
+        newProfileList[profileIndex] = {
+          ...currentProfile,
+          relics: newRelics,
+        };
+        setAvatar({
+          ...avatar,
+          profileList: newProfileList,
+        });
+      }
     }
-  }
+  };
 
   const handlerChangeRelic = (slot: string) => {
     const relic = getRelic(slot)
@@ -84,10 +136,12 @@ export default function RelicsInfo() {
       setSelectedRelicLevel(relic.level)
       const newSubAffixes: { affixId: string, property: string, rollCount: number, stepCount: number }[] = [...listSelectedSubStats];
       relic.sub_affixes.forEach((item, index) => {
-        newSubAffixes[index].affixId = item.sub_affix_id.toString();
-        newSubAffixes[index].property = subAffix["5"][item.sub_affix_id.toString()]?.Property || "";
-        newSubAffixes[index].rollCount = item.count || 0;
-        newSubAffixes[index].stepCount = item.step || 0;
+        if (newSubAffixes[index]) {
+          newSubAffixes[index].affixId = item.sub_affix_id.toString();
+          newSubAffixes[index].property = subAffix["5"]?.[item.sub_affix_id.toString()]?.Property || "";
+          newSubAffixes[index].rollCount = item.count || 0;
+          newSubAffixes[index].stepCount = item.step || 0;
+        }
       })
       setListSelectedSubStats(newSubAffixes)
     } else {
@@ -111,12 +165,11 @@ export default function RelicsInfo() {
   const relicEffects = useMemo(() => {
     const avatar = avatars[avatarSelected?.ID.toString() || ""];
     const relicCount: { [key: string]: number } = {};
-    if (avatar) {
-      for (const relic of Object.values(avatar.profileList[avatar.profileSelect].relics)) {
-        if (relicCount[relic.relic_set_id]) {
-          relicCount[relic.relic_set_id]++;
-        } else {
-          relicCount[relic.relic_set_id] = 1;
+    const currentProfile = avatar?.profileList?.[avatar?.profileSelect] ?? avatar?.profileList?.[0];
+    if (currentProfile?.relics) {
+      for (const relic of Object.values(currentProfile.relics)) {
+        if (relic) {
+          relicCount[relic.relic_set_id] = (relicCount[relic.relic_set_id] || 0) + 1;
         }
       }
     }
@@ -132,7 +185,7 @@ export default function RelicsInfo() {
   const modalConfigs: ModalConfig[] = [
     {
       id: "action_detail_modal",
-      title: "",
+      title: transI18n("changeRelic") || "Cài đặt di vật",
       isOpen: isOpenRelic,
       onClose: () => {
         setIsOpenRelic(false)
@@ -172,48 +225,66 @@ export default function RelicsInfo() {
   }, [isOpenRelic]);
 
   return (
-    <div className="max-h-[77vh] min-h-[50vh] overflow-y-scroll overflow-x-hidden">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div className="w-full space-y-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+        {/* Left Section - Relic Equipment Grid */}
+        <div className="lg:col-span-2 space-y-4">
+          <div className="glass-card rounded-2xl p-4 sm:p-6 border border-base-content/10 shadow-xs space-y-6">
+            <div className="flex items-center justify-between pb-3 border-b border-base-content/10">
+              <h2 className="text-lg sm:text-xl font-bold flex items-center gap-2.5">
+                <div className="w-1.5 h-5 bg-linear-to-b from-primary to-accent rounded-full"></div>
+                <span className="bg-clip-text text-transparent bg-linear-to-r from-primary to-accent font-bold tracking-tight">
+                  {transI18n("relics")}
+                </span>
+              </h2>
 
-        {/* Left Section - Items Grid */}
-        <div className="lg:col-span-2">
-          <div className="bg-base-100 rounded-xl p-6 shadow-lg">
-            <h2 className="flex items-center gap-2 text-2xl font-bold mb-6 text-base-content">
-              <div className="w-2 h-6 bg-linear-to-b from-primary to-primary/50 rounded-full"></div>
-              {transI18n("relics")}
-            </h2>
+              <button
+                onClick={() => {
+                  setIsOpenQuickView(true)
+                  handleShow("quick_view_modal")
+                }}
+                className="btn btn-sm btn-outline btn-primary rounded-xl font-bold shadow-xs"
+              >
+                {transI18n("quickView")}
+              </button>
+            </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+            {/* 6-Slot Grid completely free of box-in-box */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-6 py-4">
               {["1", "2", "3", "4", "5", "6"].map((item, index) => (
-                <div key={index} className="relative group">
-                  <div
-                    onClick={() => {
-                      if (item === selectedRelicSlot) {
-                        setSelectedRelicSlot("")
-                      } else {
-                        setSelectedRelicSlot(item)
-                      }
-                      handlerChangeRelic(item)
-                    }}
-                    className="cursor-pointer"
-                  >
-                    <RelicCard
-                      slot={item}
-                      avatarId={avatarSelected?.ID.toString() || ""}
-                    />
-                  </div>
+                <div
+                  key={index}
+                  onClick={() => {
+                    if (item === selectedRelicSlot) {
+                      setSelectedRelicSlot("")
+                    } else {
+                      setSelectedRelicSlot(item)
+                    }
+                    handlerChangeRelic(item)
+                  }}
+                  className={`relative group flex flex-col items-center justify-center p-2 rounded-2xl transition-all duration-200 cursor-pointer ${
+                    item === selectedRelicSlot
+                      ? "bg-primary/5 rounded-2xl ring-1.5 ring-primary/40"
+                      : "hover:bg-base-content/5"
+                  }`}
+                >
+                  <RelicCard
+                    slot={item}
+                    avatarId={avatarSelected?.ID.toString() || ""}
+                  />
 
-                  <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex gap-1">
+                  {/* Micro Actions */}
+                  <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex gap-1">
                     <button
                       onClick={(e) => {
                         e.stopPropagation()
                         handlerChangeRelic(item)
                       }}
-                      className="btn btn-info p-1.5 rounded-full shadow-lg transition-colors duration-200"
+                      className="btn btn-xs btn-circle btn-primary shadow-xs"
                       title={transI18n("changeRelic")}
                     >
                       <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536M4 20h4l10.293-10.293a1 1 0 000-1.414l-2.586-2.586a1 1 0 00-1.414 0L4 16v4z" />
                       </svg>
                     </button>
 
@@ -225,11 +296,11 @@ export default function RelicsInfo() {
                             handlerDeleteRelic(item)
                           }
                         }}
-                        className="btn btn-error p-1.5 rounded-full shadow-lg transition-colors duration-200"
+                        className="btn btn-xs btn-circle btn-error shadow-xs"
                         title={transI18n("deleteRelic")}
                       >
                         <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4h6v3m5 0H4" />
                         </svg>
                       </button>
                     )}
@@ -237,13 +308,13 @@ export default function RelicsInfo() {
                 </div>
               ))}
             </div>
-            <div className="grid grid-cols-2 gap-2 mt-10">
+
+            {/* Bottom Actions Bar */}
+            <div className="grid grid-cols-2 gap-3 pt-2">
               <button
                 disabled={!selectedRelicSlot}
-                onClick={() => {
-                  handlerChangeRelic(selectedRelicSlot)
-                }}
-                className="btn btn-info"
+                onClick={() => handlerChangeRelic(selectedRelicSlot)}
+                className="btn btn-primary btn-sm rounded-xl font-bold shadow-xs"
               >
                 {transI18n("changeRelic")}
               </button>
@@ -255,112 +326,109 @@ export default function RelicsInfo() {
                     handlerDeleteRelic(selectedRelicSlot)
                   }
                 }}
-                className="btn btn-error"
+                className="btn btn-ghost btn-sm text-error hover:bg-error/20 rounded-xl"
               >
                 {transI18n("deleteRelic")}
               </button>
             </div>
-            <button
-              onClick={() => {
-                setIsOpenQuickView(true)
-                handleShow("quick_view_modal")
-              }}
-              className="btn btn-info w-full mt-2"
-            >
-              {transI18n("quickView")}
-            </button>
           </div>
         </div>
 
-        {/* Right Section - Stats and Set Effects */}
-        <div className="space-y-6">
-
-          {/* Set Effects Panel */}
-          <div className="bg-base-100 rounded-xl p-6 shadow-lg">
-            <h3 className="flex items-center gap-2 text-xl font-bold mb-4 text-base-content">
-              <div className="w-2 h-6 bg-linear-to-b from-primary to-primary/50 rounded-full"></div>
-              {transI18n("setEffects")}
-            </h3>
-
-            <div className="space-y-6">
-              {relicEffects.map((setEffect, index) => {
-                const relicInfo = mapRelicSet[setEffect.key];
-                if (!relicInfo) return null;
-                return (
-                  <div key={index} className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <div
-                        className="font-bold text-warning"
-                        dangerouslySetInnerHTML={{
-                          __html: replaceByParam(
-                            getLocaleName(locale, relicInfo.Name),
-                            []
-                          )
-                        }}
-                      />
-                      {setEffect.count && (
-                        <span className={`text-sm text-info`}>
-                          ({setEffect.count})
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="space-y-2 pl-4">
-                      {Object.entries(relicInfo.Skills).map(([requireNum, value]) => {
-                        if (Number(requireNum) > Number(setEffect.count)) return null;
-                        return (
-                          <div key={requireNum} className="space-y-1">
-                            <div className={`font-medium text-success`}>
-                              {requireNum}-PC:
-                            </div>
-                            <div
-                              className="text-sm text-base-content/80 leading-relaxed pl-4"
-                              dangerouslySetInnerHTML={{
-                                __html: replaceByParam(
-                                  getLocaleName(locale, value.Desc),
-                                  value.Param || []
-                                )
-                              }}
-                            />
-                          </div>
-                        )
-                      })}
-                    </div>
-                  </div>
-                )
-              })}
+        {/* Right Section - Set Effects Showcase */}
+        <div className="space-y-4">
+          <div className="glass-card rounded-2xl p-4 sm:p-6 border border-base-content/10 shadow-xs space-y-4">
+            <div className="pb-3 border-b border-base-content/10">
+              <h3 className="text-lg sm:text-xl font-bold flex items-center gap-2.5">
+                <div className="w-1.5 h-5 bg-linear-to-b from-amber-400 to-amber-600 rounded-full"></div>
+                <span className="bg-clip-text text-transparent bg-linear-to-r from-amber-400 to-amber-600 font-bold tracking-tight">
+                  {transI18n("setEffects")}
+                </span>
+              </h3>
             </div>
+
+            {relicEffects.length > 0 ? (
+              <div className="divide-y divide-base-content/10">
+                {relicEffects.map((setEffect, index) => {
+                  const relicInfo = mapRelicSet[setEffect.key];
+                  if (!relicInfo) return null;
+                  return (
+                    <div key={index} className="py-3.5 first:pt-0 last:pb-0 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div
+                          className="font-bold text-sm text-amber-500"
+                          dangerouslySetInnerHTML={{
+                            __html: replaceByParam(
+                              getLocaleName(locale, relicInfo.Name),
+                              []
+                            )
+                          }}
+                        />
+                        {setEffect.count && (
+                          <span className="badge badge-primary badge-sm font-mono font-bold">
+                            {setEffect.count} Pc
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="space-y-2 pt-1">
+                        {Object.entries(relicInfo.Skills).map(([requireNum, value]) => {
+                          if (Number(requireNum) > Number(setEffect.count)) return null;
+                          return (
+                            <div key={requireNum} className="text-xs space-y-0.5 pl-2 border-l-2 border-primary/40">
+                              <div className="font-bold text-emerald-500">
+                                {requireNum}-PC Bonus
+                              </div>
+                              <div
+                                className="text-base-content/80 leading-relaxed"
+                                dangerouslySetInnerHTML={{
+                                  __html: replaceByParam(
+                                    getLocaleName(locale, value.Desc),
+                                    value.Param || []
+                                  )
+                                }}
+                              />
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            ) : (
+              <div className="text-center py-10 text-base-content/40 text-xs italic">
+                {transI18n("noRelicEquipped")}
+              </div>
+            )}
           </div>
         </div>
       </div>
 
+      {/* Modals */}
       {modalConfigs.map(({ id, title, onClose, content }) => (
         <dialog key={id} id={id} className="modal">
-          <div className="modal-box w-11/12 max-w-[90%] max-h-[85vh] bg-base-100 text-base-content border border-purple-500/50 shadow-lg shadow-purple-500/20">
-            <div className="sticky top-0 z-10">
-              <motion.button
-                whileHover={{ scale: 1.1, rotate: 90 }}
-                transition={{ duration: 0.2 }}
-                className="btn btn-circle btn-md absolute right-2 top-2 bg-red-600 hover:bg-red-700 text-white border-none"
+          <div className={`modal-box ${id === 'quick_view_modal' ? 'w-11/12 max-w-4xl' : 'w-11/12 max-w-[92vw] sm:max-w-[88vw]'} max-h-[90vh] bg-base-100 text-base-content border border-base-content/10 shadow-2xl rounded-2xl p-0 overflow-hidden`}>
+            <div className="sticky top-0 z-20 flex items-center justify-between px-6 py-4 border-b border-base-content/10 bg-base-100">
+              <h3 className="font-bold text-xl tracking-tight bg-clip-text text-transparent bg-linear-to-r from-primary via-accent to-secondary">
+                {title}
+              </h3>
+              <button
+                className="btn btn-sm btn-circle btn-ghost text-base-content/60 hover:text-base-content hover:bg-base-200 transition-colors"
                 onClick={onClose}
               >
                 ✕
-              </motion.button>
+              </button>
             </div>
 
-            {title && (
-              <div className="border-b border-purple-500/30 px-6 py-4 mb-4">
-                <h3 className="font-bold text-2xl text-transparent bg-clip-text bg-linear-to-r from-pink-400 to-cyan-400">
-                  {title}
-                </h3>
-              </div>
-            )}
-
-            {content}
+            <div className="p-4 sm:p-6 overflow-y-auto max-h-[calc(90vh-5rem)]">
+              {content}
+            </div>
           </div>
+          <form method="dialog" className="modal-backdrop">
+            <button onClick={onClose}>close</button>
+          </form>
         </dialog>
       ))}
-
     </div>
   );
 }

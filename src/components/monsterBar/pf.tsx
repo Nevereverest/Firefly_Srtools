@@ -8,14 +8,30 @@ import Image from "next/image";
 import { MonsterStore, PFEvent } from "@/types";
 import { useTranslations } from "next-intl";
 import useDetailDataStore from "@/stores/detailDataStore";
+import { useShallow } from "zustand/react/shallow";
 
 export default function PfBar() {
-    const { locale } = useLocaleStore()
+    const { locale } = useLocaleStore(
+        useShallow((state) => ({ locale: state.locale }))
+    )
     const {
         pf_config,
         setPfConfig
-    } = useUserDataStore()
-    const { mapMonster, mapPF, damageType, hardLevelConfig, eliteConfig } = useDetailDataStore()
+    } = useUserDataStore(
+        useShallow((state) => ({
+            pf_config: state.pf_config,
+            setPfConfig: state.setPfConfig,
+        }))
+    )
+    const { mapMonster, mapPF, damageType, hardLevelConfig, eliteConfig } = useDetailDataStore(
+        useShallow((state) => ({
+            mapMonster: state.mapMonster,
+            mapPF: state.mapPF,
+            damageType: state.damageType,
+            hardLevelConfig: state.hardLevelConfig,
+            eliteConfig: state.eliteConfig,
+        }))
+    )
 
     const transI18n = useTranslations("DataPage")
     const challengeSelected = useMemo(() => {
@@ -89,6 +105,14 @@ export default function PfBar() {
 
         if (targetEventList.length > 0) {
             newBattleConfig.stage_id = targetEventList[0].ID
+            
+            if (targetEventList[0].Invasion) {
+                newBattleConfig.blessings.push({
+                    id: targetEventList[0].Invasion.MazeBuff.ID,
+                    level: 1
+                })
+            }
+
             for (const wave of targetEventList[0].MonsterList) {
                 const newWave: MonsterStore[] = []
                 for (const value of Object.values(wave)) {
@@ -116,10 +140,10 @@ export default function PfBar() {
     if (!mapPF) return null
 
     return (
-        <div className="py-8 relative">
+        <div className="pt-4 pb-2 relative space-y-4">
 
             {/* Title Card */}
-            <div className="rounded-xl p-4 mb-2 border border-warning">
+            <div className="rounded-xl p-4 border border-warning">
                 <div className="mb-4 w-full">
                     <SelectCustomText
                         customSet={Object.values(mapPF).sort((a, b) => b.ID - a.ID).map((pf) => ({
@@ -190,16 +214,14 @@ export default function PfBar() {
                     </div>
                 )}
                 {/* Turbulence Buff */}
-                <div className="bg-base-200/20 rounded-lg p-4 border border-purple-500/20">
-                    <h2 className="text-2xl font-bold mb-2 text-info">{transI18n("turbulenceBuff")}</h2>
+                <div className="pt-3 border-t border-base-content/10 space-y-2">
+                    <h2 className="text-xl font-bold text-info">{transI18n("turbulenceBuff")}</h2>
                     {eventSelected && eventSelected.SubOption.length > 0 ? (
                         eventSelected.SubOption.map((subOption, index) => (
-                            <div key={index}>
-                                <label className="label">
-                                    <span className="label-text font-bold text-success">{index + 1}. {getLocaleName(locale, subOption.Name)}</span>
-                                </label>
+                            <div key={index} className="space-y-1">
+                                <span className="font-bold text-success text-sm">{index + 1}. {getLocaleName(locale, subOption.Name)}</span>
                                 <div
-                                    className="text-base"
+                                    className="text-sm text-base-content/85 leading-relaxed"
                                     dangerouslySetInnerHTML={{
                                         __html: replaceByParam(
                                             getLocaleName(locale, subOption.Desc) || "",
@@ -213,7 +235,7 @@ export default function PfBar() {
                         challengeSelected?.MazeBuff?.map((buff, i) => (
                             <div
                                 key={i}
-                                className="text-base"
+                                className="text-sm text-base-content/85 leading-relaxed"
                                 dangerouslySetInnerHTML={{
                                     __html: replaceByParam(
                                         getLocaleName(locale, buff?.Desc) || "",
@@ -223,13 +245,12 @@ export default function PfBar() {
                             />
                         ))
                     ) : (
-                        <div className="text-base">{transI18n("noTurbulenceBuff")}</div>
+                        <div className="text-sm text-base-content/50 italic">{transI18n("noTurbulenceBuff")}</div>
                     )}
                 </div>
             </div>
 
             {/* Enemy Waves */}
-
             {(pf_config?.challenge_id ?? 0) !== 0 && (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {floorSideList.map((side, i) => {
@@ -245,7 +266,7 @@ export default function PfBar() {
                         const targetEvent = eventList[0];
 
                         return (
-                            <div key={i} className="rounded-xl p-4 mt-2 border border-warning">
+                            <div key={i} className="rounded-xl p-4 border border-warning">
                                 <h2 className="text-2xl font-bold mb-2 text-info">{side.wave}</h2>
 
                                 {targetEvent && Object.values(targetEvent.Infinite || []).map((waveValue, waveIndex) => (

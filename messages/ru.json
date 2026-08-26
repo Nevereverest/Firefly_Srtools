@@ -286,6 +286,8 @@
         "trailblazer": "Первопроходец",
         "listExtraEffect": "Список доп. эффектов",
         "extra": "Экстра",
-        "customLineup": "Пользовательский отряд"
+        "customLineup": "Пользовательский отряд",
+        "def": "Защ",
+        "language": "Язык"
     }
 }

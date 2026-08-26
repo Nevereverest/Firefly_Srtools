@@ -6,78 +6,111 @@ import ParseText from '../parseText';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import useDetailDataStore from '@/stores/detailDataStore';
+import { useShallow } from 'zustand/react/shallow';
+
+import useUserDataStore from '@/stores/userDataStore';
 
 interface CharacterCardProps {
   data: AvatarDetail
 }
 
 export default function CharacterCard({ data }: CharacterCardProps) {
-  const { locale } = useLocaleStore();
+  const { locale } = useLocaleStore(useShallow((state) => ({ locale: state.locale })));
   const transI18n = useTranslations("DataPage");
-  const { baseType, damageType } = useDetailDataStore()
+  const { baseType, damageType } = useDetailDataStore(
+    useShallow((state) => ({
+      baseType: state.baseType,
+      damageType: state.damageType,
+    }))
+  )
+  const { avatars } = useUserDataStore(
+    useShallow((state) => ({ avatars: state.avatars }))
+  )
+
+  const userAvatar = avatars[data.ID.toString()]
+  const level = userAvatar?.level
+  const rank = userAvatar?.data?.rank ?? 0
+
+  const is5Star = data.Rarity === "CombatPowerAvatarRarityType5";
+  const is4Star = data.Rarity === "CombatPowerAvatarRarityType4";
 
   return (
     <li
-      className="z-10 flex flex-col items-center rounded-xl shadow-xl 
-               bg-linear-to-br from-base-300 via-base-100 to-warning/70
-               transform transition-transform duration-300 ease-in-out 
-               hover:scale-105 cursor-pointer min-h-45 sm:min-h-45 md:min-h-52.5 lg:min-h-55 xl:min-h-60 2xl:min-h-65"
+      className="group relative flex flex-col items-center rounded-xl overflow-hidden bg-base-100 border border-base-content/10 shadow-sm hover:shadow-md cursor-pointer select-none h-full"
     >
+      {/* Artwork container with vibrant rarity background */}
       <div
-        className={`w-full rounded-md bg-linear-to-br ${data.Rarity === "CombatPowerAvatarRarityType5"
-          ? "from-yellow-400 via-yellow-600/70 to-yellow-800/50"
-          : "from-purple-400 via-purple-600/70 to-purple-800/50"
-          }`}
+        className={`w-full relative aspect-[3/4] flex items-center justify-center overflow-hidden bg-linear-to-b ${
+          is5Star
+            ? "from-yellow-400 via-amber-500/85 to-amber-700/70"
+            : is4Star
+            ? "from-purple-400 via-purple-600/80 to-purple-800/60"
+            : "from-sky-400 via-blue-600/80 to-blue-800/60"
+        }`}
       >
+        <Image
+          width={376}
+          height={512}
+          unoptimized
+          crossOrigin="anonymous"
+          src={`${process.env.CDN_URL}/${data.Image.AvatarIconPath}`}
+          priority={true}
+          className="w-full h-full object-contain transition-transform duration-300 ease-out group-hover:scale-105"
+          alt={data.ID.toString()}
+        />
 
-        <div className="relative w-full h-32 lg:h-26 xl:h-36">
+        {/* Level and Eidolons Badge Overlay */}
+        {level && (
+          <div className="absolute bottom-1 left-1 flex items-center gap-1 z-10">
+            <span className="bg-black/60 backdrop-blur-xs text-white text-[10px] font-bold font-mono px-1.5 py-0.2 rounded shadow-xs">
+              {level}
+            </span>
+            {rank > 0 && (
+              <span className="bg-amber-500/80 text-black text-[10px] font-black font-mono px-1 py-0.2 rounded shadow-xs">
+                E{rank}
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* Damage Type Badge */}
+        {damageType?.[data.DamageType]?.Icon && (
           <Image
-            width={376}
-            height={512}
+            width={28}
+            height={28}
             unoptimized
             crossOrigin="anonymous"
-            src={`${process.env.CDN_URL}/${data.Image.AvatarIconPath}`}
-            priority={true}
-            className="rounded-md w-full h-full object-contain"
-            alt="ALT"
-          />
-          <Image
-            width={32}
-            height={32}
-            unoptimized
-            crossOrigin="anonymous"
-            src={`${process.env.CDN_URL}/${damageType?.[data.DamageType].Icon}`}
-            className="absolute top-0 left-0 w-6 h-6 rounded-full"
+            src={`${process.env.CDN_URL}/${damageType[data.DamageType].Icon}`}
+            className="absolute top-1 left-1 w-6 h-6 object-contain drop-shadow-sm"
             alt={data.DamageType.toLowerCase()}
           />
+        )}
+
+        {/* Base Type / Path Badge */}
+        {baseType?.[data.BaseType]?.Icon && (
           <Image
-            width={32}
-            height={32}
+            width={28}
+            height={28}
             unoptimized
             crossOrigin="anonymous"
-            src={`${process.env.CDN_URL}/${baseType?.[data.BaseType].Icon}`}
-            className="absolute top-0 right-0 w-6 h-6 rounded-full"
+            src={`${process.env.CDN_URL}/${baseType[data.BaseType].Icon}`}
+            className="absolute top-1 right-1 w-6 h-6 object-contain rounded-full drop-shadow-sm"
             alt={data.BaseType.toLowerCase()}
             style={{
-              boxShadow: "inset 0 0 8px 4px #9CA3AF"
+              boxShadow: "inset 0 0 6px 3px rgba(255, 255, 255, 0.4)"
             }}
           />
-        </div>
+        )}
       </div>
 
-      <ParseText
-        locale={locale}
-        text={getNameChar(locale, transI18n, data)}
-        className="
-          w-full px-0.5
-          my-1
-          text-center font-bold text-shadow-white
-          leading-tight
-          wrap-break-word
-          text-sm sm:text-base 2xl:text-lg
-        "
-      />
+      {/* Name Label - Clear Full Name Display */}
+      <div className="w-full py-1.5 px-1 text-center flex items-center justify-center bg-base-100 min-h-11">
+        <ParseText
+          locale={locale}
+          text={getNameChar(locale, transI18n, data)}
+          className="font-bold text-xs sm:text-[11.5px] lg:text-xs leading-tight px-0.5 text-base-content group-hover:text-primary transition-colors text-center w-full"
+        />
+      </div>
     </li>
-
   );
 }

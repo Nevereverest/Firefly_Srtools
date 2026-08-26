@@ -21,8 +21,6 @@ const useCopyProfileStore = create<CopyProfileState>((set) => ({
     listElement: {},
     listPath: {},
     listRank: { "4": false, "5": false },
-    listCopyAvatar: [],
-    listRawCopyAvatar: [],
     
     setListElement: (newListElement: Record<string, boolean>) => set({ listElement: newListElement }),
     setListPath: (newListPath: Record<string, boolean>) => set({ listPath: newListPath }),

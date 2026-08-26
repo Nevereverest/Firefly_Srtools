@@ -4,6 +4,7 @@ import dynamic from "next/dynamic"
 import type { SingleValue } from "react-select"
 import Image from "next/image"
 import useLocaleStore from "@/stores/localeStore"
+import { useShallow } from "zustand/react/shallow"
 import ParseText from "../parseText"
 import { themeColors } from "@/constant/constant"
 import type { Props as SelectProps } from "react-select"
@@ -32,7 +33,12 @@ type SelectCustomProp = {
 
 export default function SelectCustomImage({ customSet, excludeSet, selectedCustomSet, placeholder, setSelectedCustomSet }: SelectCustomProp) {
   const options: SelectOption[] = customSet
-  const { locale, theme } = useLocaleStore()
+  const { locale, theme } = useLocaleStore(
+    useShallow((state) => ({
+      locale: state.locale,
+      theme: state.theme,
+    }))
+  )
 
   const c = themeColors[theme] || themeColors.winter
 
@@ -42,10 +48,11 @@ export default function SelectCustomImage({ customSet, excludeSet, selectedCusto
       display: 'flex',
       alignItems: 'center',
       gap: '8px',
-      padding: '8px 12px',
+      padding: '10px 14px',
       backgroundColor: s.isFocused ? c.bgHover : c.bg,
       color: c.text,
-      cursor: 'pointer'
+      cursor: 'pointer',
+      opacity: 1,
     }),
 
     singleValue: (p: any) => ({
@@ -53,26 +60,43 @@ export default function SelectCustomImage({ customSet, excludeSet, selectedCusto
       display: 'flex',
       alignItems: 'center',
       gap: '8px',
-      color: c.text
+      color: c.text,
+      opacity: 1,
     }),
 
     control: (p: any) => ({
       ...p,
       backgroundColor: c.bg,
       borderColor: c.border,
-      boxShadow: 'none'
+      boxShadow: 'none',
+      opacity: 1,
+      minHeight: '38px',
+      borderRadius: '12px',
     }),
 
     menu: (p: any) => ({
       ...p,
       backgroundColor: c.bg,
       color: c.text,
-      zIndex: 9999
+      zIndex: 99999,
+      opacity: 1,
+      border: `1px solid ${c.border}`,
+      boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3)',
+      borderRadius: '12px',
+      overflow: 'hidden',
+    }),
+
+    menuList: (p: any) => ({
+      ...p,
+      backgroundColor: c.bg,
+      padding: 0,
+      opacity: 1,
     }),
 
     menuPortal: (p: any) => ({
       ...p,
-      zIndex: 9999
+      zIndex: 99999,
+      opacity: 1,
     })
   }
 

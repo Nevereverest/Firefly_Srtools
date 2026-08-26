@@ -19,7 +19,7 @@ interface CurrentDataState {
     setMapAvatarPathActive: (mapAvatarPathActive: Record<string, boolean>) => void;
     setMapLightconePathActive: (mapLightconePathActive: Record<string, boolean>) => void;
     setMapLightconeRankActive: (mapLightconeRankActive: Record<string, boolean>) => void;
-    setResetDataLightcone: (avtarSeleted: AvatarDetail| null, baseType: Record<string, BaseTypeData>) => void;
+    setResetDataLightcone: (avatarSelected: AvatarDetail | null, baseType: Record<string, BaseTypeData>) => void;
 }
 
 const useCurrentDataStore = create<CurrentDataState>((set) => ({
@@ -44,14 +44,16 @@ const useCurrentDataStore = create<CurrentDataState>((set) => ({
     setMapAvatarPathActive: (mapAvatarPathActive: Record<string, boolean>) => set({ mapAvatarPathActive }),
     setMapLightconePathActive: (mapLightconePathActive: Record<string, boolean>) => set({ mapLightconePathActive }),
     setMapLightconeRankActive: (mapLightconeRankActive: Record<string, boolean>) => set({ mapLightconeRankActive }),
-    setResetDataLightcone: (avtarSeleted: AvatarDetail| null, baseType: Record<string, BaseTypeData>) => {
+    setResetDataLightcone: (avatarSelected: AvatarDetail | null, baseType: Record<string, BaseTypeData>) => {
         const newListPath: Record<string, boolean> = Object.fromEntries(Object.keys(baseType).map(key => [key, false]))
         const newListRank: Record<string, boolean> = {"3": false, "4": false, "5": false }
-        if (avtarSeleted) {
-            newListPath[avtarSeleted.BaseType] = true
+        if (avatarSelected) {
+            newListPath[avatarSelected.BaseType] = true
         }
-        set({ mapLightconeRankActive: newListRank })
-        set({ mapLightconePathActive: newListPath })
+        set({
+            mapLightconeRankActive: newListRank,
+            mapLightconePathActive: newListPath,
+        })
     }
 }))
 

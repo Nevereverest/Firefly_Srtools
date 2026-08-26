@@ -129,7 +129,7 @@ const useRelicMakerStore = create<RelicMakerState>((set) => ({
         listSelectedSubStats: newSubAffixes.map(item => ({ ...item }))
     })),
     resetHistory: (index: number | null) => set((state) => {
-        if (index !== null) {
+        if (index === null) {
             return {
                 preSelectedSubStats: {
                     "0": [
@@ -166,47 +166,40 @@ const useRelicMakerStore = create<RelicMakerState>((set) => ({
                     ],
                 }
             }
-        } else if (index !== null) {
-            const newPreSelectedSubStats = { ...state.preSelectedSubStats };
-            newPreSelectedSubStats[index] = [
-                {
-                    property: "",
-                    affixId: "",
-                    rollCount: 0,
-                    stepCount: 0
-                },
-            ]
-            return {
-                preSelectedSubStats: newPreSelectedSubStats
-            }
         }
-        return {}
+        const newPreSelectedSubStats = { ...state.preSelectedSubStats };
+        newPreSelectedSubStats[index.toString()] = [
+            {
+                property: "",
+                affixId: "",
+                rollCount: 0,
+                stepCount: 0
+            },
+        ]
+        return {
+            preSelectedSubStats: newPreSelectedSubStats
+        }
     }),
     popHistory: (index: number) => set((state) => {
+        const key = index.toString();
+        const currentList = state.preSelectedSubStats[key];
+        if (!currentList || currentList.length <= 1) return {};
         const newPreSelectedSubStats = structuredClone(state.preSelectedSubStats);
-        const copied = state.preSelectedSubStats[index].map(item => ({ ...item }));
+        const copied = currentList.map(item => ({ ...item }));
         copied.pop();
-        newPreSelectedSubStats[index] = copied;
+        newPreSelectedSubStats[key] = copied;
         return { preSelectedSubStats: newPreSelectedSubStats };
     }),
     addHistory: (index, affix) => set((state) => {
+        const key = index.toString();
         const newPreSelectedSubStats = structuredClone(state.preSelectedSubStats);
-
-        const currentList = state.preSelectedSubStats[index];
-        const copied = currentList ? currentList.map(item => ({ ...item })) : [
-            { property: "", affixId: "", rollCount: 0, stepCount: 0 },
-            { property: "", affixId: "", rollCount: 0, stepCount: 0 },
-            { property: "", affixId: "", rollCount: 0, stepCount: 0 },
-            { property: "", affixId: "", rollCount: 0, stepCount: 0 },
+        const currentList = state.preSelectedSubStats[key] || [
+            { property: "", affixId: "", rollCount: 0, stepCount: 0 }
         ];
-
-        if (copied) {
-            const newAffix = structuredClone(affix);
-            copied.push(newAffix);
-            newPreSelectedSubStats[index] = copied;
-            return { preSelectedSubStats: newPreSelectedSubStats };
-        }
-        return {}
+        const copied = currentList.map(item => ({ ...item }));
+        copied.push(structuredClone(affix));
+        newPreSelectedSubStats[key] = copied;
+        return { preSelectedSubStats: newPreSelectedSubStats };
     }),
 }));
 

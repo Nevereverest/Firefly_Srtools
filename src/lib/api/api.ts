@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ASGroupDetail, ChangelogItemType, AvatarDetail, FreeSRJson, LightConeDetail, MOCGroupDetail, MonsterDetail, PeakGroupDetail, PFGroupDetail, PSResponse, RelicSetDetail } from "@/types";
 import axios from 'axios';
 import { psResponseSchema } from "@/zod";
@@ -108,7 +107,7 @@ export async function getChangelog(): Promise<ChangelogItemType[]> {
         const res = await axios.get<ChangelogItemType[]>(`/api/data/changelog`);
         return res.data;
     } catch (error) {
-        console.error('Failed to fetch monster:', error);
+        console.error('Failed to fetch changelog:', error);
         return [];
     }
 }
@@ -127,16 +126,16 @@ export async function SendDataToServer(
             return "Invalid response schema";
         }
         return parsed.data;
-    } catch (error: any) {
-        return error?.message || "Unknown error";
+    } catch (error: unknown) {
+        return (error as Error)?.message || "Unknown error";
     }
 }
 
-export async function SendDataThroughProxy({ data }: { data: any }) {
+export async function SendDataThroughProxy({ data }: { data: Record<string, unknown> | unknown }) {
     try {
-        const response = await axios.post(`/api/proxy`, { ...data })
+        const response = await axios.post(`/api/proxy`, typeof data === "object" && data !== null ? { ...data } : data)
         return response.data;
-    } catch (error: any) {
+    } catch (error: unknown) {
         return error;
     }
 }

@@ -8,14 +8,30 @@ import Image from "next/image";
 import { ASEvent, MonsterStore } from "@/types";
 import { useTranslations } from "next-intl";
 import useDetailDataStore from "@/stores/detailDataStore";
+import { useShallow } from "zustand/react/shallow";
 
 export default function AsBar() {
-    const { locale } = useLocaleStore()
+    const { locale } = useLocaleStore(
+        useShallow((state) => ({ locale: state.locale }))
+    )
     const {
         as_config,
         setAsConfig
-    } = useUserDataStore()
-    const { mapMonster, mapAS, damageType, hardLevelConfig, eliteConfig } = useDetailDataStore()
+    } = useUserDataStore(
+        useShallow((state) => ({
+            as_config: state.as_config,
+            setAsConfig: state.setAsConfig,
+        }))
+    )
+    const { mapMonster, mapAS, damageType, hardLevelConfig, eliteConfig } = useDetailDataStore(
+        useShallow((state) => ({
+            mapMonster: state.mapMonster,
+            mapAS: state.mapAS,
+            damageType: state.damageType,
+            hardLevelConfig: state.hardLevelConfig,
+            eliteConfig: state.eliteConfig,
+        }))
+    )
     const transI18n = useTranslations("DataPage")
 
     const challengeSelected = useMemo(() => {
@@ -108,6 +124,13 @@ export default function AsBar() {
 
         if (targetEventList.length > 0) {
             newBattleConfig.stage_id = targetEventList[0].ID
+            if (targetEventList[0].Invasion) {
+                newBattleConfig.blessings.push({
+                    id: targetEventList[0].Invasion.MazeBuff.ID,
+                    level: 1
+                })
+            }
+
             for (const wave of targetEventList[0].MonsterList) {
                 const newWave: MonsterStore[] = []
                 for (const value of Object.values(wave)) {
@@ -135,10 +158,10 @@ export default function AsBar() {
 
     if (!mapAS) return null
     return (
-        <div className="py-8 relative">
+        <div className="pt-4 pb-2 relative space-y-4">
 
             {/* Title Card */}
-            <div className="rounded-xl p-4 mb-2 border border-warning">
+            <div className="rounded-xl p-4 border border-warning">
                 <div className="mb-4 w-full">
                     <SelectCustomText
                         customSet={Object.values(mapAS).sort((a, b) => b.ID - a.ID).map((as) => ({
@@ -209,13 +232,13 @@ export default function AsBar() {
                     </div>
                 )}
                 {/* Turbulence Buff */}
-                <div className="bg-base-200/20 rounded-lg p-4 border border-purple-500/20">
-                    <h2 className="text-2xl font-bold mb-2 text-info">{transI18n("turbulenceBuff")}</h2>
+                <div className="pt-3 border-t border-base-content/10 space-y-2">
+                    <h2 className="text-xl font-bold text-info">{transI18n("turbulenceBuff")}</h2>
                     {challengeSelected ? (
                         challengeSelected.MazeBuff.map((buff, i) => (
                             <div
                                 key={i}
-                                className="text-base"
+                                className="text-sm text-base-content/85 leading-relaxed"
                                 dangerouslySetInnerHTML={{
                                     __html: replaceByParam(
                                         getLocaleName(locale, buff?.Desc) || "",
@@ -225,7 +248,7 @@ export default function AsBar() {
                             />
                         ))
                     ) : (
-                        <div className="text-base">{transI18n("noTurbulenceBuff")}</div>
+                        <div className="text-sm text-base-content/50 italic">{transI18n("noTurbulenceBuff")}</div>
                     )}
                 </div>
             </div>
@@ -246,7 +269,7 @@ export default function AsBar() {
                         const targetEvent = eventList[0];
 
                         return (
-                            <div key={i} className="rounded-xl p-4 mt-2 border border-warning">
+                            <div key={i} className="rounded-xl p-4 border border-warning">
                                 <h2 className="text-2xl font-bold mb-6 text-info">{side.wave}</h2>
 
                                 {targetEvent?.MonsterList?.map((wave, waveIndex) => (

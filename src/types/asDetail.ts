@@ -1,5 +1,5 @@
 import { ExtraEffect } from "./avatarDetail";
-import { InfiniteWave, MazeBuff } from "./pfDetail";
+import { InfiniteWave, Invasion, MazeBuff } from "./pfDetail";
 
 export interface ASGroupDetail {
     ID: number;
@@ -64,6 +64,7 @@ export interface ASEvent {
     Level: number;
     Release: boolean;
     MonsterList: number[][];
+    Invasion: Invasion | null;
     Infinite: InfiniteWave[] | null;
 }
 
