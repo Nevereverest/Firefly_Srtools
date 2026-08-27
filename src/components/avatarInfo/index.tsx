@@ -247,12 +247,16 @@ export default function AvatarInfo() {
                                         <select
                                             value={avatars[avatarSelected?.ID.toString() || ""]?.enhanced || ""}
                                             onChange={(e) => {
-                                                const newAvatar = avatars[avatarSelected?.ID.toString() || ""]
-                                                if (newAvatar) {
-                                                    newAvatar.enhanced = e.target.value
+                                                const currentAvatar = avatars[avatarSelected?.ID.toString() || ""]
+                                                if (currentAvatar && avatarSelected) {
                                                     const skillTree = getSkillTree(avatarSelected, e.target.value)
-                                                    if (skillTree) {
-                                                        newAvatar.data.skills = skillTree
+                                                    const newAvatar = {
+                                                        ...currentAvatar,
+                                                        enhanced: e.target.value,
+                                                        data: {
+                                                            ...currentAvatar.data,
+                                                            skills: skillTree || currentAvatar.data.skills
+                                                        }
                                                     }
                                                     setAvatar(newAvatar)
                                                 }
@@ -296,7 +300,7 @@ export default function AvatarInfo() {
                                     {/* Lightcone Hero Block */}
                                     <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center">
                                         {/* Artwork */}
-                                        <div className="sm:col-span-4 aspect-[3/4] rounded-xl overflow-hidden bg-base-200/60 flex items-center justify-center border border-base-content/10 shadow-xs">
+                                        <div className="sm:col-span-4 aspect-3/4 rounded-xl overflow-hidden bg-base-200/60 flex items-center justify-center border border-base-content/10 shadow-xs">
                                             <Image
                                                 unoptimized
                                                 crossOrigin="anonymous"
@@ -450,8 +454,8 @@ export default function AvatarInfo() {
 
             {/* Lightcone Selection Modal */}
             <dialog id="action_detail_modal" className="modal">
-                <div className="modal-box w-11/12 max-w-[92vw] sm:max-w-[88vw] max-h-[90vh] bg-base-100 text-base-content border border-white/10 shadow-2xl rounded-2xl p-0 overflow-hidden">
-                    <div className="sticky top-0 z-20 flex items-center justify-between px-6 py-4 border-b border-base-content/10 bg-base-100">
+                <div className="modal-box w-11/12 max-w-[92vw] sm:max-w-[88vw] max-h-[90vh] flex flex-col bg-base-100 text-base-content border border-white/10 shadow-2xl rounded-2xl p-0 overflow-hidden">
+                    <div className="sticky top-0 z-20 flex items-center justify-between px-6 py-4 border-b border-base-content/10 bg-base-100 shrink-0">
                         <h3 className="font-bold text-xl tracking-tight bg-clip-text text-transparent bg-linear-to-r from-primary via-accent to-secondary">
                             {transI18n("lightconeEquipment")}
                         </h3>
@@ -462,7 +466,7 @@ export default function AvatarInfo() {
                             ✕
                         </button>
                     </div>
-                    <div className="p-4 sm:p-6 overflow-y-auto max-h-[calc(90vh-5rem)]">
+                    <div className="p-4 sm:p-6 overflow-y-auto flex-1">
                         <LightconeBar />
                     </div>
                 </div>

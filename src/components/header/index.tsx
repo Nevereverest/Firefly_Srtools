@@ -31,6 +31,12 @@ const themes = [
     { label: "Coffee" },
 ];
 
+function setCookieLocale(localeVal: string) {
+    if (typeof document !== "undefined") {
+        document.cookie = `MYNEXTAPP_LOCALE=${localeVal}; path=/; max-age=31536000;`;
+    }
+}
+
 export default function Header() {
     const { changeTheme } = useChangeTheme()
     const { locale, setLocale } = useLocaleStore(
@@ -139,7 +145,7 @@ export default function Header() {
 
     const changeLocale = (newLocale: string) => {
         setLocale(newLocale)
-        document.cookie = `MYNEXTAPP_LOCALE=${newLocale};`
+        setCookieLocale(newLocale)
         router.refresh()
     }
 
@@ -630,7 +636,7 @@ export default function Header() {
             {/* Modals */}
             {modalConfigs?.map(({ id, title, onClose, content }) => (
                 <dialog key={id} id={id} className="modal">
-                    <div className={`modal-box w-11/12 max-w-[92vw] sm:max-w-[88vw] ${id === 'monster_modal' ? 'h-[85vh] max-h-[85vh] flex flex-col' : 'max-h-[90vh]'} bg-base-100 text-base-content border border-base-content/10 shadow-2xl rounded-2xl p-0 overflow-hidden`}>
+                    <div className={`modal-box w-11/12 max-w-[92vw] sm:max-w-[88vw] ${id === 'monster_modal' ? 'h-[85vh]' : 'max-h-[90vh]'} max-h-[90vh] flex flex-col bg-base-100 text-base-content border border-base-content/10 shadow-2xl rounded-2xl p-0 overflow-hidden`}>
                         {/* Modal Header */}
                         <div className="sticky top-0 z-20 flex items-center justify-between px-6 py-4 border-b border-base-content/10 bg-base-100 shrink-0">
                             <h3 className="font-bold text-xl tracking-tight bg-clip-text text-transparent bg-linear-to-r from-primary via-accent to-secondary">

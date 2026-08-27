@@ -43,7 +43,7 @@ export default function CharacterInfoCard({
             onClick={() => onCharacterToggle(character)}
         >
             {/* Character Portrait */}
-            <div className="relative mb-3 aspect-[4/5] rounded-xl overflow-hidden bg-base-300/40 flex items-center justify-center">
+            <div className="relative mb-3 aspect-4/5 rounded-xl overflow-hidden bg-base-300/40 flex items-center justify-center">
                 {avatar && (
                     <>
                         <Image

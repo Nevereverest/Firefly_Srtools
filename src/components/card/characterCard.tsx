@@ -40,7 +40,7 @@ export default function CharacterCard({ data }: CharacterCardProps) {
     >
       {/* Artwork container with vibrant rarity background */}
       <div
-        className={`w-full relative aspect-[3/4] flex items-center justify-center overflow-hidden bg-linear-to-b ${
+        className={`w-full relative aspect-3/4 flex items-center justify-center overflow-hidden bg-linear-to-b ${
           is5Star
             ? "from-yellow-400 via-amber-500/85 to-amber-700/70"
             : is4Star

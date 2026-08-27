@@ -22,7 +22,7 @@ export default function LightconeCard({ data }: LightconeCardProps) {
         <li className="group relative flex flex-col items-center rounded-xl overflow-hidden bg-base-100 border border-base-content/10 shadow-sm hover:shadow-md cursor-pointer select-none h-full">
             {/* Artwork container with vibrant rarity background */}
             <div
-                className={`w-full relative aspect-[3/4] flex items-center justify-center overflow-hidden bg-linear-to-b ${
+                className={`w-full relative aspect-3/4 flex items-center justify-center overflow-hidden bg-linear-to-b ${
                     is5Star
                         ? "from-yellow-400 via-amber-500/85 to-amber-700/70"
                         : is4Star

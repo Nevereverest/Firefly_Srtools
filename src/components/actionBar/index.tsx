@@ -484,8 +484,8 @@ export default function ActionBar() {
         {/* Modals */}
         {modalConfigs.map(({ id, title, onClose, content }) => (
           <dialog key={id} id={id} className="modal">
-            <div className="modal-box w-11/12 max-w-[92vw] sm:max-w-[88vw] max-h-[90vh] bg-base-100 text-base-content border border-base-300 shadow-2xl rounded-2xl p-0 overflow-hidden">
-              <div className="sticky top-0 z-20 flex items-center justify-between px-6 py-4 border-b border-base-300 bg-base-100">
+            <div className="modal-box w-11/12 max-w-[92vw] sm:max-w-[88vw] max-h-[90vh] flex flex-col bg-base-100 text-base-content border border-base-300 shadow-2xl rounded-2xl p-0 overflow-hidden">
+              <div className="sticky top-0 z-20 flex items-center justify-between px-6 py-4 border-b border-base-300 bg-base-100 shrink-0">
                 <h3 className="font-bold text-xl tracking-tight text-primary">
                   {title}
                 </h3>
@@ -496,7 +496,7 @@ export default function ActionBar() {
                   ✕
                 </button>
               </div>
-              <div className="p-4 sm:p-6 overflow-y-auto max-h-[calc(90vh-5rem)]">
+              <div className="p-4 sm:p-6 overflow-y-auto flex-1">
                 {content}
               </div>
             </div>
