@@ -1,8 +1,10 @@
 import useLocaleStore from '@/stores/localeStore';
 import { useShallow } from 'zustand/react/shallow';
 import { Sparkles, Bug, Zap, Package, Calendar } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 export default function ChangelogBar() {
+    const transI18n = useTranslations("DataPage");
     const { changelog } = useLocaleStore(
         useShallow((state) => ({ changelog: state.changelog }))
     )
@@ -36,13 +38,13 @@ export default function ChangelogBar() {
     const getTypeLabel = (type: string) => {
         switch (type) {
             case 'feature':
-                return 'Feature';
+                return transI18n("feature") || 'Feature';
             case 'fix':
-                return 'Fix';
+                return transI18n("fix") || 'Fix';
             case 'improvement':
-                return 'Improvement';
+                return transI18n("improvement") || 'Improvement';
             default:
-                return 'Update';
+                return transI18n("update") || 'Update';
         }
     };
 
@@ -59,7 +61,7 @@ export default function ChangelogBar() {
                                     {getTypeLabel(change.type)}
                                 </span>
                                 <h3 className="font-extrabold text-sm sm:text-base tracking-tight">
-                                    Version {change.version}
+                                    {transI18n("version") || "Version"} {change.version}
                                 </h3>
                             </div>
 

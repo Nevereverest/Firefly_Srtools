@@ -646,8 +646,8 @@ export default function Header() {
                             : 'max-w-[92vw] sm:max-w-[88vw] max-h-[90vh]'
                     } max-h-[90vh] flex flex-col bg-base-100 text-base-content border border-base-content/10 shadow-2xl rounded-2xl p-0 overflow-hidden`}>
                         {/* Modal Header */}
-                        <div className="sticky top-0 z-20 flex items-center justify-between px-6 py-4 border-b border-base-content/10 bg-base-100 shrink-0">
-                            <h3 className="font-bold text-xl tracking-tight bg-clip-text text-transparent bg-linear-to-r from-primary via-accent to-secondary">
+                        <div className="sticky top-0 z-20 flex items-center justify-between px-4 py-3 sm:px-6 sm:py-4 border-b border-base-content/10 bg-base-100 shrink-0">
+                            <h3 className="font-bold text-lg sm:text-xl tracking-tight bg-clip-text text-transparent bg-linear-to-r from-primary via-accent to-secondary">
                                 {title}
                             </h3>
                             <button

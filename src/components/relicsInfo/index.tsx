@@ -1,6 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 "use client";
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import RelicMaker from "../relicBar";
 import useUserDataStore from "@/stores/userDataStore";
 import { useTranslations } from "next-intl";
@@ -15,6 +16,8 @@ import useDetailDataStore from "@/stores/detailDataStore";
 import { getLocaleName } from '@/helper';
 import useLocaleStore from "@/stores/localeStore";
 import { useShallow } from 'zustand/react/shallow';
+import { Trash2 } from "lucide-react";
+import { toast } from "react-toastify";
 
 export default function RelicsInfo() {
   const { avatars, setAvatar } = useUserDataStore(
@@ -78,6 +81,8 @@ export default function RelicsInfo() {
     }))
   )
 
+  const [relicSlotToDelete, setRelicSlotToDelete] = useState<string | null>(null);
+
   const handleShow = (modalId: string) => {
     const modal = document.getElementById(modalId) as HTMLDialogElement | null;
     if (modal) {
@@ -123,6 +128,25 @@ export default function RelicsInfo() {
         });
       }
     }
+  };
+
+  const requestDeleteRelic = (slot: string) => {
+    setRelicSlotToDelete(slot);
+    handleShow("delete_relic_confirm_modal");
+  };
+
+  const handleConfirmDelete = () => {
+    if (relicSlotToDelete) {
+      handlerDeleteRelic(relicSlotToDelete);
+      toast.success(transI18n("relicDeletedSuccessfully"));
+      handleCloseModal("delete_relic_confirm_modal");
+      setRelicSlotToDelete(null);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    handleCloseModal("delete_relic_confirm_modal");
+    setRelicSlotToDelete(null);
   };
 
   const handlerChangeRelic = (slot: string) => {
@@ -217,6 +241,7 @@ export default function RelicsInfo() {
         for (const item of modalConfigs) {
           handleCloseModal(item?.id || "")
         }
+        handleCloseModal("delete_relic_confirm_modal")
       }
     };
 
@@ -250,23 +275,15 @@ export default function RelicsInfo() {
             </div>
 
             {/* 6-Slot Grid completely free of box-in-box */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-6 py-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
               {["1", "2", "3", "4", "5", "6"].map((item, index) => (
                 <div
                   key={index}
-                  onClick={() => {
-                    if (item === selectedRelicSlot) {
-                      setSelectedRelicSlot("")
-                    } else {
-                      setSelectedRelicSlot(item)
-                    }
-                    handlerChangeRelic(item)
-                  }}
-                  className={`relative group flex flex-col items-center justify-center p-2 rounded-2xl transition-all duration-200 cursor-pointer ${
-                    item === selectedRelicSlot
-                      ? "bg-primary/5 rounded-2xl ring-1.5 ring-primary/40"
-                      : "hover:bg-base-content/5"
-                  }`}
+                  onClick={() => setSelectedRelicSlot(item)}
+                  className={`group relative rounded-xl transition-all duration-200 cursor-pointer ${selectedRelicSlot === item
+                    ? "ring-2 ring-primary ring-offset-2 ring-offset-base-100 shadow-md"
+                    : "hover:ring-1 hover:ring-base-content/20"
+                    }`}
                 >
                   <RelicCard
                     slot={item}
@@ -276,6 +293,7 @@ export default function RelicsInfo() {
                   {/* Micro Actions */}
                   <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex gap-1">
                     <button
+                      type="button"
                       onClick={(e) => {
                         e.stopPropagation()
                         handlerChangeRelic(item)
@@ -290,11 +308,10 @@ export default function RelicsInfo() {
 
                     {getRelic(item) && (
                       <button
+                        type="button"
                         onClick={(e) => {
                           e.stopPropagation()
-                          if (window.confirm(`${transI18n("deleteRelicConfirm")} ${item}?`)) {
-                            handlerDeleteRelic(item)
-                          }
+                          requestDeleteRelic(item)
                         }}
                         className="btn btn-xs btn-circle btn-error shadow-xs"
                         title={transI18n("deleteRelic")}
@@ -312,6 +329,7 @@ export default function RelicsInfo() {
             {/* Bottom Actions Bar */}
             <div className="grid grid-cols-2 gap-3 pt-2">
               <button
+                type="button"
                 disabled={!selectedRelicSlot}
                 onClick={() => handlerChangeRelic(selectedRelicSlot)}
                 className="btn btn-primary btn-sm rounded-xl font-bold shadow-xs"
@@ -319,14 +337,15 @@ export default function RelicsInfo() {
                 {transI18n("changeRelic")}
               </button>
               <button
-                disabled={!selectedRelicSlot}
+                type="button"
+                disabled={!selectedRelicSlot || !getRelic(selectedRelicSlot)}
                 onClick={(e) => {
                   e.stopPropagation()
-                  if (window.confirm(`${transI18n("deleteRelicConfirm")} ${selectedRelicSlot}?`)) {
-                    handlerDeleteRelic(selectedRelicSlot)
+                  if (selectedRelicSlot) {
+                    requestDeleteRelic(selectedRelicSlot)
                   }
                 }}
-                className="btn btn-ghost btn-sm text-error hover:bg-error/20 rounded-xl"
+                className="btn btn-ghost btn-sm text-error hover:bg-error/20 rounded-xl disabled:opacity-40 disabled:pointer-events-none"
               >
                 {transI18n("deleteRelic")}
               </button>
@@ -413,6 +432,7 @@ export default function RelicsInfo() {
                 {title}
               </h3>
               <button
+                type="button"
                 className="btn btn-sm btn-circle btn-ghost text-base-content/60 hover:text-base-content hover:bg-base-200 transition-colors"
                 onClick={onClose}
               >
@@ -429,6 +449,82 @@ export default function RelicsInfo() {
           </form>
         </dialog>
       ))}
+
+      {/* Delete Relic Confirmation Modal */}
+      <dialog id="delete_relic_confirm_modal" className="modal modal-bottom sm:modal-middle">
+        <div className="modal-box max-w-md bg-base-100/95 backdrop-blur-xl border border-white/10 shadow-2xl rounded-2xl p-6 overflow-hidden relative">
+          {/* Ambient Glow */}
+          <div className="pointer-events-none absolute -top-12 left-1/2 -translate-x-1/2 w-32 h-32 bg-rose-500/15 rounded-full blur-2xl" />
+
+          <div className="relative z-10 text-center space-y-4">
+            {/* Rose Icon Badge */}
+            <div className="w-12 h-12 rounded-2xl bg-rose-500/15 text-rose-400 border border-rose-500/30 flex items-center justify-center mx-auto shadow-[0_0_20px_rgba(244,63,94,0.2)]">
+              <Trash2 className="w-6 h-6 stroke-[1.75]" />
+            </div>
+
+            {/* Title & Description */}
+            <div className="space-y-1.5">
+              <h3 className="font-black text-lg text-base-content tracking-tight">
+                {transI18n("deleteRelic")}
+              </h3>
+              <p className="text-xs sm:text-sm text-base-content/70 leading-relaxed">
+                {transI18n("deleteRelicConfirm")}{" "}
+                <span className="font-bold text-amber-400 capitalize font-mono">
+                  {relicSlotToDelete ? (transI18n({ "1": "HEAD", "2": "HAND", "3": "BODY", "4": "FOOT", "5": "NECK", "6": "OBJECT" }[relicSlotToDelete] || relicSlotToDelete) || relicSlotToDelete) : ""}
+                </span>
+                ?
+              </p>
+            </div>
+
+            {/* Relic Preview Card (if relic exists) */}
+            {relicSlotToDelete && getRelic(relicSlotToDelete) && (
+              <div className="flex items-center gap-3 p-3 rounded-xl bg-base-200/70 border border-white/10 text-left">
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-base-300/60 border border-amber-500/30 shrink-0">
+                  <Image
+                    src={`${process.env.CDN_URL}/spriteoutput/relicfigures/IconRelic_${getRelic(relicSlotToDelete)?.relic_set_id}_${relicSlotToDelete}.png`}
+                    alt="Relic"
+                    unoptimized
+                    crossOrigin="anonymous"
+                    width={36}
+                    height={36}
+                    className="w-7 h-7 object-contain"
+                  />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-bold text-base-content truncate">
+                    {getLocaleName(locale, mapRelicSet[getRelic(relicSlotToDelete)?.relic_set_id || ""]?.Name)}
+                  </p>
+                  <p className="text-[11px] text-base-content/60 font-mono">
+                    +{getRelic(relicSlotToDelete)?.level} &bull; <span>{transI18n({ "1": "HEAD", "2": "HAND", "3": "BODY", "4": "FOOT", "5": "NECK", "6": "OBJECT" }[relicSlotToDelete] || relicSlotToDelete)}</span>
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex items-center gap-3 pt-2">
+              <button
+                type="button"
+                onClick={handleCancelDelete}
+                className="flex-1 h-10 px-4 rounded-xl font-bold text-xs sm:text-sm bg-base-200 hover:bg-base-300 text-base-content/80 hover:text-base-content border border-white/10 transition-all cursor-pointer"
+              >
+                {transI18n("cancel")}
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                className="flex-1 h-10 px-4 rounded-xl font-bold text-xs sm:text-sm bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-400 hover:to-red-500 text-white shadow-md shadow-rose-500/25 hover:shadow-rose-500/40 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span>{transI18n("confirmDelete")}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+        <form method="dialog" className="modal-backdrop">
+          <button onClick={handleCancelDelete}>close</button>
+        </form>
+      </dialog>
     </div>
   );
 }

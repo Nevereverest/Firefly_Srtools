@@ -77,6 +77,8 @@ export default function ActionBar() {
     return avatar?.profileList?.[avatar?.profileSelect] ?? avatar?.profileList?.[0] ?? null;
   }, [avatarSelected, avatars]);
 
+  const [profileToDelete, setProfileToDelete] = useState<{ id: number; name: string } | null>(null);
+
   const listProfile = useMemo(() => {
     if (!avatarSelected) return [];
     const avatar = avatars[avatarSelected.ID];
@@ -93,13 +95,13 @@ export default function ActionBar() {
       };
       const newListProfile = [...listProfile, newProfile];
       setAvatar({ ...avatars[avatarSelected.ID], profileList: newListProfile, profileSelect: newListProfile.length - 1 })
-      toast.success("Profile created successfully")
+      toast.success(transI18n("profileCreatedSuccessfully"))
     } else if (formState === "EDIT" && profileCurrent && avatarSelected && profileEdit !== -1) {
       const newListProfile = listProfile.map((p, idx) =>
         idx === profileEdit ? { ...p, profile_name: profileName } : p
       );
       setAvatar({ ...avatars[avatarSelected.ID], profileList: newListProfile })
-      toast.success("Profile updated successfully")
+      toast.success(transI18n("profileUpdatedSuccessfully"))
     }
     handleCloseModal("update_profile_modal");
   };
@@ -129,22 +131,33 @@ export default function ActionBar() {
     setAvatar({ ...avatars[avatarSelected.ID], profileSelect: profileId })
     const selectedProfile = avatars[avatarSelected.ID].profileList?.[profileId];
     if (selectedProfile) {
-      toast.success(`Profile changed to: ${selectedProfile.profile_name}`)
+      toast.success(`${transI18n("profileSwitched")}: ${selectedProfile.profile_name}`)
     }
   }
 
-  const handleDeleteProfile = (profileId: number, e: React.MouseEvent) => {
+  const requestDeleteProfile = (profileId: number, e: React.MouseEvent) => {
     e.stopPropagation()
     if (!avatarSelected || profileId === 0 || !avatars[avatarSelected.ID]) return;
     const targetProfile = avatars[avatarSelected.ID].profileList?.[profileId];
     if (!targetProfile) return;
-    if (window.confirm(`Are you sure you want to delete profile: ${targetProfile.profile_name}?`)) {
-      const currentSelect = avatars[avatarSelected.ID].profileSelect;
-      const newListProfile = listProfile.filter((_, idx) => idx !== profileId);
-      const nextSelect = currentSelect >= profileId ? Math.max(0, currentSelect - 1) : currentSelect;
-      setAvatar({ ...avatars[avatarSelected.ID], profileList: newListProfile, profileSelect: nextSelect })
-      toast.success(`Profile ${targetProfile.profile_name} deleted successfully`)
-    }
+    setProfileToDelete({ id: profileId, name: targetProfile.profile_name });
+    handleShow("delete_profile_confirm_modal");
+  }
+
+  const handleConfirmDeleteProfile = () => {
+    if (!avatarSelected || !profileToDelete || !avatars[avatarSelected.ID]) return;
+    const currentSelect = avatars[avatarSelected.ID].profileSelect;
+    const newListProfile = listProfile.filter((_, idx) => idx !== profileToDelete.id);
+    const nextSelect = currentSelect >= profileToDelete.id ? Math.max(0, currentSelect - 1) : currentSelect;
+    setAvatar({ ...avatars[avatarSelected.ID], profileList: newListProfile, profileSelect: nextSelect })
+    toast.success(transI18n("profileDeletedSuccessfully"))
+    handleCloseModal("delete_profile_confirm_modal");
+    setProfileToDelete(null);
+  }
+
+  const handleCancelDeleteProfile = () => {
+    handleCloseModal("delete_profile_confirm_modal");
+    setProfileToDelete(null);
   }
 
   const handleConnectOrSyncPS = async () => {
@@ -193,7 +206,7 @@ export default function ActionBar() {
           </div>
           <div className="flex justify-end gap-2 pt-2">
             <button className="btn btn-ghost" onClick={() => setIsOpenCreateProfile(false)}>
-              Cancel
+              {transI18n("cancel")}
             </button>
             <button className="btn btn-primary" onClick={handleUpdateProfile}>
               {formState === "CREATE" ? transI18n("create") : transI18n("update")}
@@ -320,14 +333,14 @@ export default function ActionBar() {
                           setIsOpenCreateProfile(true)
                           handleShow("update_profile_modal")
                         }}
-                        title="Edit Profile"
+                        title={transI18n("editProfile")}
                       >
                         <Edit2 className="w-3 h-3" />
                       </button>
                       <button
                         className="btn btn-ghost btn-xs btn-circle text-error hover:bg-error/20"
-                        onClick={(e) => handleDeleteProfile(index, e)}
-                        title="Delete Profile"
+                        onClick={(e) => requestDeleteProfile(index, e)}
+                        title={transI18n("deleteProfile")}
                       >
                         <Trash2 className="w-3 h-3" />
                       </button>
@@ -490,6 +503,7 @@ export default function ActionBar() {
                   {title}
                 </h3>
                 <button
+                  type="button"
                   className="btn btn-sm btn-circle btn-ghost text-base-content/60 hover:text-base-content hover:bg-base-200 transition-colors"
                   onClick={onClose}
                 >
@@ -505,6 +519,53 @@ export default function ActionBar() {
             </form>
           </dialog>
         ))}
+
+        {/* Delete Profile Confirmation Modal */}
+        <dialog id="delete_profile_confirm_modal" className="modal modal-bottom sm:modal-middle">
+          <div className="modal-box max-w-md bg-base-100/95 backdrop-blur-xl border border-white/10 shadow-2xl rounded-2xl p-6 overflow-hidden relative">
+            <div className="pointer-events-none absolute -top-12 left-1/2 -translate-x-1/2 w-32 h-32 bg-rose-500/15 rounded-full blur-2xl" />
+
+            <div className="relative z-10 text-center space-y-4">
+              <div className="w-12 h-12 rounded-2xl bg-rose-500/15 text-rose-400 border border-rose-500/30 flex items-center justify-center mx-auto shadow-[0_0_20px_rgba(244,63,94,0.2)]">
+                <Trash2 className="w-6 h-6 stroke-[1.75]" />
+              </div>
+
+              <div className="space-y-1.5">
+                <h3 className="font-black text-lg text-base-content tracking-tight">
+                  {transI18n("deleteProfile")}
+                </h3>
+                <p className="text-xs sm:text-sm text-base-content/70 leading-relaxed">
+                  {transI18n("deleteProfileConfirm")}{" "}
+                  <span className="font-bold text-amber-400 font-mono">
+                    &quot;{profileToDelete?.name}&quot;
+                  </span>
+                  ?
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={handleCancelDeleteProfile}
+                  className="flex-1 h-10 px-4 rounded-xl font-bold text-xs sm:text-sm bg-base-200 hover:bg-base-300 text-base-content/80 hover:text-base-content border border-white/10 transition-all cursor-pointer"
+                >
+                  {transI18n("cancel")}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmDeleteProfile}
+                  className="flex-1 h-10 px-4 rounded-xl font-bold text-xs sm:text-sm bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-400 hover:to-red-500 text-white shadow-md shadow-rose-500/25 hover:shadow-rose-500/40 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span>{transI18n("confirmDelete")}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+          <form method="dialog" className="modal-backdrop">
+            <button onClick={handleCancelDeleteProfile}>close</button>
+          </form>
+        </dialog>
       </div>
   );
 }

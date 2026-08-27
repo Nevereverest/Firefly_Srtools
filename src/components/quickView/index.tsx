@@ -401,7 +401,8 @@ export default function QuickView() {
         subAffix,
         relicEffects,
         mapRelicSet,
-        avatarSkillTree
+        avatarSkillTree,
+        transI18n
     ])
 
     return (

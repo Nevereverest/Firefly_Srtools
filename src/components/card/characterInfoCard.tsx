@@ -8,6 +8,7 @@ import ParseText from '../parseText';
 import useDetailDataStore from '@/stores/detailDataStore';
 import { getLocaleName } from '@/helper/getName';
 import { useShallow } from 'zustand/react/shallow';
+import { Check } from 'lucide-react';
 
 export default function CharacterInfoCard({ 
     character, 
@@ -35,15 +36,24 @@ export default function CharacterInfoCard({
 
     return (
         <div
-            className={`group rounded-2xl p-4 border transition-all duration-200 cursor-pointer select-none ${
+            className={`group relative overflow-hidden rounded-2xl p-3 sm:p-4 border transition-all duration-300 ease-out cursor-pointer select-none ${
                 isSelected
-                    ? 'bg-primary/10 border-primary shadow-lg shadow-primary/20 ring-2 ring-primary/40'
-                    : 'bg-base-200/60 border-white/5 hover:border-white/20 opacity-80 hover:opacity-100 hover:bg-base-200'
+                    ? 'bg-primary/10 border-primary/80 shadow-[0_0_24px_rgba(var(--color-primary-rgb,6,182,212),0.25)] ring-1 ring-primary/60 scale-[1.01]'
+                    : 'bg-base-200/50 hover:bg-base-200/90 border-white/10 hover:border-white/25 hover:shadow-lg hover:-translate-y-1'
             }`}
             onClick={() => onCharacterToggle(character)}
         >
-            {/* Character Portrait */}
-            <div className="relative mb-3 aspect-4/5 rounded-xl overflow-hidden bg-base-300/40 flex items-center justify-center">
+            {/* Selection Checkmark Badge */}
+            <div className={`absolute top-2.5 right-2.5 z-20 w-6 h-6 rounded-full flex items-center justify-center transition-all duration-200 ${
+                isSelected 
+                    ? 'bg-primary text-primary-content shadow-md scale-100 ring-2 ring-primary/40' 
+                    : 'bg-black/40 border border-white/20 text-transparent scale-90 group-hover:scale-100 group-hover:border-white/40'
+            }`}>
+                <Check className={`w-3.5 h-3.5 stroke-[3] ${isSelected ? 'opacity-100' : 'opacity-0'}`} />
+            </div>
+
+            {/* Character Portrait Area */}
+            <div className="relative mb-3 aspect-4/5 rounded-xl overflow-hidden bg-radial from-base-300/60 to-base-300/20 flex items-center justify-center">
                 {avatar && (
                     <>
                         <Image
@@ -53,61 +63,64 @@ export default function CharacterInfoCard({
                             height={512}
                             unoptimized
                             crossOrigin="anonymous"
-                            className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
+                            className="w-full h-full object-contain transition-transform duration-500 ease-out group-hover:scale-108"
                         />
-                        {damageType?.[avatar.DamageType]?.Icon && (
-                            <div className="absolute top-1.5 left-1.5 p-0.5 rounded-full bg-black/60 backdrop-blur-xs border border-white/10">
-                                <Image
-                                    width={24}
-                                    height={24}
-                                    unoptimized
-                                    crossOrigin="anonymous"
-                                    src={`${process.env.CDN_URL}/${damageType[avatar.DamageType].Icon}`}
-                                    className="w-5 h-5 object-contain"
-                                    alt={avatar.DamageType.toLowerCase()}
-                                />
-                            </div>
-                        )}
-                        {baseType?.[avatar.BaseType]?.Icon && (
-                            <div className="absolute top-1.5 right-1.5 p-0.5 rounded-full bg-black/60 backdrop-blur-xs border border-white/10">
-                                <Image
-                                    width={24}
-                                    height={24}
-                                    unoptimized
-                                    crossOrigin="anonymous"
-                                    src={`${process.env.CDN_URL}/${baseType[avatar.BaseType].Icon}`}
-                                    className="w-5 h-5 object-contain"
-                                    alt={avatar.BaseType.toLowerCase()}
-                                />
-                            </div>
-                        )}
+                        {/* Damage & Path Badges */}
+                        <div className="absolute top-2 left-2 flex items-center gap-1.5 z-10">
+                            {damageType?.[avatar.DamageType]?.Icon && (
+                                <div className="p-1 rounded-lg bg-black/65 backdrop-blur-md border border-white/15 shadow-sm" title={avatar.DamageType}>
+                                    <Image
+                                        width={20}
+                                        height={20}
+                                        unoptimized
+                                        crossOrigin="anonymous"
+                                        src={`${process.env.CDN_URL}/${damageType[avatar.DamageType].Icon}`}
+                                        className="w-4 h-4 object-contain"
+                                        alt={avatar.DamageType.toLowerCase()}
+                                    />
+                                </div>
+                            )}
+                            {baseType?.[avatar.BaseType]?.Icon && (
+                                <div className="p-1 rounded-lg bg-black/65 backdrop-blur-md border border-white/15 shadow-sm" title={avatar.BaseType}>
+                                    <Image
+                                        width={20}
+                                        height={20}
+                                        unoptimized
+                                        crossOrigin="anonymous"
+                                        src={`${process.env.CDN_URL}/${baseType[avatar.BaseType].Icon}`}
+                                        className="w-4 h-4 object-contain"
+                                        alt={avatar.BaseType.toLowerCase()}
+                                    />
+                                </div>
+                            )}
+                        </div>
                     </>
                 )}
             </div>
 
-            {/* Character Name and Level Badge */}
-            <div className="text-center mb-3">
+            {/* Character Name & Badges */}
+            <div className="text-center mb-2.5">
                 <ParseText 
-                    className="text-base font-bold line-clamp-1"
+                    className="text-sm sm:text-base font-bold line-clamp-1 tracking-tight"
                     text={avatar ? getLocaleName(locale, avatar.Name) : character.avatar_id.toString()}
                     locale={locale}
                 />
-                <div className="flex items-center justify-center gap-2 mt-1">
-                    <span className="text-xs font-mono font-semibold px-2 py-0.5 rounded-full bg-base-300/80 text-base-content/80">
+                <div className="flex items-center justify-center gap-2 mt-1.5">
+                    <span className="text-[11px] font-mono font-semibold px-2 py-0.5 rounded-md bg-base-300/80 text-base-content/90 border border-white/5">
                         Lv.{character.level}
                     </span>
-                    <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                    <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-400 border border-amber-500/30">
                         E{character.rank}
                     </span>
                 </div>
             </div>
 
-            {/* Relics Mini-grid */}
+            {/* Relics Grid (2 rows of 3, no overflow) */}
             {character.relics.length > 0 && (
-                <div className="flex flex-wrap items-center justify-center gap-1.5 mb-3 p-1.5 rounded-xl bg-base-100/50 border border-white/5">
+                <div className="grid grid-cols-3 gap-1.5 sm:gap-2 justify-items-center py-1.5 px-2.5 rounded-xl bg-base-300/30 w-fit mx-auto mb-2.5">
                     {character.relics.map((relic, index) => (
                         <div key={index} className="relative group/relic">
-                            <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-base-200 border border-amber-500/40">
+                            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center bg-base-100/90 border border-amber-500/30 hover:border-amber-400 transition-colors shadow-xs">
                                 <Image
                                     src={`${process.env.CDN_URL}/spriteoutput/relicfigures/IconRelic_${relic.relic_set_id}_${relic.relic_id.toString()[relic.relic_id.toString().length - 1]}.png`}
                                     alt="Relic"
@@ -115,10 +128,10 @@ export default function CharacterInfoCard({
                                     crossOrigin="anonymous"
                                     width={32}
                                     height={32}
-                                    className="w-6 h-6 object-contain"
+                                    className="w-5 h-5 sm:w-6 sm:h-6 object-contain"
                                 />
                             </div>
-                            <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 bg-black/80 text-[9px] font-mono font-bold text-amber-400 px-1 rounded-full border border-white/10">
+                            <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-black/90 text-[8px] font-mono font-bold text-amber-300 px-1 rounded-full border border-white/10 leading-tight">
                                 +{relic.level}
                             </div>
                         </div>
@@ -126,29 +139,31 @@ export default function CharacterInfoCard({
                 </div>
             )}
 
-            {/* Light Cone */}
+            {/* Light Cone Preview (Seamless strip) */}
             {character.lightcone && character.lightcone.item_id !== 0 && (
-                <div className="p-2 rounded-xl bg-base-100/50 border border-white/5 text-center">
-                    <div className="h-28 flex items-center justify-center mb-1">
+                <div className="pt-2 border-t border-white/10 flex items-center gap-2.5">
+                    <div className="h-12 w-9 shrink-0 flex items-center justify-center rounded bg-base-300/40 overflow-hidden">
                         <Image
                             unoptimized
                             crossOrigin="anonymous"
                             src={`${process.env.CDN_URL}/${mapLightCone?.[character.lightcone.item_id.toString()]?.Image?.ImagePath}`}
                             alt="Lightcone"
-                            width={160}
-                            height={200}
-                            className="h-full w-auto object-contain rounded-lg"
+                            width={72}
+                            height={96}
+                            className="h-full w-auto object-contain"
                         />
                     </div>
-                    <div className="text-xs font-bold truncate">
-                        <ParseText
-                            text={getLocaleName(locale, mapLightCone?.[character.lightcone.item_id.toString()]?.Name)}
-                            locale={locale}
-                        />
-                    </div>
-                    <div className="flex items-center justify-center gap-2 mt-1">
-                        <span className="text-[11px] font-mono text-base-content/70">Lv.{character.lightcone.level}</span>
-                        <span className="text-[11px] font-mono font-bold text-primary">S{character.lightcone.rank}</span>
+                    <div className="flex-1 min-w-0 text-left">
+                        <div className="text-xs font-semibold truncate leading-tight">
+                            <ParseText
+                                text={getLocaleName(locale, mapLightCone?.[character.lightcone.item_id.toString()]?.Name)}
+                                locale={locale}
+                            />
+                        </div>
+                        <div className="flex items-center gap-2 mt-1">
+                            <span className="text-[10px] font-mono text-base-content/70">Lv.{character.lightcone.level}</span>
+                            <span className="text-[10px] font-mono font-bold text-primary">S{character.lightcone.rank}</span>
+                        </div>
                     </div>
                 </div>
             )}

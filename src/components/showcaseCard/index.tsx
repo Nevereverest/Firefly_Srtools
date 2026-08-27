@@ -48,7 +48,7 @@ export default function ShowCaseInfo() {
 
   const handleSaveImage = useCallback(async () => {
     if (cardRef.current === null || !avatarSelected) {
-      toast.error("Avatar showcase not found!");
+      toast.error(transI18n("noAvatarSelected") || "Avatar showcase not found!");
       return;
     }
     if (isSaving) return;
@@ -78,7 +78,7 @@ export default function ShowCaseInfo() {
 
       canvas.toBlob((blob) => {
         if (!blob) {
-          toast.error("Failed to generate image!");
+          toast.error(transI18n("failedToGenerateImage"));
           setIsSaving(false);
           return;
         }
@@ -89,10 +89,10 @@ export default function ShowCaseInfo() {
         link.click();
         URL.revokeObjectURL(url);
         setIsSaving(false);
-        toast.success(locale === "vi" ? "Đã lưu ảnh thành công!" : "Image saved successfully!");
+        toast.success(transI18n("imageSavedSuccessfully"));
       }, "image/png");
     } catch {
-      toast.error("Error generating showcase card!");
+      toast.error(transI18n("errorGeneratingShowcaseCard"));
       setIsSaving(false);
     }
   }, [avatarSelected, locale, transI18n, isSaving]);
@@ -638,16 +638,16 @@ export default function ShowCaseInfo() {
     const textToCopy = lines.join("\n");
     navigator.clipboard.writeText(textToCopy)
       .then(() => {
-        toast.success(locale === "vi" ? "Đã sao chép thông tin build!" : "Build info copied to clipboard!");
+        toast.success(transI18n("buildInfoCopied"));
       })
       .catch(() => {
-        toast.error(locale === "vi" ? "Lỗi khi sao chép!" : "Failed to copy build info!");
+        toast.error(transI18n("copyFailed"));
       });
   }, [avatarSelected, avatarData, avatarProfile, mapLightCone, locale, transI18n, characterStats, relicEffects, mapRelicSet, relicStats]);
 
   const handleCopyImage = useCallback(async () => {
     if (cardRef.current === null || !avatarSelected) {
-      toast.error("Avatar showcase not found!");
+      toast.error(transI18n("noAvatarSelected") || "Avatar showcase not found!");
       return;
     }
     if (isCopyingImage) return;
@@ -677,25 +677,25 @@ export default function ShowCaseInfo() {
 
       canvas.toBlob((blob) => {
         if (!blob) {
-          toast.error("Failed to create image blob");
+          toast.error(transI18n("failedToGenerateImage"));
           setIsCopyingImage(false);
           return;
         }
         navigator.clipboard.write([
           new ClipboardItem({ "image/png": blob })
         ]).then(() => {
-          toast.success(locale === "vi" ? "Đã sao chép ảnh vào Clipboard!" : "Image copied to clipboard!");
+          toast.success(transI18n("imageCopiedToClipboard"));
         }).catch(() => {
-          toast.error(locale === "vi" ? "Trình duyệt không cho phép sao chép ảnh trực tiếp!" : "Clipboard write failed!");
+          toast.error(transI18n("clipboardWriteFailed"));
         }).finally(() => {
           setIsCopyingImage(false);
         });
       }, "image/png");
     } catch {
-      toast.error("Error generating showcase image!");
+      toast.error(transI18n("errorGeneratingShowcaseCard"));
       setIsCopyingImage(false);
     }
-  }, [avatarSelected, locale, isCopyingImage]);
+  }, [avatarSelected, isCopyingImage, transI18n]);
 
   return (
     <div className="w-full space-y-4">
@@ -712,23 +712,23 @@ export default function ShowCaseInfo() {
             <button
               className="btn btn-sm btn-ghost border border-base-content/20 rounded-xl font-bold shadow-xs active-press gap-1.5 hover:bg-base-200"
               onClick={handleCopyBuildText}
-              title="Copy build summary as text"
+              title={transI18n("copyText")}
             >
               <Copy className="w-4 h-4" />
-              <span>{locale === "vi" ? "Sao chép Text" : "Copy Text"}</span>
+              <span>{transI18n("copyText")}</span>
             </button>
             <button
               disabled={isCopyingImage}
               className="btn btn-sm btn-ghost border border-base-content/20 rounded-xl font-bold shadow-xs active-press gap-1.5 hover:bg-base-200"
               onClick={handleCopyImage}
-              title="Copy card image to clipboard"
+              title={transI18n("copyImage")}
             >
               {isCopyingImage ? (
                 <span className="loading loading-spinner loading-xs"></span>
               ) : (
                 <ImageIcon className="w-4 h-4" />
               )}
-              <span>{isCopyingImage ? (locale === "vi" ? "Đang xử lý..." : "Processing...") : (locale === "vi" ? "Sao chép Ảnh" : "Copy Image")}</span>
+              <span>{isCopyingImage ? transI18n("processing") : transI18n("copyImage")}</span>
             </button>
             <button
               disabled={isSaving}
@@ -740,7 +740,7 @@ export default function ShowCaseInfo() {
               ) : (
                 <Download className="w-4 h-4" />
               )}
-              <span>{isSaving ? (locale === "vi" ? "Đang lưu..." : "Saving...") : transI18n("save")}</span>
+              <span>{isSaving ? transI18n("saving") : transI18n("save")}</span>
             </button>
           </div>
         </div>

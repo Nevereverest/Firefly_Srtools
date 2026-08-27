@@ -5,6 +5,7 @@ import useUserDataStore from "@/stores/userDataStore";
 import { useShallow } from "zustand/react/shallow";
 import Image from "next/image";
 import { useMemo } from "react";
+import { useTranslations } from "next-intl";
 
 interface RelicCardProps {
     slot: string
@@ -26,42 +27,32 @@ const getRarityColor = (rarity: string) => {
     }
 };
 
-const getSlotIconAndName = (slot: string) => {
-    const slotMap: Record<string, { icon: string; name: string }> = {
-        '1': { icon: '/relics/HEAD.png', name: 'Head' },
-        '2': { icon: '/relics/HAND.png', name: 'Hands' },
-        '3': { icon: '/relics/BODY.png', name: 'Body' },
-        '4': { icon: '/relics/FOOT.png', name: 'Feet' },
-        '5': { icon: '/relics/NECK.png', name: 'Planar Sphere' },
-        '6': { icon: '/relics/OBJECT.png', name: 'Link Rope' },
-    };
-
-    const current = slotMap[slot];
-    if (!current) return null;
-
-    return (
-        <div className="flex items-center gap-1.5 justify-center mt-2.5">
-            <Image
-                unoptimized
-                crossOrigin="anonymous"
-                src={current.icon}
-                alt={current.name}
-                width={18}
-                height={18}
-                className="w-4 h-4 object-contain theme-stat-icon opacity-85"
-            />
-            <span className="text-xs font-bold text-base-content">{current.name}</span>
-        </div>
-    );
+const slotIconMap: Record<string, { icon: string; key: string }> = {
+    '1': { icon: '/relics/HEAD.png', key: 'HEAD' },
+    '2': { icon: '/relics/HAND.png', key: 'HAND' },
+    '3': { icon: '/relics/BODY.png', key: 'BODY' },
+    '4': { icon: '/relics/FOOT.png', key: 'FOOT' },
+    '5': { icon: '/relics/NECK.png', key: 'NECK' },
+    '6': { icon: '/relics/OBJECT.png', key: 'OBJECT' },
+    'HEAD': { icon: '/relics/HEAD.png', key: 'HEAD' },
+    'HAND': { icon: '/relics/HAND.png', key: 'HAND' },
+    'BODY': { icon: '/relics/BODY.png', key: 'BODY' },
+    'FOOT': { icon: '/relics/FOOT.png', key: 'FOOT' },
+    'NECK': { icon: '/relics/NECK.png', key: 'NECK' },
+    'OBJECT': { icon: '/relics/OBJECT.png', key: 'OBJECT' },
 };
 
 export default function RelicCard({ slot, avatarId }: RelicCardProps) {
+    const transI18n = useTranslations("DataPage");
     const { avatars } = useUserDataStore(
         useShallow((state) => ({ avatars: state.avatars }))
     )
     const { selectedRelicSlot } = useRelicMakerStore(
         useShallow((state) => ({ selectedRelicSlot: state.selectedRelicSlot }))
     )
+
+    const slotInfo = slotIconMap[slot];
+    const slotDisplayName = slotInfo ? (transI18n(slotInfo.key) || slotInfo.key) : slot;
 
     const relicDetail = useMemo(() => {
         const avatar = avatars[avatarId];
@@ -103,7 +94,20 @@ export default function RelicCard({ slot, avatarId }: RelicCardProps) {
                         </div>
                     </div>
 
-                    {getSlotIconAndName(slot)}
+                    {slotInfo && (
+                        <div className="flex items-center gap-1.5 justify-center mt-2.5">
+                            <Image
+                                unoptimized
+                                crossOrigin="anonymous"
+                                src={slotInfo.icon}
+                                alt={slotDisplayName}
+                                width={18}
+                                height={18}
+                                className="w-4 h-4 object-contain theme-stat-icon opacity-85"
+                            />
+                            <span className="text-xs font-bold text-base-content">{slotDisplayName}</span>
+                        </div>
+                    )}
                 </div>
             ) : (
                 <div className="flex flex-col items-center">
@@ -127,7 +131,20 @@ export default function RelicCard({ slot, avatarId }: RelicCardProps) {
                         </div>
                     </div>
 
-                    {getSlotIconAndName(slot)}
+                    {slotInfo && (
+                        <div className="flex items-center gap-1.5 justify-center mt-2.5">
+                            <Image
+                                unoptimized
+                                crossOrigin="anonymous"
+                                src={slotInfo.icon}
+                                alt={slotDisplayName}
+                                width={18}
+                                height={18}
+                                className="w-4 h-4 object-contain theme-stat-icon opacity-85"
+                            />
+                            <span className="text-xs font-bold text-base-content">{slotDisplayName}</span>
+                        </div>
+                    )}
                 </div>
             )}
         </div>
