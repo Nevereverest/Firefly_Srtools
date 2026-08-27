@@ -15,6 +15,7 @@ import useDetailDataStore from '@/stores/detailDataStore';
 import useCurrentDataStore from '@/stores/currentDataStore';
 import { getLocaleName } from '@/helper';
 import { useShallow } from 'zustand/react/shallow';
+import { Copy, Download, Image as ImageIcon } from 'lucide-react';
 
 
 export default function ShowCaseInfo() {
@@ -36,6 +37,8 @@ export default function ShowCaseInfo() {
     useShallow((state) => ({ avatars: state.avatars }))
   )
   const [avgColor, setAvgColor] = useState('#222');
+  const [isSaving, setIsSaving] = useState(false);
+  const [isCopyingImage, setIsCopyingImage] = useState(false);
   const imgRef = useRef(null);
   const cardRef = useRef(null)
   const { locale } = useLocaleStore(
@@ -43,31 +46,56 @@ export default function ShowCaseInfo() {
   )
   const transI18n = useTranslations("DataPage")
 
-  const handleSaveImage = useCallback(() => {
+  const handleSaveImage = useCallback(async () => {
     if (cardRef.current === null || !avatarSelected) {
       toast.error("Avatar showcase not found!");
       return;
     }
+    if (isSaving) return;
 
-    import("html2canvas-pro")
-      .then(({ default: html2canvas }) =>
-        html2canvas(cardRef.current!, {
-          scale: 2,
-          backgroundColor: "#000000",
-          allowTaint: false,
-          useCORS: true
-        })
-      )
-      .then((canvas: HTMLCanvasElement) => {
+    setIsSaving(true);
+    try {
+      const { default: html2canvas } = await import("html2canvas-pro");
+      const canvas = await html2canvas(cardRef.current!, {
+        scale: 2,
+        backgroundColor: "#000000",
+        allowTaint: false,
+        useCORS: true,
+        logging: false,
+        width: 1600,
+        height: 650,
+        windowWidth: 1600,
+        windowHeight: 650,
+        onclone: (clonedDoc) => {
+          const clonedCard = clonedDoc.querySelector('[data-showcase-card="true"]') as HTMLElement | null;
+          if (clonedCard) {
+            clonedCard.style.transform = "none";
+            clonedCard.style.width = "1600px";
+            clonedCard.style.minHeight = "650px";
+          }
+        }
+      });
+
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          toast.error("Failed to generate image!");
+          setIsSaving(false);
+          return;
+        }
+        const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.download = `${getNameChar(locale, transI18n, avatarSelected)}_showcase.png`;
-        link.href = canvas.toDataURL("image/png");
+        link.href = url;
         link.click();
-      })
-      .catch(() => {
-        toast.error("Error generating showcase card!");
-      });
-  }, [avatarSelected, locale, transI18n]);
+        URL.revokeObjectURL(url);
+        setIsSaving(false);
+        toast.success(locale === "vi" ? "Đã lưu ảnh thành công!" : "Image saved successfully!");
+      }, "image/png");
+    } catch {
+      toast.error("Error generating showcase card!");
+      setIsSaving(false);
+    }
+  }, [avatarSelected, locale, transI18n, isSaving]);
 
   useEffect(() => {
     if (!avatarSelected) return;
@@ -512,6 +540,163 @@ export default function ShowCaseInfo() {
     return `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
   }, [])
 
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
+
+  useEffect(() => {
+    if (!wrapperRef.current) return;
+    const updateScale = () => {
+      if (wrapperRef.current) {
+        const containerWidth = wrapperRef.current.clientWidth;
+        const baseWidth = 1600;
+        const newScale = Math.min(1, containerWidth / baseWidth);
+        setScale(newScale);
+      }
+    };
+
+    updateScale();
+    const resizeObserver = new ResizeObserver(updateScale);
+    resizeObserver.observe(wrapperRef.current);
+    return () => resizeObserver.disconnect();
+  }, []);
+
+  const handleCopyBuildText = useCallback(() => {
+    if (!avatarSelected || !avatarData) {
+      toast.error("Avatar not found!");
+      return;
+    }
+
+    const charName = getNameChar(locale, transI18n, avatarSelected);
+    const charLevel = `Lv. ${avatarData.level}/80`;
+    const eidolonRank = `E${avatarData.data?.rank ?? 0}`;
+
+    // Light cone info
+    let lcText = "None";
+    if (avatarProfile?.lightcone && mapLightCone?.[avatarProfile.lightcone.item_id]) {
+      const lcData = mapLightCone[avatarProfile.lightcone.item_id];
+      const lcName = getLocaleName(locale, lcData.Name) || lcData.Name?.en || "Light Cone";
+      const lcRank = `S${avatarProfile.lightcone.rank || 1}`;
+      const lcLevel = `Lv. ${avatarProfile.lightcone.level || 80}/80`;
+      lcText = `${lcName} (${lcRank}, ${lcLevel})`;
+    }
+
+    // Stats summary
+    const statsList: string[] = [];
+    if (characterStats) {
+      const mainStatKeys = ["HP", "ATK", "DEF", "SPD", "CRITRate", "CRITDmg", "BreakEffect", "EnergyRate", "EffectHitRate", "EffectRES"];
+      for (const key of mainStatKeys) {
+        const stat = characterStats[key];
+        if (stat) {
+          const valFormatted = stat.round === 0
+            ? Math.round(stat.value).toLocaleString()
+            : stat.value.toFixed(stat.round);
+          statsList.push(`• ${stat.name}: ${valFormatted}${stat.unit}`);
+        }
+      }
+    }
+
+    // Relic sets
+    const relicSetList: string[] = [];
+    if (relicEffects && relicEffects.length > 0) {
+      for (const effect of relicEffects) {
+        const relicSetData = mapRelicSet?.[effect.key];
+        if (relicSetData) {
+          const setName = getLocaleName(locale, relicSetData.Name) || relicSetData.Name?.en || "Relic Set";
+          relicSetList.push(`• ${setName} (${effect.count}pc)`);
+        }
+      }
+    }
+
+    // Individual Relics (Slots 1-6)
+    const relicSlotNames = ["Head", "Hands", "Body", "Feet", "Planar Sphere", "Link Rope"];
+    const relicDetails: string[] = [];
+    if (relicStats && relicStats.length > 0) {
+      relicStats.forEach((r, idx) => {
+        if (!r) return;
+        const slotName = relicSlotNames[idx] || `Slot ${idx + 1}`;
+        const mainStatStr = r.mainAffix ? `${r.mainAffix.detail?.name || ""}: +${r.mainAffix.valueAffix}${r.mainAffix.detail?.unit || ""}` : "";
+        const subAffixesStr = r.subAffix?.filter(Boolean).map(s => `${s?.detail?.name || ""}+${s?.valueAffix}${s?.detail?.unit || ""}`).join(", ") || "";
+        relicDetails.push(`  - ${slotName}: ${mainStatStr} | Subs: ${subAffixesStr}`);
+      });
+    }
+
+    const lines = [
+      `=== ${charName} (${eidolonRank} | ${charLevel}) ===`,
+      `Light Cone: ${lcText}`,
+      ``,
+      `[Attributes]`,
+      ...statsList,
+      ``,
+      `[Relic Sets]`,
+      relicSetList.length > 0 ? relicSetList.join("\n") : "None",
+    ];
+
+    if (relicDetails.length > 0) {
+      lines.push(``, `[Relic Details]`, ...relicDetails);
+    }
+
+    const textToCopy = lines.join("\n");
+    navigator.clipboard.writeText(textToCopy)
+      .then(() => {
+        toast.success(locale === "vi" ? "Đã sao chép thông tin build!" : "Build info copied to clipboard!");
+      })
+      .catch(() => {
+        toast.error(locale === "vi" ? "Lỗi khi sao chép!" : "Failed to copy build info!");
+      });
+  }, [avatarSelected, avatarData, avatarProfile, mapLightCone, locale, transI18n, characterStats, relicEffects, mapRelicSet, relicStats]);
+
+  const handleCopyImage = useCallback(async () => {
+    if (cardRef.current === null || !avatarSelected) {
+      toast.error("Avatar showcase not found!");
+      return;
+    }
+    if (isCopyingImage) return;
+
+    setIsCopyingImage(true);
+    try {
+      const { default: html2canvas } = await import("html2canvas-pro");
+      const canvas = await html2canvas(cardRef.current!, {
+        scale: 2,
+        backgroundColor: "#000000",
+        allowTaint: false,
+        useCORS: true,
+        logging: false,
+        width: 1600,
+        height: 650,
+        windowWidth: 1600,
+        windowHeight: 650,
+        onclone: (clonedDoc) => {
+          const clonedCard = clonedDoc.querySelector('[data-showcase-card="true"]') as HTMLElement | null;
+          if (clonedCard) {
+            clonedCard.style.transform = "none";
+            clonedCard.style.width = "1600px";
+            clonedCard.style.minHeight = "650px";
+          }
+        }
+      });
+
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          toast.error("Failed to create image blob");
+          setIsCopyingImage(false);
+          return;
+        }
+        navigator.clipboard.write([
+          new ClipboardItem({ "image/png": blob })
+        ]).then(() => {
+          toast.success(locale === "vi" ? "Đã sao chép ảnh vào Clipboard!" : "Image copied to clipboard!");
+        }).catch(() => {
+          toast.error(locale === "vi" ? "Trình duyệt không cho phép sao chép ảnh trực tiếp!" : "Clipboard write failed!");
+        }).finally(() => {
+          setIsCopyingImage(false);
+        });
+      }, "image/png");
+    } catch {
+      toast.error("Error generating showcase image!");
+      setIsCopyingImage(false);
+    }
+  }, [avatarSelected, locale, isCopyingImage]);
+
   return (
     <div className="w-full space-y-4">
       <div className="bg-base-100 rounded-2xl p-4 sm:p-6 border border-base-300 shadow-sm space-y-6">
@@ -523,27 +708,71 @@ export default function ShowCaseInfo() {
               {transI18n("showcaseCard")}
             </span>
           </h2>
-          <button
-            className="btn btn-sm btn-primary rounded-xl font-bold shadow-xs active-press"
-            onClick={handleSaveImage}
-          >
-            {transI18n("save")}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              className="btn btn-sm btn-ghost border border-base-content/20 rounded-xl font-bold shadow-xs active-press gap-1.5 hover:bg-base-200"
+              onClick={handleCopyBuildText}
+              title="Copy build summary as text"
+            >
+              <Copy className="w-4 h-4" />
+              <span>{locale === "vi" ? "Sao chép Text" : "Copy Text"}</span>
+            </button>
+            <button
+              disabled={isCopyingImage}
+              className="btn btn-sm btn-ghost border border-base-content/20 rounded-xl font-bold shadow-xs active-press gap-1.5 hover:bg-base-200"
+              onClick={handleCopyImage}
+              title="Copy card image to clipboard"
+            >
+              {isCopyingImage ? (
+                <span className="loading loading-spinner loading-xs"></span>
+              ) : (
+                <ImageIcon className="w-4 h-4" />
+              )}
+              <span>{isCopyingImage ? (locale === "vi" ? "Đang xử lý..." : "Processing...") : (locale === "vi" ? "Sao chép Ảnh" : "Copy Image")}</span>
+            </button>
+            <button
+              disabled={isSaving}
+              className="btn btn-sm btn-primary rounded-xl font-bold shadow-xs active-press gap-1.5"
+              onClick={handleSaveImage}
+            >
+              {isSaving ? (
+                <span className="loading loading-spinner loading-xs"></span>
+              ) : (
+                <Download className="w-4 h-4" />
+              )}
+              <span>{isSaving ? (locale === "vi" ? "Đang lưu..." : "Saving...") : transI18n("save")}</span>
+            </button>
+          </div>
         </div>
 
-        <div className="overflow-auto rounded-2xl">
+        <div ref={wrapperRef} className="w-full flex justify-center items-start overflow-hidden">
           <div
-            ref={cardRef}
-            className="relative min-h-162.5 w-400 rounded-3xl transition-all duration-500 overflow-hidden text-white"
             style={{
-              backgroundColor: `${applyBrightness(avgColor, 0.3)}`,
-              backdropFilter: "blur(50px)",
-              WebkitBackdropFilter: "blur(50px)",
+              width: `${1600 * scale}px`,
+              height: `${650 * scale}px`,
+              position: "relative",
+              overflow: "hidden",
+              borderRadius: `${1.5 * scale}rem`,
+              flexShrink: 0,
             }}
           >
-          <div className="absolute bottom-2 left-4 z-10">
-            <span className="shadow-black [text-shadow:1px_1px_2px_var(--tw-shadow-color)]"></span>
-          </div>
+            <div
+              ref={cardRef}
+              data-showcase-card="true"
+              className="relative min-h-162.5 w-400 rounded-3xl transition-all duration-500 overflow-hidden text-white select-text"
+              style={{
+                width: "1600px",
+                minHeight: "650px",
+                transform: `scale(${scale})`,
+                transformOrigin: "top left",
+                backgroundColor: `${applyBrightness(avgColor, 0.3)}`,
+                backdropFilter: "blur(50px)",
+                WebkitBackdropFilter: "blur(50px)",
+              }}
+            >
+              <div className="absolute bottom-2 left-4 z-10">
+                <span className="shadow-black [text-shadow:1px_1px_2px_var(--tw-shadow-color)]"></span>
+              </div>
           <div className="flex flex-row items-center">
             <div
               className="relative min-h-162.5 w-[24%]"
@@ -1026,10 +1255,10 @@ export default function ShowCaseInfo() {
 
             </div>
           </div>
-
         </div>
       </div>
     </div>
   </div>
+</div>
   );
 }
