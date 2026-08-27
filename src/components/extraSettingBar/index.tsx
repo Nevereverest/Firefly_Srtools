@@ -79,7 +79,7 @@ export default function ExtraSettingBar() {
   const currentLineup = extraData?.theory_craft?.custom_lineup || []
 
   return (
-    <div className="max-w-4xl mx-auto space-y-4 pb-2">
+    <div className="w-full space-y-4 pb-2">
       {/* THEORY CRAFT */}
       {extraData?.theory_craft && (
         <section className="relative z-30 rounded-2xl bg-base-200/40 border border-white/10 shadow-xs backdrop-blur-sm transition-all duration-200">

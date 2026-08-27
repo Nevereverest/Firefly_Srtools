@@ -637,13 +637,13 @@ export default function Header() {
             {modalConfigs?.map(({ id, title, onClose, content }) => (
                 <dialog key={id} id={id} className="modal">
                     <div className={`modal-box w-11/12 ${
-                        id === 'monster_modal' 
-                            ? 'max-w-[92vw] sm:max-w-[88vw] h-[85vh]' 
-                            : id === 'extra_modal'
-                            ? 'max-w-3xl lg:max-w-4xl max-h-[88vh]'
+                        id === 'monster_modal' || id === 'import_modal' || id === 'extra_modal'
+                            ? 'max-w-[95vw] sm:max-w-[90vw] lg:max-w-[85vw] 2xl:max-w-[1500px] h-[88vh]' 
                             : id === 'connect_modal'
-                            ? 'max-w-lg max-h-[85vh]'
-                            : 'max-w-2xl max-h-[90vh]'
+                            ? 'max-w-[95vw] sm:max-w-2xl md:max-w-3xl lg:max-w-4xl max-h-[88vh]'
+                            : id === 'changelog_modal'
+                            ? 'max-w-[95vw] sm:max-w-2xl md:max-w-3xl lg:max-w-4xl h-[85vh]'
+                            : 'max-w-[92vw] sm:max-w-[88vw] max-h-[90vh]'
                     } max-h-[90vh] flex flex-col bg-base-100 text-base-content border border-base-content/10 shadow-2xl rounded-2xl p-0 overflow-hidden`}>
                         {/* Modal Header */}
                         <div className="sticky top-0 z-20 flex items-center justify-between px-6 py-4 border-b border-base-content/10 bg-base-100 shrink-0">

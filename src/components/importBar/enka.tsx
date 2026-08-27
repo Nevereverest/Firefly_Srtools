@@ -167,84 +167,82 @@ export default function EnkaImport() {
     };
 
     return (
-        <div className="bg-base-100 p-4 sm:p-6 rounded-2xl">
-            <div className="max-w-7xl mx-auto space-y-6">
-                {/* Header */}
-                <div className="space-y-4">
-                    <h1 className="text-base-content text-xl sm:text-2xl font-bold">HSR UID</h1>
+        <div className="w-full space-y-6">
+            {/* Header */}
+            <div className="space-y-4">
+                <h1 className="text-base-content text-xl sm:text-2xl font-bold">HSR UID</h1>
 
-                    <div className="flex flex-wrap gap-3 items-center">
-                        <input
-                            type="text"
-                            value={uidInput}
-                            onChange={(e) => setUidInput(e.target.value)}
-                            className="input input-bordered w-full max-w-xs rounded-xl bg-base-200 border-base-300 text-sm focus:border-primary"
-                            placeholder="Enter UID"
-                        />
-                        <button onClick={handlerFetchData} className="btn btn-sm btn-success rounded-xl font-bold">
-                            {transI18n("getData")}
+                <div className="flex flex-wrap gap-3 items-center">
+                    <input
+                        type="text"
+                        value={uidInput}
+                        onChange={(e) => setUidInput(e.target.value)}
+                        className="input input-bordered w-full max-w-xs rounded-xl bg-base-200 border-base-300 text-sm focus:border-primary"
+                        placeholder="Enter UID"
+                    />
+                    <button onClick={handlerFetchData} className="btn btn-sm btn-success rounded-xl font-bold">
+                        {transI18n("getData")}
+                    </button>
+                    {selectedCharacters.length > 0 && (
+                        <button onClick={handleImport} className="btn btn-sm btn-primary rounded-xl font-bold shadow-xs">
+                            {transI18n("import")}
                         </button>
-                        {selectedCharacters.length > 0 && (
-                            <button onClick={handleImport} className="btn btn-sm btn-primary rounded-xl font-bold shadow-xs">
-                                {transI18n("import")}
-                            </button>
-                        )}
-                    </div>
-                    {Error && (
-                        <div className="text-error text-sm font-semibold mt-2">😭 {Error}</div>
                     )}
-
-                    {/* Player Info */}
-                    {enkaData && (
-                        <div className="bg-base-200 p-4 rounded-xl border border-base-300 text-base-content space-y-1">
-                            <div className="text-sm font-semibold">Name: <span className="font-bold text-primary">{enkaData.detailInfo.nickname}</span></div>
-                            <div className="text-sm font-semibold">UID: <span className="font-mono">{enkaData.detailInfo.uid}</span></div>
-                            <div className="text-sm font-semibold">Level: <span className="font-bold">{enkaData.detailInfo.level}</span></div>
-                        </div>
-                    )}
-
-                    {/* Selection Info */}
-                    <div className="flex flex-wrap items-center justify-between gap-3 bg-base-200 border border-base-300 p-3.5 rounded-2xl shadow-xs">
-                        <div className="flex items-center gap-2">
-                            <span className="text-xs sm:text-sm font-bold text-base-content">
-                                {transI18n("selectedCharacters")}:
-                            </span>
-                            <span className="badge badge-primary font-mono font-bold text-xs">
-                                {selectedCharacters.length}
-                            </span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <button
-                                onClick={clearSelection}
-                                className="btn btn-xs sm:btn-sm btn-ghost text-error hover:bg-error/10 border border-error/30 rounded-xl"
-                            >
-                                {transI18n("clearAll")}
-                            </button>
-                            <button
-                                onClick={selectAll}
-                                className="btn btn-xs sm:btn-sm btn-ghost text-primary hover:bg-primary/10 border border-primary/30 rounded-xl"
-                            >
-                                {transI18n("selectAll")}
-                            </button>
-                        </div>
-                    </div>
                 </div>
-                {isLoading && (
-                    <div className="flex justify-center items-center h-64">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
+                {Error && (
+                    <div className="text-error text-sm font-semibold mt-2">😭 {Error}</div>
+                )}
+
+                {/* Player Info */}
+                {enkaData && (
+                    <div className="bg-base-200 p-4 rounded-xl border border-base-300 text-base-content space-y-1">
+                        <div className="text-sm font-semibold">Name: <span className="font-bold text-primary">{enkaData.detailInfo.nickname}</span></div>
+                        <div className="text-sm font-semibold">UID: <span className="font-mono">{enkaData.detailInfo.uid}</span></div>
+                        <div className="text-sm font-semibold">Level: <span className="font-bold">{enkaData.detailInfo.level}</span></div>
                     </div>
                 )}
-                {/* Character Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {validCharacters.map((character) => (
-                        <CharacterInfoCard
-                            key={character.avatarId}
-                            character={toCharacterInfoCard(character)}
-                            selectedCharacters={selectedCharacters}
-                            onCharacterToggle={handleCharacterToggle}
-                        />
-                    ))}
+
+                {/* Selection Info */}
+                <div className="flex flex-wrap items-center justify-between gap-3 bg-base-200 border border-base-300 p-3.5 rounded-2xl shadow-xs">
+                    <div className="flex items-center gap-2">
+                        <span className="text-xs sm:text-sm font-bold text-base-content">
+                            {transI18n("selectedCharacters")}:
+                        </span>
+                        <span className="badge badge-primary font-mono font-bold text-xs">
+                            {selectedCharacters.length}
+                        </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={clearSelection}
+                            className="btn btn-xs sm:btn-sm btn-ghost text-error hover:bg-error/10 border border-error/30 rounded-xl"
+                        >
+                            {transI18n("clearAll")}
+                        </button>
+                        <button
+                            onClick={selectAll}
+                            className="btn btn-xs sm:btn-sm btn-ghost text-primary hover:bg-primary/10 border border-primary/30 rounded-xl"
+                        >
+                            {transI18n("selectAll")}
+                        </button>
+                    </div>
                 </div>
+            </div>
+            {isLoading && (
+                <div className="flex justify-center items-center h-64">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
+                </div>
+            )}
+            {/* Character Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 sm:gap-6">
+                {validCharacters.map((character) => (
+                    <CharacterInfoCard
+                        key={character.avatarId}
+                        character={toCharacterInfoCard(character)}
+                        selectedCharacters={selectedCharacters}
+                        onCharacterToggle={handleCharacterToggle}
+                    />
+                ))}
             </div>
         </div>
     );

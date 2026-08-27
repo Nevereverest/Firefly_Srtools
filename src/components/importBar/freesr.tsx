@@ -189,73 +189,71 @@ export default function FreeSRImport() {
     }
 
     return (
-        <div className="bg-base-100 p-4 sm:p-6 rounded-2xl">
-            <div className="max-w-7xl mx-auto space-y-6">
-                {/* Header */}
-                <div className="space-y-4">
-                    <h1 className="text-base-content text-xl sm:text-2xl font-bold">{transI18n("freeSRImport")}</h1>
+        <div className="w-full space-y-6">
+            {/* Header */}
+            <div className="space-y-4">
+                <h1 className="text-base-content text-xl sm:text-2xl font-bold">{transI18n("freeSRImport")}</h1>
 
-                    <div className="flex flex-wrap gap-4 items-center">
-                        <fieldset className="fieldset">
-                            <legend className="fieldset-legend text-xs font-semibold">{transI18n("pickAFile")}</legend>
-                            <input type="file" accept=".json" className="file-input file-input-sm file-input-bordered rounded-xl" onChange={handlerReadFile} />
-                            <label className="label text-[11px] text-base-content/60">{transI18n("onlySupportFreeSRJsonFile")}</label>
-                        </fieldset>
+                <div className="flex flex-wrap gap-4 items-center">
+                    <fieldset className="fieldset">
+                        <legend className="fieldset-legend text-xs font-semibold">{transI18n("pickAFile")}</legend>
+                        <input type="file" accept=".json" className="file-input file-input-sm file-input-bordered rounded-xl" onChange={handlerReadFile} />
+                        <label className="label text-[11px] text-base-content/60">{transI18n("onlySupportFreeSRJsonFile")}</label>
+                    </fieldset>
 
-                        {selectedCharacters.length > 0 && (
-                            <button onClick={handleImport} className="btn btn-sm btn-primary rounded-xl font-bold shadow-xs">
-                                {transI18n("import")}
-                            </button>
-                        )}
-                    </div>
-                    {Error && (
-                        <div className="text-error text-sm font-semibold mt-2">😭 {Error}</div>
+                    {selectedCharacters.length > 0 && (
+                        <button onClick={handleImport} className="btn btn-sm btn-primary rounded-xl font-bold shadow-xs">
+                            {transI18n("import")}
+                        </button>
                     )}
-
-                    {/* Selection Info */}
-                    <div className="flex flex-wrap items-center justify-between gap-3 bg-base-200 border border-base-300 p-3.5 rounded-2xl shadow-xs">
-                        <div className="flex items-center gap-2">
-                            <span className="text-xs sm:text-sm font-bold text-base-content">
-                                {transI18n("selectedCharacters")}:
-                            </span>
-                            <span className="badge badge-primary font-mono font-bold text-xs">
-                                {selectedCharacters.length}
-                            </span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <button
-                                onClick={clearSelection}
-                                className="btn btn-xs sm:btn-sm btn-ghost text-error hover:bg-error/10 border border-error/30 rounded-xl"
-                            >
-                                {transI18n("clearAll")}
-                            </button>
-                            <button
-                                onClick={selectAll}
-                                className="btn btn-xs sm:btn-sm btn-ghost text-primary hover:bg-primary/10 border border-primary/30 rounded-xl"
-                            >
-                                {transI18n("selectAll")}
-                            </button>
-                        </div>
-                    </div>
                 </div>
-                {isLoading && (
-                    <div className="flex justify-center items-center h-64">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
-                    </div>
+                {Error && (
+                    <div className="text-error text-sm font-semibold mt-2">😭 {Error}</div>
                 )}
-                {/* Character Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {validFreeSRData && Object.values(validFreeSRData.avatars).filter(it => mapAvatar?.[it.avatar_id]).map((character) => {
-                        return (
-                            <CharacterInfoCard
-                                key={character.avatar_id}
-                                character={toCharacterInfoCard(validFreeSRData, character)}
-                                selectedCharacters={selectedCharacters}
-                                onCharacterToggle={handleCharacterToggle}
-                            />
-                        )
-                    })}
+
+                {/* Selection Info */}
+                <div className="flex flex-wrap items-center justify-between gap-3 bg-base-200 border border-base-300 p-3.5 rounded-2xl shadow-xs">
+                    <div className="flex items-center gap-2">
+                        <span className="text-xs sm:text-sm font-bold text-base-content">
+                            {transI18n("selectedCharacters")}:
+                        </span>
+                        <span className="badge badge-primary font-mono font-bold text-xs">
+                            {selectedCharacters.length}
+                        </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={clearSelection}
+                            className="btn btn-xs sm:btn-sm btn-ghost text-error hover:bg-error/10 border border-error/30 rounded-xl"
+                        >
+                            {transI18n("clearAll")}
+                        </button>
+                        <button
+                            onClick={selectAll}
+                            className="btn btn-xs sm:btn-sm btn-ghost text-primary hover:bg-primary/10 border border-primary/30 rounded-xl"
+                        >
+                            {transI18n("selectAll")}
+                        </button>
+                    </div>
                 </div>
+            </div>
+            {isLoading && (
+                <div className="flex justify-center items-center h-64">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
+                </div>
+            )}
+            {/* Character Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 sm:gap-6">
+                {validFreeSRData && Object.values(validFreeSRData.avatars).filter(it => mapAvatar?.[it.avatar_id]).map((character) => {
+                    return (
+                        <CharacterInfoCard
+                            key={character.avatar_id}
+                            character={toCharacterInfoCard(validFreeSRData, character)}
+                            selectedCharacters={selectedCharacters}
+                            onCharacterToggle={handleCharacterToggle}
+                        />
+                    )
+                })}
             </div>
         </div>
     )
