@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { useMemo } from "react";
 import { calcAffixBonus, calcBaseStatRaw, calcBonusStatRaw, calcMainAffixBonus, calcMainAffixBonusRaw, calcPromotion, calcSubAffixBonusRaw, getLocaleName, replaceByParam } from "@/helper";
 import { mappingStats } from "@/constant/constant";
-import RelicShowcase from "../showcaseCard/relicShowcase";
+import QuickViewRelic from "./quickViewRelic";
 import useLocaleStore from "@/stores/localeStore";
 import useDetailDataStore from "@/stores/detailDataStore";
 import useCurrentDataStore from "@/stores/currentDataStore";
@@ -491,7 +491,7 @@ export default function QuickView() {
                 {relicStats?.map((relic, index) => {
                     if (!relic || !avatarSelected) return null
                     return (
-                        <RelicShowcase key={index} relic={relic} avatarInfo={avatarSelected} />
+                        <QuickViewRelic key={index} relic={relic} avatarInfo={avatarSelected} />
                     )
                 })}
 

@@ -718,7 +718,7 @@ export default function ShowCaseInfo() {
 
                                 const sizeClass = isBigMemory ? "w-12 h-12 mx-1" : isBig ? "w-12 h-12 mx-1" : isMedium ? "w-10 h-10" : "w-8 h-8";
 
-                                const imageSize = isBigMemory ? "w-10" : isBig ? "w-10" : isMedium ? "w-8" : "w-6";
+                                const imageSize = isBigMemory ? "w-10 h-10" : isBig ? "w-10 h-10" : isMedium ? "w-8 h-8" : "w-6 h-6";
 
                                 const bgColor = isBigMemory
                                   ? "bg-[#2a1a39]/80"
@@ -741,7 +741,7 @@ export default function ShowCaseInfo() {
                                   <div key={`item-${idx}`} className="relative flex flex-row items-center">
                                     <div
                                       className={
-                                        `relative flex items-center justify-center ${sizeClass} 
+                                        `relative flex items-center justify-center shrink-0 ${sizeClass} 
                                         rounded-full ${bgColor} border-2 border-gray-500
                                         ${avatarData.data.skills[avatarSkillTree?.[btn.id]?.["1"]?.PointID] ? "" : "opacity-50"}
                                       `}
@@ -753,7 +753,7 @@ export default function ShowCaseInfo() {
                                           alt={btn.id}
                                           width={125}
                                           height={125}
-                                          className={`h-full ${imageSize} ${filterClass}`}
+                                          className={`${imageSize} object-contain ${filterClass}`}
                                         />
 
                                       {(isBig || isBigMemory) && (

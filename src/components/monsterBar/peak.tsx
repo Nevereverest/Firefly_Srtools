@@ -141,14 +141,16 @@ export default function PeakBar() {
             excludeSet={[]}
             selectedCustomSet={peak_config.event_id.toString()}
             placeholder={transI18n("selectPEAKEvent")}
-            setSelectedCustomSet={(id) =>
+            setSelectedCustomSet={(id) => {
+              const peakEvent = mapPeak?.[id];
+              const defaultFloor = peakEvent ? [...(peakEvent.PreLevel || []), peakEvent.BossLevel].filter(Boolean)[0]?.ID || 0 : 0;
               setPeakConfig({
                 ...peak_config,
                 event_id: Number(id),
-                challenge_id: 0,
+                challenge_id: defaultFloor,
                 buff_id: 0,
-              })
-            }
+              });
+            }}
           />
         </div>
         {/* Settings */}

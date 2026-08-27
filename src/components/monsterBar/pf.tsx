@@ -94,14 +94,33 @@ export default function PfBar() {
         newBattleConfig.monsters = []
         newBattleConfig.stage_id = 0
 
+        let currentSide = pf_config.floor_side;
+        if (currentSide === "first_half" || currentSide === "firstHalf" || !currentSide) currentSide = "firstNode";
+        if (currentSide === "second_half" || currentSide === "secondHalf") currentSide = "secondNode";
+
         let targetEventList: PFEvent[] = []
-        if (pf_config.floor_side === "firstNode" && challengeSelected.EventList1.length > 0) {
+        if (currentSide === "firstNode" && challengeSelected.EventList1?.length > 0) {
             targetEventList = challengeSelected.EventList1
-        } else if (pf_config.floor_side === "secondNode" && challengeSelected.EventList2.length > 0) {
+        } else if (currentSide === "secondNode" && challengeSelected.EventList2?.length > 0) {
             targetEventList = challengeSelected.EventList2
-        } else if (pf_config.floor_side === "thirdNode" && eventSelected?.Tierce && eventSelected.Tierce.EventList.length > 0) {
+        } else if (currentSide === "thirdNode" && eventSelected?.Tierce && eventSelected.Tierce.EventList?.length > 0) {
             targetEventList = eventSelected.Tierce.EventList
         }
+
+        // Fallback to first available node if currentSide is invalid or has no events
+        if (targetEventList.length === 0) {
+            if (challengeSelected.EventList1?.length) {
+                targetEventList = challengeSelected.EventList1;
+                currentSide = "firstNode";
+            } else if (challengeSelected.EventList2?.length) {
+                targetEventList = challengeSelected.EventList2;
+                currentSide = "secondNode";
+            } else if (eventSelected?.Tierce?.EventList?.length) {
+                targetEventList = eventSelected.Tierce.EventList;
+                currentSide = "thirdNode";
+            }
+        }
+        newBattleConfig.floor_side = currentSide;
 
         if (targetEventList.length > 0) {
             newBattleConfig.stage_id = targetEventList[0].ID
@@ -158,6 +177,7 @@ export default function PfBar() {
                             ...pf_config,
                             event_id: Number(id),
                             challenge_id: mapPF[Number(id)]?.Level.slice(-1)[0]?.ID || 0,
+                            floor_side: "firstNode",
                             buff_id: 0
                         })}
                     />
