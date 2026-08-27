@@ -457,9 +457,9 @@ export default function ActionBar() {
         </div>
       </div>
 
-      {/* Navigation Tabs Row (>= 640px) */}
-      <div className="hidden sm:block w-full bg-base-200/80 border border-base-content/10 rounded-xl p-1 shadow-xs overflow-x-auto scrollbar-none">
-        <div className="flex sm:grid sm:grid-cols-5 w-full min-w-max gap-1">
+      {/* Navigation Tabs (>= 640px) - Responsive Wrap (2 rows on medium/smaller tablet/laptop screens, 1 row on wide screens) */}
+      <div className="hidden sm:block w-full bg-base-200/80 border border-base-content/10 rounded-xl p-1 shadow-xs">
+        <div className="flex flex-wrap gap-1 w-full">
           {navTabs.map((tab) => {
             const isActive = currentActivePath === tab.path;
             const Icon = tab.icon;
@@ -467,7 +467,7 @@ export default function ActionBar() {
               <button
                 key={tab.path}
                 onClick={() => actionMove(tab.path)}
-                className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap active-press ${
+                className={`flex-1 min-w-32.5 md:min-w-35 flex items-center justify-center gap-1.5 sm:gap-2 py-2 px-3 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap active-press ${
                   isActive
                     ? "bg-primary text-primary-content shadow-xs"
                     : "text-base-content/75 hover:text-base-content hover:bg-base-100"

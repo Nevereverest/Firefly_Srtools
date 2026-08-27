@@ -115,7 +115,7 @@ export default function AvatarBar({ onClose }: { onClose?: () => void }) {
                                         ? "bg-primary/20 text-primary ring-1.5 ring-primary scale-105 z-10 shadow-xs"
                                         : "hover:bg-base-100 opacity-90 hover:opacity-100"
                                 }`}
-                                title={value.DamageTypeName || key}
+                                title={(locale && value.Name?.[locale]) || key}
                             >
                                 <Image
                                     src={`${process.env.CDN_URL}/${value.Icon}`}
@@ -147,7 +147,7 @@ export default function AvatarBar({ onClose }: { onClose?: () => void }) {
                                         ? "bg-primary/20 ring-1.5 ring-primary scale-105 z-10 shadow-xs"
                                         : "hover:bg-base-100 opacity-90 hover:opacity-100"
                                 }`}
-                                title={value.BaseTypeName || key}
+                                title={(locale && value.Text?.[locale]) || key}
                             >
                                 <Image
                                     src={`${process.env.CDN_URL}/${value.Icon}`}
