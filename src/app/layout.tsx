@@ -64,9 +64,9 @@ export default async function RootLayout({
   const locale = await getLocale()
 
   return (
-    <html lang={locale} suppressHydrationWarning className="h-full overflow-hidden">
+    <html lang={locale} suppressHydrationWarning className="h-full w-full overflow-hidden overscroll-none fixed inset-0">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased h-full overflow-hidden max-w-full`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased h-full w-full overflow-hidden overscroll-none fixed inset-0 max-w-full`}
         suppressHydrationWarning
       >
         <NextIntlClientProvider messages={messages}>
@@ -74,7 +74,7 @@ export default async function RootLayout({
             <ThemeProvider>
               <ClientThemeWrapper>
                 <ClientDataFetcher >
-                  <div className="h-screen w-full flex flex-col overflow-hidden bg-ambient-mesh selection:bg-primary/20 selection:text-primary">
+                  <div className="h-dvh w-full flex flex-col overflow-hidden bg-ambient-mesh selection:bg-primary/20 selection:text-primary">
                     <Header />
                     <main className="grid grid-cols-12 w-full flex-1 min-h-0 overflow-hidden">
                       <aside className="hidden sm:block sm:col-span-4 md:col-span-4 lg:col-span-3 h-full overflow-hidden border-r border-base-content/10 bg-base-100/30 backdrop-blur-sm">
@@ -84,7 +84,7 @@ export default async function RootLayout({
                         <div className="shrink-0">
                           <ActionBar />
                         </div>
-                        <div className="flex-1 overflow-y-auto min-h-0 p-2 sm:p-3 sm:pt-1 flex flex-col justify-between">
+                        <div className="flex-1 overflow-y-auto min-h-0 px-3 sm:px-4 pt-1 pb-3 flex flex-col justify-between">
                           <div>
                             {children}
                           </div>

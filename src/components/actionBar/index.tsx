@@ -122,8 +122,18 @@ export default function ActionBar() {
   };
 
   const actionMove = (path: string) => {
-    router.push(`/${path}`)
-  }
+    if (typeof document !== "undefined" && document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+    if (typeof window !== "undefined") {
+      window.scrollTo(0, 0);
+      const scrollContainer = document.querySelector('section > div.flex-1.overflow-y-auto');
+      if (scrollContainer) {
+        scrollContainer.scrollTo({ top: 0, behavior: 'instant' });
+      }
+    }
+    router.push(`/${path}`, { scroll: false });
+  };
 
   const handleProfileSelect = (profileId: number) => {
     if (!avatarSelected || !avatars[avatarSelected.ID]) return;
@@ -267,7 +277,7 @@ export default function ActionBar() {
   const currentActivePath = pathname?.replace(/^\//, '') || "";
 
   return (
-    <div className="w-full bg-transparent px-3 sm:px-4 py-2 space-y-2">
+    <div className="w-full bg-transparent px-3 sm:px-4 pt-2.5 sm:pt-3 pb-1 space-y-2">
       {/* Top Row: Character Identity + Profile Selector + Connect PS */}
       <div className="flex flex-wrap items-center justify-between gap-2.5">
         {/* Character Identity */}
@@ -436,9 +446,9 @@ export default function ActionBar() {
         </button>
 
         <div className="dropdown dropdown-end w-full">
-          <label tabIndex={0} className="btn btn-info btn-sm w-full font-bold shadow-xs">
+          <div tabIndex={0} role="button" className="btn btn-info btn-sm w-full font-bold shadow-xs">
             {transI18n("actions")}
-          </label>
+          </div>
           <ul
             tabIndex={0}
             className="dropdown-content z-50 menu p-2 shadow-2xl bg-base-100 rounded-2xl w-56 mt-2 border border-base-300 space-y-1"
@@ -554,7 +564,7 @@ export default function ActionBar() {
                 <button
                   type="button"
                   onClick={handleConfirmDeleteProfile}
-                  className="flex-1 h-10 px-4 rounded-xl font-bold text-xs sm:text-sm bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-400 hover:to-red-500 text-white shadow-md shadow-rose-500/25 hover:shadow-rose-500/40 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="flex-1 h-10 px-4 rounded-xl font-bold text-xs sm:text-sm bg-linear-to-r from-rose-500 to-red-600 hover:from-rose-400 hover:to-red-500 text-white shadow-md shadow-rose-500/25 hover:shadow-rose-500/40 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <Trash2 className="w-4 h-4" />
                   <span>{transI18n("confirmDelete")}</span>

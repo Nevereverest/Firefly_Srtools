@@ -702,9 +702,9 @@ export default function ShowCaseInfo() {
       <div className="bg-base-100 rounded-2xl p-4 sm:p-6 border border-base-300 shadow-sm space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between pb-3 border-b border-base-content/10 flex-wrap gap-3">
-          <h2 className="text-xl sm:text-2xl font-extrabold flex items-center gap-2.5">
-            <div className="w-2 h-6 bg-linear-to-b from-primary to-accent rounded-full"></div>
-            <span className="bg-clip-text text-transparent bg-linear-to-r from-primary to-accent">
+          <h2 className="text-lg sm:text-xl font-bold flex items-center gap-2.5">
+            <div className="w-1.5 h-5 bg-linear-to-b from-primary to-accent rounded-full"></div>
+            <span className="bg-clip-text text-transparent bg-linear-to-r from-primary to-accent font-bold tracking-tight">
               {transI18n("showcaseCard")}
             </span>
           </h2>

@@ -19,7 +19,7 @@ export default function LightconeCard({ data }: LightconeCardProps) {
     const is4Star = data.Rarity === "CombatPowerLightconeRarity4";
 
     return (
-        <li className="group relative flex flex-col items-center rounded-xl overflow-hidden bg-base-100 border border-base-content/10 shadow-sm hover:shadow-md cursor-pointer select-none h-full">
+        <li className="group relative flex flex-col items-center rounded-xl overflow-hidden bg-base-100 border border-base-content/10 shadow-xs hover:shadow-md hover:border-primary/50 transition-all duration-200 cursor-pointer select-none w-full list-none">
             {/* Artwork container with vibrant rarity background */}
             <div
                 className={`w-full relative aspect-3/4 flex items-center justify-center overflow-hidden bg-linear-to-b ${
@@ -42,12 +42,12 @@ export default function LightconeCard({ data }: LightconeCardProps) {
                 />
             </div>
 
-            {/* Name Label - Uniform Fixed-Height Footer */}
-            <div className="w-full h-11 px-1 py-0.5 text-center flex items-center justify-center bg-base-100">
+            {/* Name Label - Uniform Fixed-Height Footer with larger text */}
+            <div className="w-full min-h-12 px-1.5 py-1 text-center flex items-center justify-center bg-base-100 shrink-0">
                 <ParseText
                     locale={locale}
                     text={text}
-                    className="font-bold text-xs leading-tight line-clamp-2 text-base-content group-hover:text-primary transition-colors text-center"
+                    className="font-bold text-xs sm:text-[13px] leading-snug line-clamp-2 text-base-content group-hover:text-primary transition-colors text-center"
                 />
             </div>
         </li>

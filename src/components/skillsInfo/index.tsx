@@ -152,7 +152,7 @@ export default function SkillsInfo() {
                         {/* Visual Skill Tree Container */}
                         <div className="flex justify-center items-center py-2">
                             {traceButtons && avatarSelected && (
-                                <div className="relative w-full max-w-md aspect-square">
+                                <div className="relative w-full max-w-155 aspect-square select-none">
                                     <Image
                                         unoptimized
                                         crossOrigin="anonymous"
@@ -164,7 +164,7 @@ export default function SkillsInfo() {
                                         style={{
                                             filter: (theme === "winter" || theme === "cupcake") ? "invert(1)" : "none"
                                         }}
-                                        className="w-full h-full object-cover"
+                                        className="w-full h-full object-contain pointer-events-none"
                                     />
                                     {traceButtons.map((btn, index) => {
                                         if (!avatarSelected?.SkillTrees?.[btn.id]) {
@@ -181,12 +181,12 @@ export default function SkillsInfo() {
                                                 id={btn.id}
                                                 className={`
                                                     absolute rounded-full border border-black/70 cursor-pointer transition-all duration-150 ease-out flex justify-center items-center select-none overflow-visible
-                                                    ${btn.size === "small" ? "w-[6.5vw] h-[6.5vw] md:w-[2.2vw] md:h-[2.2vw] bg-white" : ""}
-                                                    ${btn.size === "medium" ? "w-[8.5vw] h-[8.5vw] md:w-[3vw] md:h-[3vw] bg-white" : ""}
-                                                    ${btn.size === "big" ? "w-[9.5vw] h-[9.5vw] md:w-[3.5vw] md:h-[3.5vw] bg-black" : ""}
-                                                    ${btn.size === "special" ? "w-[9.5vw] h-[9.5vw] md:w-[3.5vw] md:h-[3.5vw] bg-white" : ""}
-                                                    ${btn.size === "memory" ? "w-[9.5vw] h-[9.5vw] md:w-[3.5vw] md:h-[3.5vw] bg-black" : ""}
-                                                    ${btn.size === "elation" ? "w-[9.5vw] h-[9.5vw] md:w-[3.5vw] md:h-[3.5vw] bg-black" : ""}
+                                                    ${btn.size === "small" ? "w-[7%] h-[7%] bg-white" : ""}
+                                                    ${btn.size === "medium" ? "w-[9.6%] h-[9.6%] bg-white" : ""}
+                                                    ${btn.size === "big" ? "w-[10%] h-[10%] bg-black" : ""}
+                                                    ${btn.size === "special" ? "w-[10%] h-[10%] bg-white" : ""}
+                                                    ${btn.size === "memory" ? "w-[10%] h-[10%] bg-black" : ""}
+                                                    ${btn.size === "elation" ? "w-[10%] h-[10%] bg-black" : ""}
                                                     ${isSelected ? "ring-3 ring-cyan-400 ring-offset-2 ring-offset-base-100 shadow-[0_0_12px_rgba(34,211,238,0.8)] z-20" : "hover:ring-2 hover:ring-primary/40 z-10"}
                                                     ${!isLearned ? "opacity-40 grayscale" : "shadow-[0_0_6px_rgba(255,255,255,0.4)]"}
                                                 `}
@@ -257,7 +257,7 @@ export default function SkillsInfo() {
                                                 )}
 
                                                 {isMajor && (
-                                                    <p className="z-12 text-[10px] sm:text-xs font-mono font-bold text-center rounded-full absolute translate-y-full mt-0.5 bg-black/80 text-white px-1.5 py-0.2 border border-white/20 left-1/2 -translate-x-1/2 shadow-xs whitespace-nowrap">
+                                                    <p className="z-12 text-[9px] sm:text-[10px] md:text-xs font-mono font-bold text-center rounded-full absolute -bottom-1.5 bg-black/85 text-white px-1.5 py-0.2 border border-white/20 left-1/2 -translate-x-1/2 shadow-xs whitespace-nowrap pointer-events-none">
                                                         {`${avatarData?.data.skills?.[avatarSkillTree?.[btn.id]?.["1"]?.PointID] || 0}/${avatarSkillTree?.[btn.id]?.["1"]?.MaxLevel}`}
                                                     </p>
                                                 )}

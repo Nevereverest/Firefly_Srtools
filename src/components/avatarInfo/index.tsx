@@ -456,7 +456,7 @@ export default function AvatarInfo() {
             <dialog id="action_detail_modal" className="modal">
                 <div className="modal-box w-11/12 max-w-[92vw] sm:max-w-[88vw] max-h-[90vh] flex flex-col bg-base-100 text-base-content border border-white/10 shadow-2xl rounded-2xl p-0 overflow-hidden">
                     <div className="sticky top-0 z-20 flex items-center justify-between px-6 py-4 border-b border-base-content/10 bg-base-100 shrink-0">
-                        <h3 className="font-bold text-xl tracking-tight bg-clip-text text-transparent bg-linear-to-r from-primary via-accent to-secondary">
+                        <h3 className="font-bold text-xl tracking-tight text-base-content">
                             {transI18n("lightconeEquipment")}
                         </h3>
                         <button

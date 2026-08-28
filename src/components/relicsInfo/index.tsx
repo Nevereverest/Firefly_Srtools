@@ -16,7 +16,7 @@ import useDetailDataStore from "@/stores/detailDataStore";
 import { getLocaleName } from '@/helper';
 import useLocaleStore from "@/stores/localeStore";
 import { useShallow } from 'zustand/react/shallow';
-import { Trash2 } from "lucide-react";
+import { Trash2, SlidersHorizontal } from "lucide-react";
 import { toast } from "react-toastify";
 
 export default function RelicsInfo() {
@@ -249,6 +249,15 @@ export default function RelicsInfo() {
     return () => window.removeEventListener('keydown', handleEscKey);
   }, [isOpenRelic]);
 
+  useEffect(() => {
+    if (!selectedRelicSlot) {
+      setSelectedRelicSlot("1");
+    }
+  }, [selectedRelicSlot, setSelectedRelicSlot]);
+
+  const selectedRelic = selectedRelicSlot ? getRelic(selectedRelicSlot) : null;
+  const isSelectedRelicEquipped = Boolean(selectedRelic);
+
   return (
     <div className="w-full space-y-4">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
@@ -274,7 +283,7 @@ export default function RelicsInfo() {
               </button>
             </div>
 
-            {/* 6-Slot Grid completely free of box-in-box */}
+            {/* 6-Slot Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
               {["1", "2", "3", "4", "5", "6"].map((item, index) => (
                 <div
@@ -291,34 +300,30 @@ export default function RelicsInfo() {
                   />
 
                   {/* Micro Actions */}
-                  <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex gap-1">
+                  <div className="absolute top-1.5 right-1.5 opacity-0 group-hover:opacity-100 transition-all duration-200 flex gap-1 z-20">
                     <button
                       type="button"
                       onClick={(e) => {
-                        e.stopPropagation()
-                        handlerChangeRelic(item)
+                        e.stopPropagation();
+                        handlerChangeRelic(item);
                       }}
-                      className="btn btn-xs btn-circle btn-primary shadow-xs"
+                      className="w-6 h-6 rounded-lg bg-primary text-primary-content shadow-xs hover:scale-110 active:scale-95 transition-all flex items-center justify-center border border-white/20 cursor-pointer"
                       title={transI18n("changeRelic")}
                     >
-                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536M4 20h4l10.293-10.293a1 1 0 000-1.414l-2.586-2.586a1 1 0 00-1.414 0L4 16v4z" />
-                      </svg>
+                      <SlidersHorizontal className="w-3 h-3 stroke-[2.2]" />
                     </button>
 
                     {getRelic(item) && (
                       <button
                         type="button"
                         onClick={(e) => {
-                          e.stopPropagation()
-                          requestDeleteRelic(item)
+                          e.stopPropagation();
+                          requestDeleteRelic(item);
                         }}
-                        className="btn btn-xs btn-circle btn-error shadow-xs"
+                        className="w-6 h-6 rounded-lg bg-rose-500 text-white shadow-xs hover:scale-110 active:scale-95 transition-all flex items-center justify-center border border-white/20 cursor-pointer"
                         title={transI18n("deleteRelic")}
                       >
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4h6v3m5 0H4" />
-                        </svg>
+                        <Trash2 className="w-3 h-3 stroke-[2.2]" />
                       </button>
                     )}
                   </div>
@@ -332,22 +337,25 @@ export default function RelicsInfo() {
                 type="button"
                 disabled={!selectedRelicSlot}
                 onClick={() => handlerChangeRelic(selectedRelicSlot)}
-                className="btn btn-primary btn-sm rounded-xl font-bold shadow-xs"
+                className="btn btn-primary btn-sm rounded-xl font-bold gap-2 shadow-xs transition-all active:scale-[0.98] cursor-pointer"
               >
-                {transI18n("changeRelic")}
+                <SlidersHorizontal className="w-4 h-4" />
+                <span>{transI18n("changeRelic")}</span>
               </button>
+
               <button
                 type="button"
-                disabled={!selectedRelicSlot || !getRelic(selectedRelicSlot)}
+                disabled={!selectedRelicSlot || !isSelectedRelicEquipped}
                 onClick={(e) => {
-                  e.stopPropagation()
+                  e.stopPropagation();
                   if (selectedRelicSlot) {
-                    requestDeleteRelic(selectedRelicSlot)
+                    requestDeleteRelic(selectedRelicSlot);
                   }
                 }}
-                className="btn btn-ghost btn-sm text-error hover:bg-error/20 rounded-xl disabled:opacity-40 disabled:pointer-events-none"
+                className="btn btn-outline btn-error hover:btn-error btn-sm rounded-xl font-bold gap-2 transition-all active:scale-[0.98] cursor-pointer disabled:opacity-40 disabled:pointer-events-none"
               >
-                {transI18n("deleteRelic")}
+                <Trash2 className="w-4 h-4" />
+                <span>{transI18n("deleteRelic")}</span>
               </button>
             </div>
           </div>
@@ -513,7 +521,7 @@ export default function RelicsInfo() {
               <button
                 type="button"
                 onClick={handleConfirmDelete}
-                className="flex-1 h-10 px-4 rounded-xl font-bold text-xs sm:text-sm bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-400 hover:to-red-500 text-white shadow-md shadow-rose-500/25 hover:shadow-rose-500/40 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                className="flex-1 h-10 px-4 rounded-xl font-bold text-xs sm:text-sm bg-linear-to-r from-rose-500 to-red-600 hover:from-rose-400 hover:to-red-500 text-white shadow-md shadow-rose-500/25 hover:shadow-rose-500/40 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 <Trash2 className="w-4 h-4" />
                 <span>{transI18n("confirmDelete")}</span>

@@ -170,12 +170,12 @@ export default function LightconeBar() {
                 </div>
             </div>
 
-            {/* Results Grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-3 auto-rows-fr max-h-[58vh] overflow-y-auto pr-1">
+            {/* Results Grid - Compact multi-column layout */}
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-8 gap-2.5 sm:gap-3 pr-1">
                 {listLightcone.map((item) => (
                     <div
                         key={item.ID}
-                        className="h-full flex flex-col"
+                        className="flex flex-col"
                         onClick={() => {
                             if (avatarSelected) {
                                 const avatar = avatars[avatarSelected.ID.toString()]

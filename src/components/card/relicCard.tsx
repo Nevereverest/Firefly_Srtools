@@ -27,7 +27,7 @@ const getRarityColor = (rarity: string) => {
     }
 };
 
-const slotIconMap: Record<string, { icon: string; key: string }> = {
+export const slotIconMap: Record<string, { icon: string; key: string }> = {
     '1': { icon: '/relics/HEAD.png', key: 'HEAD' },
     '2': { icon: '/relics/HAND.png', key: 'HAND' },
     '3': { icon: '/relics/BODY.png', key: 'BODY' },

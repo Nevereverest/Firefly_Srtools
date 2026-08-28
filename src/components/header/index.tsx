@@ -280,7 +280,7 @@ export default function Header() {
     };
 
     return (
-        <header className="sticky top-0 z-40 w-full bg-base-100 border-b border-base-300 shadow-xs">
+        <header className="sticky top-0 z-40 w-full shrink-0 bg-base-100 border-b border-base-300 shadow-xs">
             <div className="navbar max-w-[1920px] mx-auto px-2 sm:px-4 py-1.5 min-h-14">
                 <div className="navbar-start gap-2">
                     {/* Mobile menu dropdown */}
@@ -638,7 +638,7 @@ export default function Header() {
                 <dialog key={id} id={id} className="modal">
                     <div className={`modal-box w-11/12 ${
                         id === 'monster_modal' || id === 'import_modal' || id === 'extra_modal'
-                            ? 'max-w-[95vw] sm:max-w-[90vw] lg:max-w-[85vw] 2xl:max-w-[1500px] h-[88vh]' 
+                            ? 'max-w-[95vw] sm:max-w-[90vw] lg:max-w-[85vw] 2xl:max-w-375 h-[88vh]' 
                             : id === 'connect_modal'
                             ? 'max-w-[95vw] sm:max-w-2xl md:max-w-3xl lg:max-w-4xl max-h-[88vh]'
                             : id === 'changelog_modal'
