@@ -1,20 +1,20 @@
 interface PrivacySettingInfo {
-    displayCollection: boolean
-    displayRecord: boolean
-    displayRecordTeam: boolean
-    displayOnlineStatus: boolean
-    displayDiary: boolean
+    displayCollection?: boolean
+    displayRecord?: boolean
+    displayRecordTeam?: boolean
+    displayOnlineStatus?: boolean
+    displayDiary?: boolean
 }
 
 interface RecordInfo {
-    achievementCount: number
-    bookCount: number
-    avatarCount: number
-    equipmentCount: number
-    musicCount: number
-    relicCount: number
-    challengeInfo: unknown;
-    maxRogueChallengeScore: number
+    achievementCount?: number
+    bookCount?: number
+    avatarCount?: number
+    equipmentCount?: number
+    musicCount?: number
+    relicCount?: number
+    challengeInfo?: unknown
+    maxRogueChallengeScore?: number
 }
 
 
@@ -30,18 +30,18 @@ interface FlatProp {
 }
 
 interface RelicFlat {
-    props: FlatProp[]
-    setName: string | number
-    setID: number
+    props?: FlatProp[]
+    setName?: string | number
+    setID?: number
 }
 
 interface Relic {
     mainAffixId: number
-    subAffixList: SubAffix[]
+    subAffixList?: SubAffix[]
     tid: number
     type: number
     level: number
-    _flat: RelicFlat
+    _flat?: RelicFlat
 }
 
 interface SkillTree {
@@ -50,43 +50,44 @@ interface SkillTree {
 }
 
 interface EquipmentFlat {
-    props: FlatProp[]
-    name: string | number
+    props?: FlatProp[]
+    name?: string | number
 }
 
 interface Equipment {
-    rank: number
+    rank?: number
     tid: number
-    promotion: number
+    promotion?: number
     level: number
-    _flat: EquipmentFlat
+    _flat?: EquipmentFlat
 }
 
 export interface AvatarEnkaDetail {
-    relicList: Relic[]
+    relicList?: Relic[]
     level: number
-    promotion: number
+    promotion?: number
     rank?: number
-    skillTreeList: SkillTree[]
-    equipment: Equipment
+    skillTreeList?: SkillTree[]
+    equipment?: Equipment
     avatarId: number
     _assist?: boolean
+    pos?: number
 }
 
 interface DetailInfo {
-    worldLevel: number
-    privacySettingInfo: PrivacySettingInfo
-    headIcon: number
-    signature: string
-    avatarDetailList: AvatarEnkaDetail[]
-    platform: string
-    recordInfo: RecordInfo
+    worldLevel?: number
+    privacySettingInfo?: PrivacySettingInfo
+    headIcon?: number
+    signature?: string
+    avatarDetailList?: AvatarEnkaDetail[]
+    platform?: string
+    recordInfo?: RecordInfo
     uid: number
     level: number
     nickname: string
-    isDisplayAvatar: boolean
-    friendCount: number
-    personalCardId: number
+    isDisplayAvatar?: boolean
+    friendCount?: number
+    personalCardId?: number
 }
 
 export interface EnkaResponse {

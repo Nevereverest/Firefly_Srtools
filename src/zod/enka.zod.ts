@@ -2,22 +2,22 @@
 import { z } from "zod";
 
 const privacySettingInfoSchema = z.object({
-    displayCollection: z.boolean(),
-    displayRecord: z.boolean(),
-    displayRecordTeam: z.boolean(),
-    displayOnlineStatus: z.boolean(),
-    displayDiary: z.boolean()
+    displayCollection: z.boolean().optional(),
+    displayRecord: z.boolean().optional(),
+    displayRecordTeam: z.boolean().optional(),
+    displayOnlineStatus: z.boolean().optional(),
+    displayDiary: z.boolean().optional()
 });
 
 const recordInfoSchema = z.object({
-    achievementCount: z.number(),
-    bookCount: z.number(),
-    avatarCount: z.number(),
-    equipmentCount: z.number(),
-    musicCount: z.number(),
-    relicCount: z.number(),
-    challengeInfo: z.unknown(),
-    maxRogueChallengeScore: z.number()
+    achievementCount: z.number().optional(),
+    bookCount: z.number().optional(),
+    avatarCount: z.number().optional(),
+    equipmentCount: z.number().optional(),
+    musicCount: z.number().optional(),
+    relicCount: z.number().optional(),
+    challengeInfo: z.unknown().optional(),
+    maxRogueChallengeScore: z.number().optional()
 });
 
 const subAffixSchema = z.object({
@@ -32,18 +32,18 @@ const flatPropSchema = z.object({
 });
 
 const relicFlatSchema = z.object({
-    props: z.array(flatPropSchema),
-    setName: z.union([z.string(), z.number()]),
-    setID: z.number()
+    props: z.array(flatPropSchema).optional(),
+    setName: z.union([z.string(), z.number()]).optional(),
+    setID: z.number().optional()
 });
 
 const relicSchema = z.object({
     mainAffixId: z.number(),
-    subAffixList: z.array(subAffixSchema),
+    subAffixList: z.array(subAffixSchema).optional(),
     tid: z.number(),
     type: z.number(),
     level: z.number(),
-    _flat: relicFlatSchema
+    _flat: relicFlatSchema.optional()
 });
 
 const skillTreeSchema = z.object({
@@ -52,43 +52,44 @@ const skillTreeSchema = z.object({
 });
 
 const equipmentFlatSchema = z.object({
-    props: z.array(flatPropSchema),
-    name: z.union([z.string(), z.number()])
+    props: z.array(flatPropSchema).optional(),
+    name: z.union([z.string(), z.number()]).optional()
 });
 
 const equipmentSchema = z.object({
-    rank: z.number(),
+    rank: z.number().optional(),
     tid: z.number(),
-    promotion: z.number(),
+    promotion: z.number().optional(),
     level: z.number(),
-    _flat: equipmentFlatSchema
+    _flat: equipmentFlatSchema.optional()
 });
 
 export const avatarEnkaDetailSchema = z.object({
-    relicList: z.array(relicSchema),
+    relicList: z.array(relicSchema).optional(),
     level: z.number(),
-    promotion: z.number(),
+    promotion: z.number().optional(),
     rank: z.number().optional(),
-    skillTreeList: z.array(skillTreeSchema),
-    equipment: equipmentSchema,
+    skillTreeList: z.array(skillTreeSchema).optional(),
+    equipment: equipmentSchema.optional(),
     avatarId: z.number(),
-    _assist: z.boolean().optional()
+    _assist: z.boolean().optional(),
+    pos: z.number().optional()
 });
 
 const detailInfoSchema = z.object({
-    worldLevel: z.number(),
-    privacySettingInfo: privacySettingInfoSchema,
-    headIcon: z.number(),
-    signature: z.string(),
-    avatarDetailList: z.array(avatarEnkaDetailSchema),
-    platform: z.string(),
-    recordInfo: recordInfoSchema,
+    worldLevel: z.number().optional(),
+    privacySettingInfo: privacySettingInfoSchema.optional(),
+    headIcon: z.number().optional(),
+    signature: z.string().optional(),
+    avatarDetailList: z.array(avatarEnkaDetailSchema).optional(),
+    platform: z.string().optional(),
+    recordInfo: recordInfoSchema.optional(),
     uid: z.number(),
     level: z.number(),
     nickname: z.string(),
-    isDisplayAvatar: z.boolean(),
-    friendCount: z.number(),
-    personalCardId: z.number()
+    isDisplayAvatar: z.boolean().optional(),
+    friendCount: z.number().optional(),
+    personalCardId: z.number().optional()
 });
 
 export const enkaResponseSchema = z.object({

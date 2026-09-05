@@ -39,7 +39,7 @@ const toCharacterInfoCard = (character: AvatarEnkaDetailInput): CharacterInfoCar
         rank: character.equipment?.rank ?? 0,
         item_id: character.equipment?.tid ?? 0,
     },
-    relics: character.relicList.map((relic) => ({
+    relics: (character.relicList ?? []).map((relic) => ({
         level: relic.level,
         relic_id: relic.tid,
         relic_set_id: parseInt(relic.tid.toString().slice(1, -1), 10),
@@ -84,7 +84,7 @@ export default function EnkaImport() {
 
     const [isLoading, setIsLoading] = useState(false);
     const [errorMsg, setErrorMsg] = useState("");
-    const validCharacters = enkaData?.detailInfo.avatarDetailList.filter((character) => mapAvatar?.[character.avatarId]) ?? [];
+    const validCharacters = enkaData?.detailInfo?.avatarDetailList?.filter((character) => mapAvatar?.[character.avatarId]) ?? [];
 
     const handlerFetchData = async () => {
         const cleanUid = uidInput.trim();
@@ -105,6 +105,7 @@ export default function EnkaImport() {
             const parsed = enkaResponseSchema.safeParse(data);
 
             if (!parsed.success) {
+                console.error("Enka data validation failed:", parsed.error);
                 setEnkaData(null);
                 setSelectedCharacters([]);
                 setErrorMsg(transI18n("failedToFetchEnkaData"));
@@ -112,12 +113,13 @@ export default function EnkaImport() {
             }
 
             setEnkaData(parsed.data as EnkaResponse);
-            const validChars = parsed.data.detailInfo.avatarDetailList
+            const validChars = (parsed.data.detailInfo?.avatarDetailList ?? [])
                 .filter((character) => mapAvatar?.[character.avatarId])
                 .map(toCharacterInfoCard);
             setSelectedCharacters(validChars);
             setErrorMsg("");
-        } catch {
+        } catch (error) {
+            console.error("Enka fetch failed:", error);
             setEnkaData(null);
             setSelectedCharacters([]);
             setErrorMsg(transI18n("failedToFetchEnkaData"));
@@ -167,7 +169,7 @@ export default function EnkaImport() {
             return;
         }
 
-        const filterData = parsed.data.detailInfo.avatarDetailList.filter((character) => 
+        const filterData = (parsed.data.detailInfo?.avatarDetailList ?? []).filter((character) => 
             mapAvatar?.[character.avatarId] && selectedCharacters.some((selected) => selected.avatar_id === character.avatarId)
         );
 
@@ -175,7 +177,7 @@ export default function EnkaImport() {
             const currentAvatar = listAvatars[character.avatarId.toString()];
             if (currentAvatar && Object.keys(currentAvatar).length !== 0) {
                 const newProfileList = [...(currentAvatar.profileList || [])];
-                const newProfile = converterOneEnkaDataToAvatarStore(character, newProfileList.length);
+                const newProfile = converterOneEnkaDataToAvatarStore(character as unknown as AvatarEnkaDetailInput, newProfileList.length);
                 if (newProfile) {
                     newProfileList.push(newProfile);
                 }
@@ -185,7 +187,7 @@ export default function EnkaImport() {
                     promotion: character.promotion ?? 0,
                     data: {
                         rank: character.rank ?? 0,
-                        skills: character.skillTreeList.reduce((acc, skill) => {
+                        skills: (character.skillTreeList ?? []).reduce((acc, skill) => {
                             acc[skill.pointId] = skill.level;
                             return acc;
                         }, {} as Record<string, number>),
