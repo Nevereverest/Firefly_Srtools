@@ -100,6 +100,7 @@ export function converterToFreeSRJson(
                 rank: Number(avatar.data?.rank || 0),
                 skills: avatar.data?.skills ?? {},
                 skills_by_anchor_type: Object.keys(skillsByAnchorType).length > 0 ? skillsByAnchorType : undefined,
+                ex_rank_id_list: avatar.data?.ex_rank_id_list?.length ? avatar.data.ex_rank_id_list : undefined,
             },
             level: Number(avatar.level || 0),
             promotion: Number(avatar.promotion || 0),

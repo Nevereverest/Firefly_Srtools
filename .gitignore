@@ -14,7 +14,8 @@
 test1.json
 # testing
 /coverage
-
+.codex
+.aws
 # next.js
 /.next/
 /out/

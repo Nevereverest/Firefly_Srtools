@@ -29,7 +29,8 @@ export const lightconeJsonSchema = z.object({
 export const avatarDataSchema = z.object({
     rank: z.number(),
     skills: z.record(z.string(), z.number()),
-    skills_by_anchor_type: z.record(z.string(), z.number()).nullish()
+    skills_by_anchor_type: z.record(z.string(), z.number()).nullish(),
+    ex_rank_id_list: z.array(z.number()).optional()
 });
 
 export const avatarJsonSchema = z.object({

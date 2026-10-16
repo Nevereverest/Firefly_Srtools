@@ -26,6 +26,7 @@ export interface AvatarData {
     rank: number,
     skills: Record<string, number>
     skills_by_anchor_type?: Record<string, number> | null;
+    ex_rank_id_list?: number[];
 }
 
 export interface AvatarJson {

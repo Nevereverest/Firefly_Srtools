@@ -84,6 +84,19 @@ html, body {
   .bg-ambient-mesh {
     background-color: var(--color-base-100);
   }
+  /* EX Eidolon art is white line-art on transparent, so it always needs a
+     dark plate to be visible. These are intentionally theme-independent:
+     the plate stays dark in every theme so the art keeps its contrast. */
+  .ex-rank-plate {
+    background-image: radial-gradient(circle at 50% 45%,
+      color-mix(in srgb, var(--color-base-300) 55%, #14161f),
+      color-mix(in srgb, var(--color-base-300) 20%, #0b0d13) 78%);
+  }
+  .ex-rank-plate-active {
+    background-image: radial-gradient(circle at 50% 45%,
+      color-mix(in srgb, var(--color-primary) 22%, #221d33),
+      color-mix(in srgb, var(--color-primary) 8%, #101219) 78%);
+  }
 
   /* Theme Adaptive Path & Stat Icon Filters - High Accessibility Contrast */
   .theme-path-icon {

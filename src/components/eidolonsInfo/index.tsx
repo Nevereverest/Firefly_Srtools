@@ -34,7 +34,23 @@ export default function EidolonsInfo() {
         return avatarSelected?.Ranks
     }, [avatarSelected, avatars]);
 
+    const charExRanks = useMemo(() => {
+        if (!avatarSelected) return null;
+        const avatar = avatars[avatarSelected.ID];
+        if (avatar?.enhanced != "") {
+            const enhanced = avatarSelected?.Enhanced?.[avatar?.enhanced];
+            if (enhanced?.ExRanks && Object.keys(enhanced.ExRanks).length > 0) {
+                return enhanced.ExRanks;
+            }
+        }
+        if (avatarSelected?.ExRanks && Object.keys(avatarSelected.ExRanks).length > 0) {
+            return avatarSelected.ExRanks;
+        }
+        return null;
+    }, [avatarSelected, avatars]);
+
     const currentRank = avatars[avatarSelected?.ID.toString() || ""]?.data?.rank || 0;
+    const currentExRankList = avatars[avatarSelected?.ID.toString() || ""]?.data?.ex_rank_id_list || [];
 
     const handleToggleRank = (rankNum: number) => {
         if (!avatarSelected) return;
@@ -49,6 +65,28 @@ export default function EidolonsInfo() {
                 data: {
                     ...avatars[avatarSelected.ID]?.data,
                     rank: newRank,
+                },
+            },
+        });
+    };
+
+    const handleToggleExRank = (exRankId: number) => {
+        if (!avatarSelected) return;
+        const avatarData = avatars[avatarSelected.ID];
+        const currentList = avatarData?.data?.ex_rank_id_list || [];
+        let newList: number[];
+        if (currentList.includes(exRankId)) {
+            newList = currentList.filter((id) => id !== exRankId);
+        } else {
+            newList = [...currentList, exRankId];
+        }
+        setAvatars({
+            ...avatars,
+            [avatarSelected.ID]: {
+                ...avatars[avatarSelected.ID],
+                data: {
+                    ...avatars[avatarSelected.ID]?.data,
+                    ex_rank_id_list: newList,
                 },
             },
         });
@@ -69,8 +107,132 @@ export default function EidolonsInfo() {
                     <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-base-200 border border-base-300 text-xs font-mono font-bold">
                         <span className="text-base-content/60">Active:</span>
                         <span className="text-primary text-sm font-extrabold">E{currentRank}</span>
+                        {currentExRankList.length > 0 && (
+                            <span className="text-accent text-sm font-extrabold">+EX{currentExRankList.length}</span>
+                        )}
                     </div>
                 </div>
+
+                {charExRanks && avatars[avatarSelected?.ID || ""] && (
+                    <div
+                        className={`grid grid-cols-1 ${
+                            Object.keys(charExRanks).length > 1 ? "lg:grid-cols-2" : ""
+                        } gap-4 pb-6 border-b border-base-300/60`}
+                    >
+                        {Object.entries(charExRanks || {}).map(([key, exRank]) => {
+                            const exRankId = Number(key);
+                            const isUnlocked = currentExRankList.includes(exRankId);
+                            return (
+                                <div
+                                    key={key}
+                                    className={`group relative flex flex-col sm:flex-row items-start gap-4 p-4 rounded-2xl border transition-all duration-300 ${
+                                        isUnlocked
+                                            ? "bg-accent/4 border-accent/40 shadow-xs"
+                                            : "bg-base-200/40 border-base-300/70 hover:border-base-300"
+                                    }`}
+                                >
+                    
+                                    <button
+                                        type="button"
+                                        onClick={() => handleToggleExRank(exRankId)}
+                                        aria-pressed={isUnlocked}
+                                        title={`Click to ${isUnlocked ? "deactivate" : "activate"}`}
+                                        className={`relative shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:scale-105 active:scale-95 flex items-center justify-center border ${
+                                            isUnlocked
+                                                ? "bg-[#161324] border-accent/60 shadow-[0_0_15px_rgba(var(--color-accent),0.25)]"
+                                                : "bg-[#12141c] border-white/10 opacity-50 grayscale hover:opacity-80"
+                                        }`}
+                                    >
+                                        <Image
+                                            className={`w-full h-full object-contain p-2.5 transition-all duration-300 ${
+                                                isUnlocked
+                                                    ? "scale-105 drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]"
+                                                    : ""
+                                            }`}
+                                            src={`${process.env.CDN_URL}/${exRank.Image.toLowerCase()}`}
+                                            alt=""
+                                            priority
+                                            unoptimized
+                                            crossOrigin="anonymous"
+                                            width={80}
+                                            height={80}
+                                        />
+                                    </button>
+
+            
+                                    <div className="flex-1 min-w-0 w-full space-y-1.5">
+                                        <div className="flex items-center justify-between gap-2 flex-wrap">
+                                            <div
+                                                onClick={() => handleToggleExRank(exRankId)}
+                                                className="flex items-center gap-2 cursor-pointer select-none"
+                                            >
+                                                <span
+                                                    className={`font-mono text-sm sm:text-base font-extrabold transition-colors ${
+                                                        isUnlocked ? "text-accent" : "text-base-content/40"
+                                                    }`}
+                                                >
+                                                    EX.
+                                                </span>
+                                                <ParseText
+                                                    locale={locale}
+                                                    text={getLocaleName(locale, exRank.Name)}
+                                                    className={`font-bold text-sm sm:text-base transition-colors ${
+                                                        isUnlocked
+                                                            ? "text-base-content"
+                                                            : "text-base-content/60 group-hover:text-base-content"
+                                                    }`}
+                                                />
+                                                {exRank.Tag && (
+                                                    <span
+                                                        className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-md border transition-colors ${
+                                                            isUnlocked
+                                                                ? "bg-accent/10 text-accent border-accent/30"
+                                                                : "bg-base-300/50 text-base-content/40 border-transparent"
+                                                        }`}
+                                                    >
+                                                        {getLocaleName(locale, exRank.Tag)}
+                                                    </span>
+                                                )}
+                                            </div>
+
+                                            <button
+                                                type="button"
+                                                onClick={() => handleToggleExRank(exRankId)}
+                                                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold cursor-pointer transition-all select-none ${
+                                                    isUnlocked
+                                                        ? "bg-accent/15 text-accent border border-accent/30"
+                                                        : "bg-base-300/60 text-base-content/40 hover:text-base-content/70 border border-transparent"
+                                                }`}
+                                            >
+                                                <span
+                                                    className={`h-1.5 w-1.5 rounded-full ${
+                                                        isUnlocked ? "bg-accent" : "bg-base-content/30"
+                                                    }`}
+                                                />
+                                                {isUnlocked ? transI18n("active") : transI18n("inactive")}
+                                            </button>
+                                        </div>
+
+                                        <div
+                                            className={`text-xs sm:text-sm leading-relaxed select-text transition-colors ${
+                                                isUnlocked ? "text-base-content/85" : "text-base-content/50"
+                                            }`}
+                                        >
+                                            <div
+                                                dangerouslySetInnerHTML={{
+                                                    __html: replaceByParam(
+                                                        getLocaleName(locale, exRank.Desc),
+                                                        exRank.Param
+                                                    ),
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
 
                 {/* 6 Eidolons Organic Grid */}
                 {charRank && avatars[avatarSelected?.ID || ""] && (

@@ -3,7 +3,8 @@ import { z } from "zod";
 
 export const avatarDataStoreSchema = z.object({
     rank: z.number(),
-    skills: z.record(z.string(), z.number())
+    skills: z.record(z.string(), z.number()),
+    ex_rank_id_list: z.array(z.number()).optional()
 });
 
 export const lightconeStoreSchema = z.object({

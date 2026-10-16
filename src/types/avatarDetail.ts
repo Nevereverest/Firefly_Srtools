@@ -15,6 +15,7 @@ export interface AvatarDetail {
     Stats: Record<string, StatLevel>;
     Skins: Record<string, AvatarSkin>;
     Ranks: Record<string, RankDetail>;
+    ExRanks?: Record<string, ExRankDetail>;
     Skills: Record<string, SkillDetail>;
     Memosprite: Memosprite | null;
     SkillTrees: Record<string, Record<string, SkillTreePoint>>;
@@ -92,6 +93,18 @@ export interface RankDetail {
     Image: string;
     Param: number[];
     Extra: Record<string, ExtraEffect>;
+}
+
+export interface ExRankDetail {
+    Rank: number;
+    Name: Record<string, string>;
+    Desc: Record<string, string>;
+    Tag?: Record<string, string>;
+    RankAbility: string[];
+    Icon: string;
+    Image: string;
+    Param: number[];
+    Cost?: { ItemID: number; ItemNum: number };
 }
 
 export interface ExtraEffect {
@@ -211,6 +224,7 @@ export interface EnhancedData {
     EnhancedID: number;
     SPNeed: number | null;
     Ranks: Record<string, RankDetail>;
+    ExRanks?: Record<string, ExRankDetail>;
     Skills: Record<string, SkillDetail>;
     SkillTrees: Record<string, Record<string, SkillTreePoint>> | null;
 }

@@ -62,6 +62,7 @@
         "level": "Level",
         "relics": "Relic",
         "eidolons": "Eidolon",
+        "exEidolons": "Eidolon EX",
         "lightcones": "Light Cone",
         "loadData": "Muat data",
         "exportData": "Ekspor data",

@@ -221,7 +221,8 @@ export default function FreeSRImport() {
                     promotion: character.promotion,
                     data: {
                         rank: character.data.rank ?? 0,
-                        skills: character.data.skills
+                        skills: character.data.skills,
+                        ex_rank_id_list: character.data?.ex_rank_id_list?.length ? character.data.ex_rank_id_list : undefined
                     },
                     profileList: newProfileList,
                     profileSelect: newProfile ? newProfileList.length - 1 : currentAvatar.profileSelect,
@@ -279,7 +280,7 @@ export default function FreeSRImport() {
                                 {transI18n("pickAFile")}
                                 <span className="text-[10px] font-normal text-base-content/60">(.json)</span>
                             </p>
-                            <p className="text-[11px] text-base-content/50 truncate max-w-[200px]">
+                            <p className="text-[11px] text-base-content/50 truncate max-w-50">
                                 {transI18n("onlySupportFreeSRJsonFile")}
                             </p>
                         </div>
@@ -289,7 +290,7 @@ export default function FreeSRImport() {
                         <div className="flex items-center justify-between sm:justify-start gap-2 h-10 px-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-xs font-semibold">
                             <div className="flex items-center gap-2 min-w-0">
                                 <FileCheck className="w-4 h-4 text-emerald-400 shrink-0" />
-                                <span className="truncate max-w-[180px] font-mono text-xs">{fileName || "data.json"}</span>
+                                <span className="truncate max-w-45 font-mono text-xs">{fileName || "data.json"}</span>
                             </div>
                             <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold shrink-0">
                                 {availableCharacters.length} {transI18n("avatars")}
@@ -356,7 +357,7 @@ export default function FreeSRImport() {
                         type="button"
                         onClick={handleImport}
                         disabled={selectedCharacters.length === 0}
-                        className="h-9 px-5 rounded-xl font-bold text-xs sm:text-sm bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white shadow-md shadow-cyan-500/25 hover:shadow-cyan-500/40 disabled:opacity-40 disabled:pointer-events-none flex items-center justify-center gap-1.5 transition-all w-full sm:w-auto cursor-pointer"
+                        className="h-9 px-5 rounded-xl font-bold text-xs sm:text-sm bg-linear-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white shadow-md shadow-cyan-500/25 hover:shadow-cyan-500/40 disabled:opacity-40 disabled:pointer-events-none flex items-center justify-center gap-1.5 transition-all w-full sm:w-auto cursor-pointer"
                     >
                         <span className="text-white">{transI18n("import")}</span>
                         <span className="font-mono text-xs text-cyan-100">({selectedCharacters.length})</span>

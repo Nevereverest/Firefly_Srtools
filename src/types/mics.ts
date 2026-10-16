@@ -1,6 +1,7 @@
 export type AvatarDataStore = {
     rank: number,
     skills: Record<string, number>
+    ex_rank_id_list?: number[];
 }
 export type LightconeStore = {
     level: number;
