@@ -124,3 +124,13 @@ html, body {
   }
 }
 
+/* Ensure toast notifications always render on top of all modals & dialogs */
+.Toastify__toast-container {
+  z-index: 99999999 !important;
+}
+
+.Toastify__toast {
+  z-index: 99999999 !important;
+}
+
+

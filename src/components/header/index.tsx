@@ -152,7 +152,8 @@ export default function Header() {
     const handleShow = (modalId: string) => {
         const modal = document.getElementById(modalId) as HTMLDialogElement | null;
         if (modal) {
-            modal.showModal();
+            modal.classList.add("modal-open");
+            modal.setAttribute("open", "true");
         }
     };
 
@@ -160,7 +161,11 @@ export default function Header() {
     const handleCloseModal = (modalId: string) => {
         const modal = document.getElementById(modalId) as HTMLDialogElement | null;
         if (modal) {
-            modal.close()
+            modal.classList.remove("modal-open");
+            modal.removeAttribute("open");
+            if (typeof modal.close === "function" && modal.open) {
+                try { modal.close(); } catch {}
+            }
         }
     };
 
@@ -531,8 +536,8 @@ export default function Header() {
 
                     {/* View Logs Button */}
                     <button
-                        data-tip="Changelog"
-                        title="Changelog"
+                        data-tip={transI18n("changelog")}
+                        title={transI18n("changelog")}
                         className="btn btn-ghost btn-sm btn-circle tooltip tooltip-bottom text-warning/90 hover:bg-warning/10 transition-colors"
                         onClick={() => {
                             setIsChangelog(true)
@@ -579,8 +584,8 @@ export default function Header() {
                     </div>
 
                     {/* Theme selector */}
-                    <div className="dropdown dropdown-end tooltip tooltip-bottom" data-tip="Theme">
-                        <div tabIndex={0} role="button" className="btn btn-ghost btn-sm rounded-lg hover:bg-base-200/70 transition-all duration-200 px-2" title="Theme">
+                    <div className="dropdown dropdown-end tooltip tooltip-bottom" data-tip={transI18n("theme")}>
+                        <div tabIndex={0} role="button" className="btn btn-ghost btn-sm rounded-lg hover:bg-base-200/70 transition-all duration-200 px-2" title={transI18n("theme")}>
                             <svg
                                 width={16}
                                 height={16}
@@ -636,15 +641,17 @@ export default function Header() {
             {/* Modals */}
             {modalConfigs?.map(({ id, title, onClose, content }) => (
                 <dialog key={id} id={id} className="modal">
-                    <div className={`modal-box w-11/12 ${
-                        id === 'monster_modal' || id === 'import_modal' || id === 'extra_modal'
-                            ? 'max-w-[95vw] sm:max-w-[90vw] lg:max-w-[85vw] 2xl:max-w-375 h-[88vh]' 
+                    <div className={`modal-box ${
+                        id === 'monster_modal'
+                            ? 'w-[98vw] max-w-[98vw] xl:w-[94vw] xl:max-w-[94vw] 2xl:w-[92vw] 2xl:max-w-[1750px] h-[90vh]'
+                            : id === 'import_modal' || id === 'extra_modal'
+                            ? 'w-11/12 max-w-[95vw] sm:max-w-[90vw] lg:max-w-[85vw] 2xl:max-w-350 h-[88vh]'
                             : id === 'connect_modal'
-                            ? 'max-w-[95vw] sm:max-w-2xl md:max-w-3xl lg:max-w-4xl max-h-[88vh]'
+                            ? 'w-11/12 max-w-[95vw] sm:max-w-2xl md:max-w-3xl lg:max-w-4xl max-h-[88vh]'
                             : id === 'changelog_modal'
-                            ? 'max-w-[95vw] sm:max-w-2xl md:max-w-3xl lg:max-w-4xl h-[85vh]'
-                            : 'max-w-[92vw] sm:max-w-[88vw] max-h-[90vh]'
-                    } max-h-[90vh] flex flex-col bg-base-100 text-base-content border border-base-content/10 shadow-2xl rounded-2xl p-0 overflow-hidden`}>
+                            ? 'w-11/12 max-w-[95vw] sm:max-w-2xl md:max-w-3xl lg:max-w-4xl h-[85vh]'
+                            : 'w-11/12 max-w-[92vw] sm:max-w-[88vw] max-h-[90vh]'
+                    } max-h-[92vh] flex flex-col bg-base-100 text-base-content border border-base-content/10 shadow-2xl rounded-2xl p-0 overflow-hidden`}>
                         {/* Modal Header */}
                         <div className="sticky top-0 z-20 flex items-center justify-between px-4 py-3 sm:px-6 sm:py-4 border-b border-base-content/10 bg-base-100 shrink-0">
                             <h3 className="font-bold text-lg sm:text-xl tracking-tight bg-clip-text text-transparent bg-linear-to-r from-primary via-accent to-secondary">

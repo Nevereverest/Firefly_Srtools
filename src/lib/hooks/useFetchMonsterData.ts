@@ -11,7 +11,7 @@ export const useFetchMonsterData = () => {
         useShallow((state) => ({ setMapMonster: state.setMapMonster }))
     )
     const query = useQuery({
-        queryKey: ['MonsterData'],
+        queryKey: ['MonsterData', 'v2'],
         queryFn: getMonsterListApi,
         staleTime: 1000 * 60 * 5,
     })

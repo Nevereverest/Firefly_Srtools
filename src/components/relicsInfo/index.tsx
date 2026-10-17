@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
@@ -9,7 +8,6 @@ import RelicCard from "../card/relicCard";
 import useModelStore from '@/stores/modelStore';
 import { replaceByParam } from '@/helper';
 import useRelicMakerStore from '@/stores/relicMakerStore';
-import QuickView from "../quickView";
 import { ModalConfig } from "@/types";
 import useCurrentDataStore from "@/stores/currentDataStore";
 import useDetailDataStore from "@/stores/detailDataStore";
@@ -53,13 +51,11 @@ export default function RelicsInfo() {
   const {
     isOpenRelic,
     setIsOpenRelic,
-    isOpenQuickView,
     setIsOpenQuickView
   } = useModelStore(
     useShallow((state) => ({
       isOpenRelic: state.isOpenRelic,
       setIsOpenRelic: state.setIsOpenRelic,
-      isOpenQuickView: state.isOpenQuickView,
       setIsOpenQuickView: state.setIsOpenQuickView,
     }))
   )
@@ -86,15 +82,16 @@ export default function RelicsInfo() {
   const handleShow = (modalId: string) => {
     const modal = document.getElementById(modalId) as HTMLDialogElement | null;
     if (modal) {
-      modal.showModal();
+      modal.classList.add("modal-open");
+      modal.setAttribute("open", "true");
     }
   };
 
-  // Close modal handler
   const handleCloseModal = (modalId: string) => {
     const modal = document.getElementById(modalId) as HTMLDialogElement | null;
     if (modal) {
-      modal.close();
+      modal.classList.remove("modal-open");
+      modal.removeAttribute("open");
     }
   };
 
@@ -183,7 +180,6 @@ export default function RelicsInfo() {
       setListSelectedSubStats(newSubAffixes)
     }
     setIsOpenRelic(true)
-    handleShow("action_detail_modal")
   }
 
   const relicEffects = useMemo(() => {
@@ -212,42 +208,24 @@ export default function RelicsInfo() {
       title: transI18n("changeRelic") || "Cài đặt di vật",
       isOpen: isOpenRelic,
       onClose: () => {
-        setIsOpenRelic(false)
-        handleCloseModal("action_detail_modal")
+        setIsOpenRelic(false);
       },
       content: <RelicMaker />
-    },
-    {
-      id: "quick_view_modal",
-      title: transI18n("quickView").toUpperCase(),
-      isOpen: isOpenQuickView,
-      onClose: () => {
-        setIsOpenQuickView(false)
-        handleCloseModal("quick_view_modal")
-      },
-      content: <QuickView />
     }
-  ]
+  ];
 
   // Handle ESC key to close modal
   useEffect(() => {
-    for (const item of modalConfigs) {
-      if (!item?.isOpen) {
-        handleCloseModal(item?.id || "")
-      }
-    }
     const handleEscKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        for (const item of modalConfigs) {
-          handleCloseModal(item?.id || "")
-        }
-        handleCloseModal("delete_relic_confirm_modal")
+        if (isOpenRelic) setIsOpenRelic(false);
+        if (relicSlotToDelete) setRelicSlotToDelete(null);
       }
     };
 
     window.addEventListener('keydown', handleEscKey);
     return () => window.removeEventListener('keydown', handleEscKey);
-  }, [isOpenRelic]);
+  }, [isOpenRelic, relicSlotToDelete, setIsOpenRelic]);
 
   useEffect(() => {
     if (!selectedRelicSlot) {
@@ -273,11 +251,11 @@ export default function RelicsInfo() {
               </h2>
 
               <button
+                type="button"
                 onClick={() => {
-                  setIsOpenQuickView(true)
-                  handleShow("quick_view_modal")
+                  setIsOpenQuickView(true);
                 }}
-                className="btn btn-sm btn-outline btn-primary rounded-xl font-bold shadow-xs"
+                className="btn btn-sm btn-outline btn-primary rounded-xl font-bold shadow-xs cursor-pointer"
               >
                 {transI18n("quickView")}
               </button>
@@ -432,37 +410,35 @@ export default function RelicsInfo() {
       </div>
 
       {/* Modals */}
-      {modalConfigs.map(({ id, title, onClose, content }) => (
-        <dialog key={id} id={id} className="modal">
-          <div className={`modal-box ${id === 'quick_view_modal' ? 'w-11/12 max-w-4xl' : 'w-11/12 max-w-[92vw] sm:max-w-[88vw]'} max-h-[90vh] flex flex-col bg-base-100 text-base-content border border-base-content/10 shadow-2xl rounded-2xl p-0 overflow-hidden`}>
-            <div className="sticky top-0 z-20 flex items-center justify-between px-6 py-4 border-b border-base-content/10 bg-base-100 shrink-0">
-              <h3 className="font-bold text-xl tracking-tight bg-clip-text text-transparent bg-linear-to-r from-primary via-accent to-secondary">
+      {modalConfigs.map(({ id, title, isOpen, onClose, content }) => (
+        <dialog key={id} id={id} className={`modal ${isOpen ? "modal-open" : ""}`} open={isOpen}>
+          <div className="modal-box w-11/12 max-w-[94vw] xl:max-w-340 max-h-[92vh] flex flex-col bg-base-100 text-base-content border border-base-content/10 shadow-2xl rounded-2xl p-0 overflow-hidden">
+            <div className="sticky top-0 z-20 flex items-center justify-between px-4 sm:px-6 py-2.5 sm:py-3 border-b border-base-content/10 bg-base-100 shrink-0">
+              <h3 className="font-bold text-lg sm:text-xl tracking-tight bg-clip-text text-transparent bg-linear-to-r from-primary via-accent to-secondary">
                 {title}
               </h3>
               <button
                 type="button"
-                className="btn btn-sm btn-circle btn-ghost text-base-content/60 hover:text-base-content hover:bg-base-200 transition-colors"
+                className="btn btn-sm btn-circle btn-ghost text-base-content/60 hover:text-base-content hover:bg-base-200 transition-colors cursor-pointer"
                 onClick={onClose}
               >
                 ✕
               </button>
             </div>
 
-            <div className="p-4 sm:p-6 overflow-y-auto flex-1">
+            <div className="p-2.5 sm:p-4 overflow-y-auto flex-1">
               {content}
             </div>
           </div>
-          <form method="dialog" className="modal-backdrop">
-            <button onClick={onClose}>close</button>
-          </form>
+          <div className="modal-backdrop bg-black/60 cursor-pointer" onClick={onClose} />
         </dialog>
       ))}
 
       {/* Delete Relic Confirmation Modal */}
-      <dialog id="delete_relic_confirm_modal" className="modal modal-bottom sm:modal-middle">
-        <div className="modal-box max-w-md bg-base-100/95 backdrop-blur-xl border border-white/10 shadow-2xl rounded-2xl p-6 overflow-hidden relative">
+      <dialog id="delete_relic_confirm_modal" className={`modal modal-bottom sm:modal-middle ${relicSlotToDelete ? "modal-open" : ""}`} open={Boolean(relicSlotToDelete)}>
+        <div className="modal-box max-w-md bg-base-100/95 border border-white/10 shadow-2xl rounded-2xl p-6 overflow-hidden relative">
           {/* Ambient Glow */}
-          <div className="pointer-events-none absolute -top-12 left-1/2 -translate-x-1/2 w-32 h-32 bg-rose-500/15 rounded-full blur-2xl" />
+          <div className="pointer-events-none absolute -top-12 left-1/2 -translate-x-1/2 w-32 h-32 bg-rose-500/15 rounded-full" />
 
           <div className="relative z-10 text-center space-y-4">
             {/* Rose Icon Badge */}
@@ -529,9 +505,7 @@ export default function RelicsInfo() {
             </div>
           </div>
         </div>
-        <form method="dialog" className="modal-backdrop">
-          <button onClick={handleCancelDelete}>close</button>
-        </form>
+        <div className="modal-backdrop bg-black/60 cursor-pointer" onClick={handleCancelDelete} />
       </dialog>
     </div>
   );

@@ -245,10 +245,10 @@ export default function EnkaImport() {
                         type="button"
                         onClick={handlerFetchData} 
                         disabled={isLoading}
-                        className={`h-10 min-h-[40px] px-5 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 select-none shrink-0 transition-all duration-200 shadow-md ${
+                        className={`h-10 min-h-10 px-5 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 select-none shrink-0 transition-all duration-200 shadow-md ${
                             isLoading
                                 ? 'bg-cyan-600 text-white cursor-wait opacity-90 shadow-cyan-500/30'
-                                : 'bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white shadow-cyan-500/25 hover:shadow-cyan-500/40 hover:scale-[1.02] active:scale-[0.98] cursor-pointer'
+                                : 'bg-linear-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white shadow-cyan-500/25 hover:shadow-cyan-500/40 hover:scale-[1.02] active:scale-[0.98] cursor-pointer'
                         }`}
                     >
                         {isLoading ? (
@@ -317,7 +317,7 @@ export default function EnkaImport() {
 
             {/* Floating Selection & Actions Bar */}
             {enkaData && (
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 py-2.5 px-4 rounded-xl bg-base-200/60 backdrop-blur-md border border-white/10 shadow-xs">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 py-2.5 px-4 rounded-xl bg-base-200/60 border border-white/10 shadow-xs">
                     {/* Left: Counter and Quick Select */}
                     <div className="flex items-center justify-between sm:justify-start gap-3 flex-wrap">
                         <div className="flex items-center gap-2">
@@ -357,7 +357,7 @@ export default function EnkaImport() {
                         type="button"
                         onClick={handleImport}
                         disabled={selectedCharacters.length === 0}
-                        className="h-9 px-5 rounded-xl font-bold text-xs sm:text-sm bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white shadow-md shadow-cyan-500/25 hover:shadow-cyan-500/40 disabled:opacity-40 disabled:pointer-events-none flex items-center justify-center gap-1.5 transition-all w-full sm:w-auto cursor-pointer"
+                        className="h-9 px-5 rounded-xl font-bold text-xs sm:text-sm bg-linear-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white shadow-md shadow-cyan-500/25 hover:shadow-cyan-500/40 disabled:opacity-40 disabled:pointer-events-none flex items-center justify-center gap-1.5 transition-all w-full sm:w-auto cursor-pointer"
                     >
                         <span className="text-white">{transI18n("import")}</span>
                         <span className="font-mono text-xs text-cyan-100">({selectedCharacters.length})</span>
@@ -381,12 +381,12 @@ export default function EnkaImport() {
 
             {/* Empty State (when no UID fetched yet) */}
             {!isLoading && !enkaData && (
-                <div className="relative overflow-hidden py-12 sm:py-16 px-4 sm:px-6 rounded-2xl border border-dashed border-white/15 bg-base-200/20 text-center select-none">
+                <div className="relative overflow-hidden py-12 sm:py-16 px-4 sm:px-6 rounded-2xl border border-dashed border-white/15 bg-base-200/20 hover:bg-base-200/40 transition-all duration-300 text-center select-none">
                     {/* Ambient Glow */}
-                    <div className="pointer-events-none absolute -top-12 left-1/2 -translate-x-1/2 h-40 w-40 rounded-full bg-emerald-500/10 blur-3xl" />
+                    <div className="pointer-events-none absolute -top-12 left-1/2 -translate-x-1/2 h-40 w-40 rounded-full bg-emerald-500/10 group-hover:scale-150 transition-transform duration-700" />
 
                     <div className="relative z-10 max-w-md mx-auto space-y-4">
-                        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-base-300/60 border border-white/10 text-emerald-400 mx-auto flex items-center justify-center shadow-lg">
+                        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-base-300/60 border border-white/10 text-emerald-400 mx-auto flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:border-primary/40 transition-all duration-300">
                             <Globe className="w-7 h-7 sm:w-8 sm:h-8 stroke-[1.5]" />
                         </div>
 

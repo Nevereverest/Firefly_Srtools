@@ -112,6 +112,11 @@ export default function CharacterInfoCard({
                     <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-400 border border-amber-500/30">
                         E{character.rank}
                     </span>
+                    {character.ex_rank_count !== undefined && character.ex_rank_count > 0 && (
+                        <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded-md bg-purple-600/20 text-purple-400 border border-purple-500/30">
+                            +EX{character.ex_rank_count > 1 ? character.ex_rank_count : ""}
+                        </span>
+                    )}
                 </div>
             </div>
 

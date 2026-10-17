@@ -5,6 +5,7 @@ export interface CharacterInfoCardType {
     avatar_id: number;
     rank: number;
     level: number;
+    ex_rank_count?: number;
     lightcone: {
         level: number;
         rank: number;

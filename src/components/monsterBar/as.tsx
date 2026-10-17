@@ -1,16 +1,21 @@
 "use client"
 import { useEffect, useMemo } from "react";
 import SelectCustomText from "../select/customSelectText";
-import { calcMonsterStats, getLocaleName, replaceByParam } from "@/helper";
+import { getLocaleName, replaceByParam } from "@/helper";
 import useLocaleStore from "@/stores/localeStore";
 import useUserDataStore from "@/stores/userDataStore";
-import Image from "next/image";
 import { ASEvent, MonsterStore } from "@/types";
 import { useTranslations } from "next-intl";
 import useDetailDataStore from "@/stores/detailDataStore";
+import useGlobalStore from "@/stores/globalStore";
 import { useShallow } from "zustand/react/shallow";
+import VoracityCorrosionAlert from "./voracityCorrosionAlert";
+import MonsterCard from "./monsterCard";
 
 export default function AsBar() {
+    const { extraData } = useGlobalStore(
+        useShallow((state) => ({ extraData: state.extraData }))
+    );
     const { locale } = useLocaleStore(
         useShallow((state) => ({ locale: state.locale }))
     )
@@ -23,7 +28,7 @@ export default function AsBar() {
             setAsConfig: state.setAsConfig,
         }))
     )
-    const { mapMonster, mapAS, damageType, hardLevelConfig, eliteConfig } = useDetailDataStore(
+    const { mapAS } = useDetailDataStore(
         useShallow((state) => ({
             mapMonster: state.mapMonster,
             mapAS: state.mapAS,
@@ -290,91 +295,47 @@ export default function AsBar() {
 
                         return (
                             <div key={i} className="rounded-xl p-4 border border-warning">
-                                <h2 className="text-2xl font-bold mb-6 text-info">{side.wave}</h2>
+                                <h2 className="text-2xl font-bold mb-4 text-info">{side.wave}</h2>
+
+                                {targetEvent?.Invasion && (
+                                    <VoracityCorrosionAlert
+                                        invasion={targetEvent.Invasion}
+                                        invasionPercent={extraData?.setting?.invasion_percent}
+                                        locale={locale}
+                                    />
+                                )}
 
                                 {targetEvent?.MonsterList?.map((wave, waveIndex) => (
                                     <div key={waveIndex} className="mb-6">
-                                        <h3 className="text-lg font-semibold">{transI18n("wave")} {waveIndex + 1}</h3>
-                                        <div className="flex flex-wrap gap-2 mt-2">
-                                            {Object.values(wave).map((waveValue, enemyIndex) => {
-                                                const monsterStats = calcMonsterStats(
-                                                    mapMonster?.[waveValue.toString()],
-                                                    targetEvent?.EliteGroup,
-                                                    targetEvent?.HardLevelGroup,
-                                                    targetEvent?.Level,
-                                                    hardLevelConfig,
-                                                    eliteConfig
+                                        <div className="flex items-center gap-3 mb-3">
+                                            <span className="text-xs font-bold text-base-content/70 uppercase tracking-wider">
+                                                LV.{targetEvent.Level}
+                                            </span>
+                                            <h3 className="text-lg font-semibold text-info">{transI18n("wave")} {waveIndex + 1}</h3>
+                                        </div>
+                                        <div className="flex flex-wrap gap-3 mt-2">
+                                            {Object.values(wave).filter((id) => Boolean(id) && Number(id) !== 0).map((waveValue, enemyIndex) => {
+                                                const stageInvasion = targetEvent.Invasion ? {
+                                                    ...targetEvent.Invasion,
+                                                    MonsterList: Array.from(new Set([...(targetEvent.Invasion.MonsterList || []), waveValue])),
+                                                } : null;
+                                                return (
+                                                    <MonsterCard
+                                                        key={enemyIndex}
+                                                        monsterId={waveValue}
+                                                        level={targetEvent.Level}
+                                                        eliteGroup={targetEvent.EliteGroup}
+                                                        hardLevelGroup={targetEvent.HardLevelGroup}
+                                                        invasion={stageInvasion}
+                                                        invasionPercent={extraData?.setting?.invasion_percent}
+                                                        locale={locale}
+                                                    />
                                                 );
-                                            return (
-                                                <div
-                                                    key={enemyIndex}
-                                                    className="group relative flex flex-col w-40 bg-base-100 rounded-2xl border border-base-300 shadow-md"
-                                                >
-                                                    <div className="badge badge-warning badge-sm font-bold absolute top-2 right-2 z-10 shadow-sm">
-                                                        Lv. {targetEvent.Level}
-                                                    </div>
-
-                                                    <div className="relative w-full h-20 bg-base-200 flex items-center justify-center p-4 rounded-t-2xl">
-                                                        {mapMonster?.[waveValue.toString()]?.Image?.IconPath && (
-                                                            <div className="relative w-16 h-16 rounded-full border-2 border-base-300 shadow-md overflow-hidden group-hover:scale-110 transition-transform duration-300 bg-base-100">
-                                                                <Image
-                                                                    unoptimized
-                                                                    crossOrigin="anonymous"
-                                                                    src={`${process.env.CDN_URL}/${mapMonster?.[waveValue.toString()]?.Image?.IconPath}`}
-                                                                    alt="Enemy Icon"
-                                                                    width={150}
-                                                                    height={150}
-                                                                    className="w-full h-full object-cover"
-                                                                />
-                                                            </div>
-                                                        )}
-                                                    </div>
-
-                                                    <div className="flex flex-col px-1 pb-2 pt-2">
-                                                        <div className="flex flex-col space-y-1.5">
-                                                            <div className="flex justify-between items-center bg-base-200 px-2.5 py-1.5 rounded-lg">
-                                                                <span className="text-xs font-semibold text-error">HP</span>
-                                                                <span className="text-sm font-bold text-base-content">{monsterStats.hp.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
-                                                            </div>
-
-                                                            <div className="flex justify-between items-center bg-base-200 px-2.5 py-1.5 rounded-lg">
-                                                                <span className="text-xs font-semibold text-info">Speed</span>
-                                                                <span className="text-sm font-bold text-base-content">{monsterStats.spd.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
-                                                            </div>
-
-                                                            <div className="flex justify-between items-center bg-base-200 px-2.5 py-1.5 rounded-lg">
-                                                                <span className="text-xs font-semibold text-base-content/70">Toughness</span>
-                                                                <span className="text-sm font-bold text-base-content">{monsterStats.stance.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
-                                                            </div>
-                                                        </div>
-
-                                                        <div className="mt-3 pt-2 border-t border-base-300 flex flex-col items-center">
-                                                            <span className="text-[10px] text-base-content/60 font-bold uppercase tracking-widest mb-1.5">
-                                                                Weakness
-                                                            </span>
-                                                            <div className="flex items-center justify-center gap-1.5 flex-wrap">
-                                                                {mapMonster?.[waveValue.toString()]?.StanceWeakList?.map((icon, iconIndex) => (
-                                                                    <Image
-                                                                        key={iconIndex}
-                                                                        unoptimized
-                                                                        crossOrigin="anonymous"
-                                                                        src={`${process.env.CDN_URL}/${damageType[icon]?.Icon}`}
-                                                                        alt={icon}
-                                                                        width={40}
-                                                                        height={40}
-                                                                        className="h-6 w-6 object-contain rounded-full bg-base-300 border border-base-content/10 p-0.5 shadow-sm hover:scale-110 transition-transform"
-                                                                    />
-                                                                ))}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            )
-                                        })}
+                                            })}
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
-                        </div>
+                                ))}
+                            </div>
                     )})}
                 </div>
             )}

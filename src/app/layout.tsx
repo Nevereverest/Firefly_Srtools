@@ -11,6 +11,7 @@ import QueryProviderWrapper from "@/components/queryProvider";
 import ClientDataFetcher from "@/components/clientDataFetcher";
 import AvatarBar from "@/components/avatarBar";
 import ActionBar from "@/components/actionBar";
+import QuickViewBubble from "@/components/quickView/quickViewBubble";
 
 
 const geistSans = Geist({
@@ -69,7 +70,7 @@ export default async function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased h-full w-full overflow-hidden overscroll-none fixed inset-0 max-w-full`}
         suppressHydrationWarning
       >
-        <NextIntlClientProvider messages={messages}>
+        <NextIntlClientProvider messages={messages} locale={locale}>
           <QueryProviderWrapper>
             <ThemeProvider>
               <ClientThemeWrapper>
@@ -93,12 +94,25 @@ export default async function RootLayout({
                       </section>
                     </main>
                   </div>
+                  <QuickViewBubble />
                 </ClientDataFetcher>
               </ClientThemeWrapper>
             </ThemeProvider>
           </QueryProviderWrapper>
         </NextIntlClientProvider>
-        <ToastContainer />
+        <ToastContainer
+          position="top-right"
+          autoClose={2500}
+          hideProgressBar={false}
+          newestOnTop={true}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="colored"
+          style={{ zIndex: 99999999 }}
+        />
 
       </body>
 

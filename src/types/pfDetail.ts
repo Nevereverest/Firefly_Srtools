@@ -22,6 +22,11 @@ export interface Invasion {
     ID: number;
     MazeBuff: MazeBuff;
     Desc: Record<string, string>;
+    MonsterList?: number[];
+    MonsterInvasionList?: {
+        MonsterID: number;
+        Params: number[];
+    }[];
 }
 
 export interface PFTierceLevel {

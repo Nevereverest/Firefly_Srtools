@@ -54,7 +54,10 @@ export async function getRelicSetListApi(): Promise<Record<string, RelicSetDetai
 
 export async function getMonsterListApi(): Promise<Record<string, MonsterDetail>> {
     try {
-        const res = await axios.get<Record<string, MonsterDetail>>(`/api/data/monster`);
+        const res = await axios.get<Record<string, MonsterDetail>>(`/api/data/monster`, {
+            params: { _t: Date.now() },
+            headers: { 'Cache-Control': 'no-cache' }
+        });
         return res.data;
     } catch (error) {
         console.error('Failed to fetch monster:', error);

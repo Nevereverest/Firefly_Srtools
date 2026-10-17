@@ -11,6 +11,7 @@ export interface MonsterDetail {
     StanceType: string;
     Image: MonsterImage;
     Base: MonsterBase;
+    PhaseHPRatios?: number[];
 }
 
 

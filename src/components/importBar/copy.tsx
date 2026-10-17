@@ -291,7 +291,7 @@ export default function CopyImport() {
                                 }))}
                                 excludeSet={[]}
                                 selectedCustomSet={avatarCopySelected?.ID.toString() || ""}
-                                placeholder="Character Select"
+                                placeholder={transI18n("selectCharacter")}
                                 setSelectedCustomSet={(value) => setAvatarCopySelected(mapAvatar[value] || null)}
                             />
                         </div>

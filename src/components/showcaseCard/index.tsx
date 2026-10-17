@@ -131,6 +131,28 @@ export default function ShowCaseInfo() {
     return avatars[avatarSelected?.ID?.toString()]
   }, [avatarSelected, avatars])
 
+  const charRanks = useMemo(() => {
+    if (!avatarSelected) return null;
+    if (avatarData?.enhanced) {
+      return avatarSelected?.Enhanced?.[avatarData.enhanced.toString()]?.Ranks || avatarSelected?.Ranks;
+    }
+    return avatarSelected?.Ranks;
+  }, [avatarSelected, avatarData]);
+
+  const charExRanks = useMemo(() => {
+    if (!avatarSelected) return null;
+    if (avatarData?.enhanced) {
+      const enhanced = avatarSelected?.Enhanced?.[avatarData.enhanced.toString()];
+      if (enhanced?.ExRanks && Object.keys(enhanced.ExRanks).length > 0) {
+        return enhanced.ExRanks;
+      }
+    }
+    if (avatarSelected?.ExRanks && Object.keys(avatarSelected.ExRanks).length > 0) {
+      return avatarSelected.ExRanks;
+    }
+    return null;
+  }, [avatarSelected, avatarData]);
+
   const avatarProfile = useMemo(() => {
     if (!avatarSelected || !avatarData) return
     return avatarData?.profileList?.[avatarData?.profileSelect] ?? avatarData?.profileList?.[0]
@@ -562,13 +584,14 @@ export default function ShowCaseInfo() {
 
   const handleCopyBuildText = useCallback(() => {
     if (!avatarSelected || !avatarData) {
-      toast.error("Avatar not found!");
+      toast.error(transI18n("noAvatarSelected"));
       return;
     }
 
     const charName = getNameChar(locale, transI18n, avatarSelected);
     const charLevel = `Lv. ${avatarData.level}/80`;
-    const eidolonRank = `E${avatarData.data?.rank ?? 0}`;
+    const exRankCount = avatarData.data?.ex_rank_id_list?.length ?? 0;
+    const eidolonRank = `E${avatarData.data?.rank ?? 0}${exRankCount > 0 ? `+EX${exRankCount}` : ""}`;
 
     // Light cone info
     let lcText = "None";
@@ -809,13 +832,13 @@ export default function ShowCaseInfo() {
             >
 
               <div className="absolute top-4 left-3">
-                {avatarSelected && avatarSelected && avatarData?.data && typeof avatarData?.data?.rank === "number" && (
+                {avatarSelected && avatarData?.data && typeof avatarData?.data?.rank === "number" && (
                   <div className="flex flex-col items-center gap-2 py-2">
-                    {Object.values(avatarSelected?.Ranks || {})?.map((rank, index) => {
+                    {Object.values(charRanks || avatarSelected?.Ranks || {})?.map((rank, index) => {
                       const isActive = avatarData?.data?.rank > index;
                       return (
                         <div
-                          key={index}
+                          key={`rank-${index}`}
                           className="relative flex items-center justify-center"
                           style={{
                             transition: "transform 0.3s ease, filter 0.3s ease",
@@ -875,9 +898,89 @@ export default function ShowCaseInfo() {
                         </div>
                       );
                     })}
+
+                    {charExRanks && Object.keys(charExRanks).length > 0 && (
+                      <div className="w-6 h-px bg-white/20 my-0.5" />
+                    )}
+
+                    {charExRanks && Object.entries(charExRanks).map(([exRankKey, exRank]) => {
+                      const exRankId = Number(exRankKey);
+                      const isExActive = avatarData?.data?.ex_rank_id_list?.includes(exRankId) ?? false;
+                      return (
+                        <div
+                          key={`ex-rank-${exRankKey}`}
+                          className="relative flex items-center justify-center"
+                          style={{
+                            transition: "transform 0.3s ease, filter 0.3s ease",
+                          }}
+                        >
+                          {isExActive && (
+                            <div
+                              className="absolute inset-0 rounded-full pointer-events-none"
+                              style={{
+                                background: "radial-gradient(circle, rgba(168,85,247,0.45) 0%, transparent 70%)",
+                                filter: "blur(6px)",
+                                zIndex: 0,
+                              }}
+                            />
+                          )}
+
+                          <div
+                            className="relative rounded-full p-[2.5px]"
+                            style={{
+                              background: isExActive
+                                ? "linear-gradient(135deg, #c084fc, #a855f7, #6366f1)"
+                                : "rgba(255,255,255,0.15)",
+                              boxShadow: isExActive
+                                ? "0 0 10px rgba(192,132,252,0.6), 0 0 24px rgba(168,85,247,0.3)"
+                                : "0 2px 6px rgba(0,0,0,0.4)",
+                              transition: "background 0.3s ease, box-shadow 0.3s ease",
+                              zIndex: 1,
+                            }}
+                          >
+                            <div
+                              className="rounded-full overflow-hidden"
+                              style={{
+                                padding: "2px",
+                                background: "#1e2230",
+                              }}
+                            >
+                              <NextImage
+                                src={`${process.env.CDN_URL}/${exRank.Icon}`}
+                                alt="EX Rank Icon"
+                                width={125}
+                                height={125}
+                                unoptimized
+                                crossOrigin="anonymous"
+                                className="block rounded-full object-contain"
+                                style={{
+                                  width: "44px",
+                                  height: "44px",
+                                  filter: isExActive
+                                    ? "grayscale(0) brightness(1.05) saturate(1.1)"
+                                    : "grayscale(0.7) brightness(0.55)",
+                                  transition: "filter 0.3s ease",
+                                }}
+                              />
+                            </div>
+
+                            <div
+                              className="absolute -bottom-1 -right-1 px-1 py-0.2 rounded text-[8px] font-black font-mono leading-none border select-none pointer-events-none shadow"
+                              style={{
+                                background: isExActive ? "linear-gradient(135deg, #9333ea, #7c3aed)" : "#374151",
+                                color: "#ffffff",
+                                borderColor: isExActive ? "#c084fc" : "#4b5563",
+                                zIndex: 2,
+                              }}
+                            >
+                              EX
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
-
               </div>
 
               <div className="flex h-162.5 w-1/3 flex-col justify-between py-3 pl-8">
@@ -1225,7 +1328,7 @@ export default function ShowCaseInfo() {
                           }}
                         />
                         <div>
-                          <span className="black-blur bg-black/30 flex w-5 justify-center rounded px-1.5 py-0.5">{setEffect.count}</span>
+                          <span className="bg-black/30 flex w-5 justify-center rounded px-1.5 py-0.5">{setEffect.count}</span>
                         </div>
                       </div>
                     )

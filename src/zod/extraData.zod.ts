@@ -12,7 +12,8 @@ export const extraDataSchema = z.object({
         censorship: z.boolean(),
         cm: z.boolean(),
         first_person: z.boolean(),
-        hide_ui: z.boolean()
+        hide_ui: z.boolean(),
+        invasion_percent: z.number().optional()
     }),
     challenge: z.object({
         skip_node: z.number(),

@@ -79,7 +79,8 @@ export default function AvatarInfo() {
         const modal = document.getElementById(modalId) as HTMLDialogElement | null;
         if (modal) {
             setIsOpenLightcone(true);
-            modal.showModal();
+            modal.classList.add("modal-open");
+            modal.setAttribute("open", "true");
         }
     };
 
@@ -88,7 +89,11 @@ export default function AvatarInfo() {
         setIsOpenLightcone(false);
         const modal = document.getElementById(modalId) as HTMLDialogElement | null;
         if (modal) {
-            modal.close();
+            modal.classList.remove("modal-open");
+            modal.removeAttribute("open");
+            if (typeof modal.close === "function" && modal.open) {
+                try { modal.close(); } catch {}
+            }
         }
     };
 

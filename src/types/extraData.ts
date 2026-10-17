@@ -11,6 +11,7 @@ export interface ExtraData {
         cm: boolean
         first_person: boolean
         hide_ui: boolean
+        invasion_percent?: number
     }
     challenge?: {
         skip_node: number

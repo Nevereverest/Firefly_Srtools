@@ -109,7 +109,8 @@ export default function ActionBar() {
   const handleShow = (modalId: string) => {
     const modal = document.getElementById(modalId) as HTMLDialogElement | null;
     if (modal) {
-      modal.showModal();
+      modal.classList.add("modal-open");
+      modal.setAttribute("open", "true");
     }
   };
 
@@ -117,7 +118,11 @@ export default function ActionBar() {
   const handleCloseModal = (modalId: string) => {
     const modal = document.getElementById(modalId) as HTMLDialogElement | null;
     if (modal) {
-      modal.close();
+      modal.classList.remove("modal-open");
+      modal.removeAttribute("open");
+      if (typeof modal.close === "function" && modal.open) {
+        try { modal.close(); } catch {}
+      }
     }
   };
 

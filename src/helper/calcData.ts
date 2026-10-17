@@ -143,10 +143,15 @@ export const calcMonsterStats = (
         eliteRatio = eliteConfig?.[eliteGroup.toString()]
     }
 
+    const baseHp = monster.Base.HPBase * monster.Modify.HPModifyRatio * hardLevelRatio.HPRatio * eliteRatio.HPRatio
+    const phaseRatios = monster.PhaseHPRatios && monster.PhaseHPRatios.length > 0 ? monster.PhaseHPRatios : [1]
+    const phaseHps = phaseRatios.map((ratio) => baseHp * ratio)
+
     return {
         atk: monster.Base.AttackBase * monster.Modify.AttackModifyRatio * hardLevelRatio.AttackRatio * eliteRatio.AttackRatio,
         def: monster.Base.DefenceBase * monster.Modify.DefenceModifyRatio * hardLevelRatio.DefenceRatio * eliteRatio.DefenceRatio,
-        hp: monster.Base.HPBase * monster.Modify.HPModifyRatio * hardLevelRatio.HPRatio * eliteRatio.HPRatio,
+        hp: baseHp,
+        phaseHps,
         spd: monster.Base.SpeedBase * monster.Modify.SpeedModifyRatio * hardLevelRatio.SpeedRatio * eliteRatio.SpeedRatio,
         stance: (monster.Base.StanceBase * monster.Modify.StanceModifyRatio * hardLevelRatio.StanceRatio * eliteRatio.StanceRatio) / 3,
     }

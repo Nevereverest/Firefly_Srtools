@@ -30,6 +30,7 @@ export default function CharacterCard({ data }: CharacterCardProps) {
   const userAvatar = avatars[data.ID.toString()]
   const level = userAvatar?.level
   const rank = userAvatar?.data?.rank ?? 0
+  const exRankCount = userAvatar?.data?.ex_rank_id_list?.length ?? 0
 
   const is5Star = data.Rarity === "CombatPowerAvatarRarityType5";
   const is4Star = data.Rarity === "CombatPowerAvatarRarityType4";
@@ -68,6 +69,11 @@ export default function CharacterCard({ data }: CharacterCardProps) {
             {rank > 0 && (
               <span className="bg-amber-500/80 text-black text-[10px] font-black font-mono px-1 py-0.2 rounded shadow-xs">
                 E{rank}
+              </span>
+            )}
+            {exRankCount > 0 && (
+              <span className="bg-purple-600/90 text-white text-[10px] font-black font-mono px-1 py-0.2 rounded shadow-xs">
+                +EX{exRankCount > 1 ? exRankCount : ""}
               </span>
             )}
           </div>

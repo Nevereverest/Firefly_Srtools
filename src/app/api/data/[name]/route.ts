@@ -12,9 +12,10 @@ export async function GET(
     return new Response("Not found", { status: 404 })
   }
 
+  const isDev = process.env.NODE_ENV !== "production"
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
-    "Cache-Control": "public, max-age=3600"
+    "Cache-Control": isDev ? "no-cache, no-store, must-revalidate" : "public, max-age=300"
   }
 
   if (item.type === "br") {

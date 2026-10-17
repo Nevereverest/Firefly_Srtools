@@ -105,7 +105,7 @@ export default function EidolonsInfo() {
                     </h2>
 
                     <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-base-200 border border-base-300 text-xs font-mono font-bold">
-                        <span className="text-base-content/60">Active:</span>
+                        <span className="text-base-content/60">{transI18n("active")}:</span>
                         <span className="text-primary text-sm font-extrabold">E{currentRank}</span>
                         {currentExRankList.length > 0 && (
                             <span className="text-accent text-sm font-extrabold">+EX{currentExRankList.length}</span>
@@ -116,8 +116,8 @@ export default function EidolonsInfo() {
                 {charExRanks && avatars[avatarSelected?.ID || ""] && (
                     <div
                         className={`grid grid-cols-1 ${
-                            Object.keys(charExRanks).length > 1 ? "lg:grid-cols-2" : ""
-                        } gap-4 pb-6 border-b border-base-300/60`}
+                            Object.keys(charExRanks).length > 1 ? "lg:grid-cols-2 gap-6" : ""
+                        } pb-6 border-b border-base-300/60`}
                     >
                         {Object.entries(charExRanks || {}).map(([key, exRank]) => {
                             const exRankId = Number(key);
@@ -125,49 +125,38 @@ export default function EidolonsInfo() {
                             return (
                                 <div
                                     key={key}
-                                    className={`group relative flex flex-col sm:flex-row items-start gap-4 p-4 rounded-2xl border transition-all duration-300 ${
-                                        isUnlocked
-                                            ? "bg-accent/4 border-accent/40 shadow-xs"
-                                            : "bg-base-200/40 border-base-300/70 hover:border-base-300"
-                                    }`}
+                                    className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6 py-1"
                                 >
-                    
-                                    <button
-                                        type="button"
+                                    {/* Organic Floating Shard (No artificial rectangle wrapper) */}
+                                    <div
                                         onClick={() => handleToggleExRank(exRankId)}
-                                        aria-pressed={isUnlocked}
-                                        title={`Click to ${isUnlocked ? "deactivate" : "activate"}`}
-                                        className={`relative shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:scale-105 active:scale-95 flex items-center justify-center border ${
-                                            isUnlocked
-                                                ? "bg-[#161324] border-accent/60 shadow-[0_0_15px_rgba(var(--color-accent),0.25)]"
-                                                : "bg-[#12141c] border-white/10 opacity-50 grayscale hover:opacity-80"
-                                        }`}
+                                        className="cursor-pointer select-none transition-transform duration-300 hover:scale-105 active:scale-95 shrink-0 self-center sm:self-start"
+                                        title={`Click to ${isUnlocked ? "deactivate" : "activate"} EX`}
                                     >
                                         <Image
-                                            className={`w-full h-full object-contain p-2.5 transition-all duration-300 ${
+                                            className={`w-36 h-36 sm:w-32 sm:h-32 object-contain drop-shadow-md transition-all duration-300 ${
                                                 isUnlocked
-                                                    ? "scale-105 drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]"
-                                                    : ""
+                                                    ? "drop-shadow-[0_0_16px_rgba(var(--color-accent),0.4)]"
+                                                    : "grayscale opacity-40 hover:opacity-70"
                                             }`}
                                             src={`${process.env.CDN_URL}/${exRank.Image.toLowerCase()}`}
                                             alt=""
                                             priority
                                             unoptimized
                                             crossOrigin="anonymous"
-                                            width={80}
-                                            height={80}
+                                            width={160}
+                                            height={160}
                                         />
-                                    </button>
+                                    </div>
 
-            
-                                    <div className="flex-1 min-w-0 w-full space-y-1.5">
+                                    <div className="flex-1 min-w-0 w-full space-y-2">
                                         <div className="flex items-center justify-between gap-2 flex-wrap">
                                             <div
                                                 onClick={() => handleToggleExRank(exRankId)}
-                                                className="flex items-center gap-2 cursor-pointer select-none"
+                                                className="flex items-center gap-2 cursor-pointer select-none group"
                                             >
                                                 <span
-                                                    className={`font-mono text-sm sm:text-base font-extrabold transition-colors ${
+                                                    className={`font-mono text-base font-extrabold transition-colors ${
                                                         isUnlocked ? "text-accent" : "text-base-content/40"
                                                     }`}
                                                 >
@@ -176,18 +165,18 @@ export default function EidolonsInfo() {
                                                 <ParseText
                                                     locale={locale}
                                                     text={getLocaleName(locale, exRank.Name)}
-                                                    className={`font-bold text-sm sm:text-base transition-colors ${
+                                                    className={`font-bold text-base transition-colors ${
                                                         isUnlocked
-                                                            ? "text-base-content"
+                                                            ? "text-base-content group-hover:text-accent"
                                                             : "text-base-content/60 group-hover:text-base-content"
                                                     }`}
                                                 />
                                                 {exRank.Tag && (
                                                     <span
-                                                        className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-md border transition-colors ${
+                                                        className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-md transition-colors ${
                                                             isUnlocked
-                                                                ? "bg-accent/10 text-accent border-accent/30"
-                                                                : "bg-base-300/50 text-base-content/40 border-transparent"
+                                                                ? "bg-accent/15 text-accent font-semibold"
+                                                                : "bg-base-200 text-base-content/40"
                                                         }`}
                                                     >
                                                         {getLocaleName(locale, exRank.Tag)}
@@ -198,10 +187,10 @@ export default function EidolonsInfo() {
                                             <button
                                                 type="button"
                                                 onClick={() => handleToggleExRank(exRankId)}
-                                                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold cursor-pointer transition-all select-none ${
+                                                className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold cursor-pointer transition-all select-none ${
                                                     isUnlocked
-                                                        ? "bg-accent/15 text-accent border border-accent/30"
-                                                        : "bg-base-300/60 text-base-content/40 hover:text-base-content/70 border border-transparent"
+                                                        ? "bg-accent/15 text-accent border border-accent/30 shadow-xs"
+                                                        : "bg-base-200 text-base-content/40 hover:text-base-content/70 border border-transparent"
                                                 }`}
                                             >
                                                 <span

@@ -15,16 +15,13 @@ export function getNameChar(
 ): string {
   if (!data) return "";
 
-  if (!Object.prototype.hasOwnProperty.call(listCurrentLanguageApi, locale)) {
-    return "";
-  }
+  const normalizedLocale = (locale || "en").toLowerCase();
+  const langKey = (listCurrentLanguageApi[normalizedLocale as keyof typeof listCurrentLanguageApi] || normalizedLocale).toLowerCase();
 
-  const langKey = listCurrentLanguageApi[locale as keyof typeof listCurrentLanguageApi].toLowerCase();
-
-  let text = data.Name[langKey] ?? "";
+  let text = (langKey && data.Name?.[langKey]) ? data.Name[langKey] : "";
 
   if (!text) {
-    text = data.Name["en"] ?? "";
+    text = data.Name?.["en"] || data.Name?.["cn"] || data.Name?.["vi"] || Object.values(data.Name || {}).find((v) => Boolean(v)) || "";
   }
 
   if (data.ID > 8000) {
@@ -39,16 +36,13 @@ export function getLocaleName(locale: string, data: Record<string, string> | und
         return ""
     }
     
-    if (!Object.prototype.hasOwnProperty.call(listCurrentLanguageApi, locale)) {
-        return ""
-    }
+    const normalizedLocale = (locale || "en").toLowerCase();
+    const langKey = (listCurrentLanguageApi[normalizedLocale as keyof typeof listCurrentLanguageApi] || normalizedLocale).toLowerCase();
 
-    const langKey = listCurrentLanguageApi[locale as keyof typeof listCurrentLanguageApi].toLowerCase();
-
-    let text = data[langKey] ?? "";
+    let text = (langKey && data[langKey]) ? data[langKey] : "";
 
     if (!text) {
-        text = data["en"] ?? "";
+        text = data["en"] || data["cn"] || data["vi"] || Object.values(data).find((v) => Boolean(v)) || "";
     }
     
     return cleanText(text)

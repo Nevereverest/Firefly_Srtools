@@ -1,5 +1,5 @@
 'use client'
-import { EyeOff, Eye, Hammer, RefreshCw, ShieldBan, User, Swords, SkipForward, BowArrow, Info, RouteIcon, Search, CupSoda, UsersIcon, X, Check, Code, Plus } from "lucide-react"
+import { EyeOff, Eye, Hammer, RefreshCw, ShieldBan, User, Swords, SkipForward, BowArrow, Info, RouteIcon, Search, CupSoda, UsersIcon, X, Check, Code, Plus, Sparkles } from "lucide-react"
 import useGlobalStore from '@/stores/globalStore'
 import { useTranslations } from "next-intl"
 import { getLocaleName, getNameChar } from "@/helper"
@@ -284,12 +284,12 @@ export default function ExtraSettingBar() {
                     {showSearchLineup ? (
                       <>
                         <X className="w-3 h-3" />
-                        <span>Close List</span>
+                        <span>{transI18n("closeList")}</span>
                       </>
                     ) : (
                       <>
                         <Plus className="w-3 h-3" />
-                        <span>Select Characters</span>
+                        <span>{transI18n("selectCharacters")}</span>
                       </>
                     )}
                   </button>
@@ -327,10 +327,10 @@ export default function ExtraSettingBar() {
                       type="button"
                       className="btn btn-outline btn-square border-dashed border-white/20 hover:border-primary/50 hover:bg-primary/10 w-16 h-16 sm:w-20 sm:h-20 rounded-xl flex flex-col items-center justify-center gap-1 text-base-content/50 hover:text-primary transition-all"
                       onClick={() => setShowSearchLineup(true)}
-                      title="Add Character"
+                      title={transI18n("addCharacter")}
                     >
                       <Plus className="w-5 h-5" />
-                      <span className="text-[9px] uppercase font-bold tracking-wider">Add</span>
+                      <span className="text-[9px] uppercase font-bold tracking-wider">{transI18n("add")}</span>
                     </button>
                   )}
                 </div>
@@ -343,7 +343,7 @@ export default function ExtraSettingBar() {
                       <input
                         type="search"
                         className="input input-sm input-bordered w-full rounded-xl bg-base-100 text-base-content border-white/10 pl-8 text-xs focus:border-primary"
-                        placeholder="Search character..."
+                        placeholder={transI18n("searchCharacter")}
                         value={lineupSearchTerm}
                         onChange={(e) => setLineupSearchTerm(e.target.value)}
                         autoFocus
@@ -633,7 +633,8 @@ export default function ExtraSettingBar() {
                       hide_ui: e.target.checked,
                       censorship: extraData?.setting?.censorship || false,
                       cm: extraData?.setting?.cm || false,
-                      first_person: extraData?.setting?.first_person || false
+                      first_person: extraData?.setting?.first_person || false,
+                      invasion_percent: extraData?.setting?.invasion_percent ?? 0.4
                     }
                   })
                 }
@@ -672,11 +673,99 @@ export default function ExtraSettingBar() {
                       censorship: e.target.checked,
                       hide_ui: extraData?.setting?.hide_ui || false,
                       cm: extraData?.setting?.cm || false,
-                      first_person: extraData?.setting?.first_person || false
+                      first_person: extraData?.setting?.first_person || false,
+                      invasion_percent: extraData?.setting?.invasion_percent ?? 0.4
                     }
                   })
                 }
               />
+            </div>
+          )}
+
+          {/* Aha's Big Help / Invasion Percent Slider Row */}
+          {extraData?.setting !== undefined && (
+            <div className="p-3 rounded-xl hover:bg-white/[0.03] transition-colors space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-base-100/80 border border-white/10 flex items-center justify-center">
+                    <Sparkles className="text-warning w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs sm:text-sm font-semibold text-base-content">
+                        {transI18n("invasionPercent")}
+                      </span>
+                      <div className="tooltip tooltip-right tooltip-info" data-tip={transI18n("detailInvasionPercent")}>
+                        <Info className="text-primary/70 hover:text-primary w-3 h-3 cursor-pointer" />
+                      </div>
+                    </div>
+                    <p className="text-[11px] text-base-content/50 hidden sm:block">
+                      {transI18n("detailInvasionPercent")}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="badge badge-warning badge-sm font-mono font-bold px-2 py-0.5">
+                  {(() => {
+                    const cur = extraData?.setting?.invasion_percent;
+                    return cur !== undefined ? (cur <= 1 ? Math.round(cur * 100) : Math.round(cur)) : 40;
+                  })()}%
+                </div>
+              </div>
+
+              <div className="space-y-1.5 px-0.5">
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  step="1"
+                  value={(() => {
+                    const cur = extraData?.setting?.invasion_percent;
+                    return cur !== undefined ? (cur <= 1 ? Math.round(cur * 100) : Math.round(cur)) : 40;
+                  })()}
+                  onChange={(e) => {
+                    const val = Math.min(100, Math.max(0, parseInt(e.target.value) || 0));
+                    setExtraData({
+                      ...extraData,
+                      setting: {
+                        censorship: extraData?.setting?.censorship || false,
+                        hide_ui: extraData?.setting?.hide_ui || false,
+                        cm: extraData?.setting?.cm || false,
+                        first_person: extraData?.setting?.first_person || false,
+                        invasion_percent: Number((val / 100).toFixed(2))
+                      }
+                    });
+                  }}
+                  className="range range-warning range-sm w-full"
+                />
+                <div className="flex justify-between text-[10px] text-base-content/40 font-mono px-0.5">
+                  {[0, 40, 70, 100].map((preset) => {
+                    const cur = extraData?.setting?.invasion_percent;
+                    const curPercent = cur !== undefined ? (cur <= 1 ? Math.round(cur * 100) : Math.round(cur)) : 40;
+                    return (
+                      <button
+                        key={preset}
+                        type="button"
+                        onClick={() => {
+                          setExtraData({
+                            ...extraData,
+                            setting: {
+                              censorship: extraData?.setting?.censorship || false,
+                              hide_ui: extraData?.setting?.hide_ui || false,
+                              cm: extraData?.setting?.cm || false,
+                              first_person: extraData?.setting?.first_person || false,
+                              invasion_percent: Number((preset / 100).toFixed(2))
+                            }
+                          });
+                        }}
+                        className={`hover:text-warning transition-colors cursor-pointer ${curPercent === preset ? 'text-warning font-bold' : ''}`}
+                      >
+                        {preset}%
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           )}
         </div>

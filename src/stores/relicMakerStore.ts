@@ -29,7 +29,7 @@ interface RelicMakerState {
 }
 
 const useRelicMakerStore = create<RelicMakerState>((set) => ({
-    selectedRelicSlot: "",
+    selectedRelicSlot: "1",
     selectedMainStat: "",
     selectedRelicSet: "",
     selectedRelicLevel: 15,

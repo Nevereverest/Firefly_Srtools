@@ -35,6 +35,7 @@ const toCharacterInfoCard = (data: FreeSRJsonInput, character: FreeSRJsonInput["
         avatar_id: character.avatar_id,
         rank: character.data.rank ?? 0,
         level: character.level,
+        ex_rank_count: character.data?.ex_rank_id_list?.length ?? 0,
         lightcone: {
             level: lightcone?.level ?? 0,
             rank: lightcone?.rank ?? 0,
@@ -317,7 +318,7 @@ export default function FreeSRImport() {
 
             {/* Floating Selection & Actions Bar */}
             {validFreeSRData && (
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 py-2.5 px-4 rounded-xl bg-base-200/60 backdrop-blur-md border border-white/10 shadow-xs">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 py-2.5 px-4 rounded-xl bg-base-200/60 border border-white/10 shadow-xs">
                     {/* Left: Counter and Quick Select */}
                     <div className="flex items-center justify-between sm:justify-start gap-3 flex-wrap">
                         <div className="flex items-center gap-2">
@@ -389,7 +390,7 @@ export default function FreeSRImport() {
                     className="relative overflow-hidden py-12 sm:py-16 px-4 sm:px-6 rounded-2xl border border-dashed border-white/15 bg-base-200/20 hover:bg-base-200/40 transition-all duration-300 text-center cursor-pointer group select-none"
                 >
                     {/* Ambient Glow */}
-                    <div className="pointer-events-none absolute -top-12 left-1/2 -translate-x-1/2 h-40 w-40 rounded-full bg-primary/10 blur-3xl group-hover:scale-150 transition-transform duration-700" />
+                    <div className="pointer-events-none absolute -top-12 left-1/2 -translate-x-1/2 h-40 w-40 rounded-full bg-primary/10 group-hover:scale-150 transition-transform duration-700" />
 
                     <div className="relative z-10 max-w-md mx-auto space-y-4">
                         <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-base-300/60 border border-white/10 text-primary mx-auto flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:border-primary/40 transition-all duration-300">
