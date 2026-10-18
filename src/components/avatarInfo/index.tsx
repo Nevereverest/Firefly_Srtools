@@ -17,7 +17,12 @@ import useDetailDataStore from "@/stores/detailDataStore";
 import { getLocaleName } from "@/helper/getName";
 import { useShallow } from "zustand/react/shallow";
 
-const LightconeBar = dynamic(() => import('../lightconeBar'), { ssr: false });
+import ModalLoading from "../modalLoading";
+
+const LightconeBar = dynamic(() => import('../lightconeBar'), {
+    ssr: false,
+    loading: () => <ModalLoading type="grid" message="Loading Lightcones..." />
+});
 
 export default function AvatarInfo() {
     const { avatarSelected, setResetDataLightcone } = useCurrentDataStore(

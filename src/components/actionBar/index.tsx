@@ -23,8 +23,16 @@ import useDetailDataStore from "@/stores/detailDataStore";
 import { useShallow } from 'zustand/react/shallow';
 import { User, Shield, Sparkles, Zap, Image as ImageIcon, RefreshCw, Plus, Copy, Edit2, Trash2, SlidersHorizontal, Lock } from "lucide-react";
 
-const CopyImport = dynamic(() => import("../importBar/copy"), { ssr: false });
-const ProfileManagerModal = dynamic(() => import("../profileManager"), { ssr: false });
+import ModalLoading from "../modalLoading";
+
+const CopyImport = dynamic(() => import("../importBar/copy"), {
+  ssr: false,
+  loading: () => <ModalLoading message="Loading Profile Cloner..." />
+});
+const ProfileManagerModal = dynamic(() => import("../profileManager"), {
+  ssr: false,
+  loading: () => <ModalLoading message="Loading Profile Manager..." />
+});
 
 export default function ActionBar() {
   const router = useRouter()
@@ -780,7 +788,7 @@ export default function ActionBar() {
               <div
                 className={`modal-box flex flex-col bg-base-100 text-base-content border border-base-300 shadow-2xl p-0 overflow-hidden ${
                   isManageProfiles
-                    ? "w-[96vw] sm:w-11/12 max-w-6xl h-[85vh] max-h-[85vh] max-h-[85dvh] sm:h-[88vh] sm:max-h-[90vh] rounded-2xl sm:rounded-3xl"
+                    ? "w-[96vw] sm:w-11/12 max-w-6xl h-[85vh] max-h-[85vh] sm:h-[88vh] sm:max-h-[90vh] rounded-2xl sm:rounded-3xl"
                     : "w-[96vw] sm:w-11/12 max-w-[96vw] sm:max-w-[88vw] max-h-[85vh] sm:max-h-[90vh] rounded-2xl"
                 }`}
               >

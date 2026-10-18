@@ -18,7 +18,12 @@ import { useShallow } from 'zustand/react/shallow';
 import { Trash2, SlidersHorizontal } from "lucide-react";
 import { toast } from "react-toastify";
 
-const RelicMaker = dynamic(() => import("../relicBar"), { ssr: false });
+import ModalLoading from "../modalLoading";
+
+const RelicMaker = dynamic(() => import("../relicBar"), {
+  ssr: false,
+  loading: () => <ModalLoading message="Loading Relic Creator..." />
+});
 
 export default function RelicsInfo() {
 
@@ -417,7 +422,7 @@ export default function RelicsInfo() {
       {/* Modals */}
       {modalConfigs.map(({ id, title, isOpen, onClose, content }) => (
         <dialog key={id} id={id} className={`modal ${isOpen ? "modal-open" : ""}`} open={isOpen}>
-          <div className="modal-box w-11/12 max-w-[94vw] xl:max-w-340 max-h-[90vh] max-h-[90dvh] my-auto flex flex-col bg-base-100 text-base-content border border-base-content/10 shadow-2xl rounded-2xl p-0 overflow-hidden">
+          <div className="modal-box w-11/12 max-w-[94vw] xl:max-w-340 max-h-[90vh] my-auto flex flex-col bg-base-100 text-base-content border border-base-content/10 shadow-2xl rounded-2xl p-0 overflow-hidden">
             <div className="sticky top-0 z-20 flex items-center justify-between px-3.5 sm:px-6 py-2 sm:py-2.5 border-b border-base-content/10 bg-base-100 shrink-0">
               <h3 className="font-bold text-base sm:text-xl tracking-tight bg-clip-text text-transparent bg-linear-to-r from-primary via-accent to-secondary">
                 {title}

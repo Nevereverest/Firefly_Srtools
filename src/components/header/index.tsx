@@ -20,14 +20,37 @@ import { ModalConfig } from "@/types";
 import { ScrollText } from "lucide-react";
 import { useShallow } from "zustand/react/shallow";
 
-const MonsterBar = dynamic(() => import("../monsterBar"), { ssr: false });
-const ExtraSettingBar = dynamic(() => import("../extraSettingBar"), { ssr: false });
-const ChangelogBar = dynamic(() => import("../changelog"), { ssr: false });
-const ConnectBar = dynamic(() => import("../connectBar"), { ssr: false });
-const EnkaImport = dynamic(() => import("../importBar/enka"), { ssr: false });
-const FreeSRImport = dynamic(() => import("../importBar/freesr"), { ssr: false });
-const HoyolabImport = dynamic(() => import("../importBar/hoyolab"), { ssr: false });
-const FribbelsImport = dynamic(() => import("../importBar/fribbels"), { ssr: false });
+import ModalLoading from "../modalLoading";
+
+const MonsterBar = dynamic(() => import("../monsterBar"), {
+    ssr: false,
+    loading: () => <ModalLoading message="Loading Monster Data..." />
+});
+const ExtraSettingBar = dynamic(() => import("../extraSettingBar"), {
+    ssr: false,
+    loading: () => <ModalLoading type="form" message="Loading Settings..." />
+});
+import ChangelogBar from "../changelog";
+const ConnectBar = dynamic(() => import("../connectBar"), {
+    ssr: false,
+    loading: () => <ModalLoading type="form" message="Loading Connection..." />
+});
+const EnkaImport = dynamic(() => import("../importBar/enka"), {
+    ssr: false,
+    loading: () => <ModalLoading message="Loading Enka Importer..." />
+});
+const FreeSRImport = dynamic(() => import("../importBar/freesr"), {
+    ssr: false,
+    loading: () => <ModalLoading message="Loading FreeSR Importer..." />
+});
+const HoyolabImport = dynamic(() => import("../importBar/hoyolab"), {
+    ssr: false,
+    loading: () => <ModalLoading message="Loading HoYoLAB Importer..." />
+});
+const FribbelsImport = dynamic(() => import("../importBar/fribbels"), {
+    ssr: false,
+    loading: () => <ModalLoading message="Loading Fribbels Importer..." />
+});
 
 const themes = [
     { label: "Winter" },
@@ -609,7 +632,7 @@ export default function Header() {
                             : id === 'changelog_modal'
                             ? 'w-11/12 max-w-[95vw] sm:max-w-2xl md:max-w-3xl lg:max-w-4xl h-[85vh]'
                             : 'w-11/12 max-w-[92vw] sm:max-w-[88vw] max-h-[90vh]'
-                    } max-h-[90vh] max-h-[90dvh] my-auto flex flex-col bg-base-100 text-base-content border border-base-content/10 shadow-2xl rounded-2xl p-0 overflow-hidden`}>
+                    } max-h-[90vh] my-auto flex flex-col bg-base-100 text-base-content border border-base-content/10 shadow-2xl rounded-2xl p-0 overflow-hidden`}>
                         {/* Modal Header */}
                         <div className="sticky top-0 z-20 flex items-center justify-between px-4 py-3 sm:px-6 sm:py-4 border-b border-base-content/10 bg-base-100 shrink-0">
                             <h3 className="font-bold text-lg sm:text-xl tracking-tight bg-clip-text text-transparent bg-linear-to-r from-primary via-accent to-secondary">

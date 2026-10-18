@@ -7,6 +7,7 @@ import useLocaleStore from "@/stores/localeStore"
 import useUserDataStore from "@/stores/userDataStore"
 import { startBattleConfigSync } from "@/lib/battleConfigSync"
 import { isInitialDataReady } from "@/lib/initialDataReady"
+import { startPreloadModals } from "@/lib/preloadModals"
 
 import {
   useFetchASGroupData,
@@ -65,6 +66,12 @@ export default function ClientDataFetcher({
   const failed = queries.filter(q => q.isError)
   const [initialized, setInitialized] = useState(false)
   if (ready && !initialized) setInitialized(true)
+
+  useEffect(() => {
+    if (initialized || ready) {
+      startPreloadModals()
+    }
+  }, [initialized, ready])
 
   // Background refreshes/import reconciliation must not tear down editors or
   // reset modal drafts after the initial dependency barrier has been passed.
