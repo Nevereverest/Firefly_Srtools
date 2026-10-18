@@ -41,7 +41,6 @@ const SimpleAvatarCardComponent = ({ data, isSelected, onClick, showRemoveHover 
           width={80}
           height={80}
           unoptimized
-          crossOrigin="anonymous"
           src={`${process.env.CDN_URL}/${data.Image.ActionAvatarHeadIconPath}`}
           loading="lazy"
           className="w-full h-full object-contain transition-transform duration-200 group-hover:scale-105"
@@ -53,7 +52,6 @@ const SimpleAvatarCardComponent = ({ data, isSelected, onClick, showRemoveHover 
               width={20}
               height={20}
               unoptimized
-              crossOrigin="anonymous"
               src={`${process.env.CDN_URL}/${damageType[data.DamageType].Icon}`}
               loading="lazy"
               className="w-full h-full object-contain"
@@ -67,7 +65,6 @@ const SimpleAvatarCardComponent = ({ data, isSelected, onClick, showRemoveHover 
               width={20}
               height={20}
               unoptimized
-              crossOrigin="anonymous"
               src={`${process.env.CDN_URL}/${baseType[data.BaseType].Icon}`}
               loading="lazy"
               className="w-full h-full object-contain"

@@ -77,9 +77,8 @@ function RelicCard({ slot, avatarId }: RelicCardProps) {
                     >
                         <Image
                             unoptimized
-                            crossOrigin="anonymous"
                             src={`${process.env.CDN_URL}/spriteoutput/relicfigures/IconRelic_${relicDetail.relic_set_id}_${slot}.png`}
-                            alt="Relic"
+                            alt={transI18n("relic")}
                             width={124}
                             height={124}
                             className="w-14 h-14 sm:w-16 sm:h-16 object-contain drop-shadow-md"
@@ -95,7 +94,6 @@ function RelicCard({ slot, avatarId }: RelicCardProps) {
                         <div className="flex items-center gap-1.5 justify-center mt-2.5">
                             <Image
                                 unoptimized
-                                crossOrigin="anonymous"
                                 src={slotInfo.icon}
                                 alt={slotDisplayName}
                                 width={18}
@@ -132,7 +130,6 @@ function RelicCard({ slot, avatarId }: RelicCardProps) {
                         <div className="flex items-center gap-1.5 justify-center mt-2.5">
                             <Image
                                 unoptimized
-                                crossOrigin="anonymous"
                                 src={slotInfo.icon}
                                 alt={slotDisplayName}
                                 width={18}

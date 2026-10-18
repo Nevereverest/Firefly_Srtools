@@ -26,6 +26,8 @@ const ChangelogBar = dynamic(() => import("../changelog"), { ssr: false });
 const ConnectBar = dynamic(() => import("../connectBar"), { ssr: false });
 const EnkaImport = dynamic(() => import("../importBar/enka"), { ssr: false });
 const FreeSRImport = dynamic(() => import("../importBar/freesr"), { ssr: false });
+const HoyolabImport = dynamic(() => import("../importBar/hoyolab"), { ssr: false });
+const FribbelsImport = dynamic(() => import("../importBar/fribbels"), { ssr: false });
 
 const themes = [
     { label: "Winter" },
@@ -162,6 +164,8 @@ export default function Header() {
                 <>
                     {importModal === "enka" && <EnkaImport />}
                     {importModal === "freesr" && <FreeSRImport />}
+                    {importModal === "hoyolab" && <HoyolabImport />}
+                    {importModal === "fribbels" && <FribbelsImport />}
                 </>
             )
         },
@@ -303,6 +307,14 @@ export default function Header() {
                                             setImportModal("enka")
                                             setIsOpenImport(true)
                                         }}>{transI18n("enka")}</a></li>
+                                        <li><a className="rounded-md" onClick={() => {
+                                            setImportModal("hoyolab")
+                                            setIsOpenImport(true)
+                                        }}>{transI18n("hoyolab")}</a></li>
+                                        <li><a className="rounded-md" onClick={() => {
+                                            setImportModal("fribbels")
+                                            setIsOpenImport(true)
+                                        }}>{transI18n("fribbels")}</a></li>
                                     </ul>
                                 </details>
                             </li>
@@ -357,7 +369,6 @@ export default function Header() {
                             <div className="absolute -inset-1 bg-linear-to-r from-emerald-500/20 to-orange-500/20 rounded-full blur-xs opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                             <Image
                                 unoptimized
-                                crossOrigin="anonymous"
                                 src="/ff-srtool.png"
                                 alt="Logo"
                                 width={250}
@@ -409,6 +420,14 @@ export default function Header() {
                                         setImportModal("enka")
                                         setIsOpenImport(true)
                                     }}>{transI18n("enka")}</a></li>
+                                    <li><a className="rounded-md" onClick={() => {
+                                        setImportModal("hoyolab")
+                                        setIsOpenImport(true)
+                                    }}>{transI18n("hoyolab")}</a></li>
+                                    <li><a className="rounded-md" onClick={() => {
+                                        setImportModal("fribbels")
+                                        setIsOpenImport(true)
+                                    }}>{transI18n("fribbels")}</a></li>
                                 </ul>
                             </details>
                         </li>
@@ -486,7 +505,7 @@ export default function Header() {
                     </button>
 
                     {/* Language selector */}
-                    <div className="dropdown dropdown-end tooltip tooltip-bottom" data-tip={transI18n("language") || "Language"}>
+                    <div className="dropdown dropdown-end tooltip tooltip-bottom" data-tip={transI18n("language")}>
                         <div
                             tabIndex={0}
                             role="button"
@@ -590,7 +609,7 @@ export default function Header() {
                             : id === 'changelog_modal'
                             ? 'w-11/12 max-w-[95vw] sm:max-w-2xl md:max-w-3xl lg:max-w-4xl h-[85vh]'
                             : 'w-11/12 max-w-[92vw] sm:max-w-[88vw] max-h-[90vh]'
-                    } max-h-[92vh] flex flex-col bg-base-100 text-base-content border border-base-content/10 shadow-2xl rounded-2xl p-0 overflow-hidden`}>
+                    } max-h-[90vh] max-h-[90dvh] my-auto flex flex-col bg-base-100 text-base-content border border-base-content/10 shadow-2xl rounded-2xl p-0 overflow-hidden`}>
                         {/* Modal Header */}
                         <div className="sticky top-0 z-20 flex items-center justify-between px-4 py-3 sm:px-6 sm:py-4 border-b border-base-content/10 bg-base-100 shrink-0">
                             <h3 className="font-bold text-lg sm:text-xl tracking-tight bg-clip-text text-transparent bg-linear-to-r from-primary via-accent to-secondary">

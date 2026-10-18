@@ -10,6 +10,8 @@ const withNextIntl = createNextIntlPlugin();
 
 const nextConfig: NextConfig = {
   reactStrictMode: false,
+  poweredByHeader: false,
+  compress: true,
   output: "standalone",
   outputFileTracingIncludes: {
     "/api/data/[name]": ["./data/**/*", "./data/.packed/**/*"],
@@ -35,7 +37,10 @@ const nextConfig: NextConfig = {
     ],
   },
   compiler: {
-    styledComponents: true,
+    removeConsole: process.env.NODE_ENV === "production" ? { exclude: ["error", "warn"] } : false,
+  },
+  experimental: {
+    optimizePackageImports: ["lucide-react"],
   },
   env: {
     CDN_URL: "https://cdn.punklorde.org/asbres",

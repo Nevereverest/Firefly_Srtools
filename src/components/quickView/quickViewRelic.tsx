@@ -1,6 +1,7 @@
 "use client"
 import NextImage from "next/image"
 import { AvatarDetail, RelicShowcaseType } from "@/types";
+import { useTranslations } from "next-intl";
 
 export default function QuickViewRelic({
     relic,
@@ -9,6 +10,7 @@ export default function QuickViewRelic({
     relic: RelicShowcaseType;
     avatarInfo: AvatarDetail;
 }) {
+    const transI18n = useTranslations("DataPage");
     return (
         <div className="flex items-center gap-3 py-2 px-1 border-b border-base-content/10 last:border-b-0">
             {/* Relic Figure Icon */}
@@ -16,10 +18,9 @@ export default function QuickViewRelic({
                 <NextImage
                     src={relic?.img || ""}
                     unoptimized
-                    crossOrigin="anonymous"
                     width={48}
                     height={48}
-                    alt="Relic"
+                    alt={transI18n("relic")}
                     className="h-12 w-12 object-contain"
                 />
             </div>
@@ -31,10 +32,9 @@ export default function QuickViewRelic({
                         <NextImage
                             src={`${process.env.CDN_URL}/${relic.mainAffix.detail.icon}`}
                             unoptimized
-                            crossOrigin="anonymous"
                             width={16}
                             height={16}
-                            alt="Main Affix"
+                            alt={relic.mainAffix.detail.name || transI18n("relic")}
                             className="h-4 w-4 theme-stat-icon shrink-0 object-contain"
                         />
                     ) : null}
@@ -67,10 +67,9 @@ export default function QuickViewRelic({
                                     <NextImage
                                         src={`${process.env.CDN_URL}/${subAffix.detail.icon}`}
                                         unoptimized
-                                        crossOrigin="anonymous"
                                         width={14}
                                         height={14}
-                                        alt="Sub Affix"
+                                        alt={subAffix?.detail?.name || transI18n("relic")}
                                         className="h-3.5 w-3.5 theme-stat-icon shrink-0 object-contain"
                                     />
                                 ) : null}

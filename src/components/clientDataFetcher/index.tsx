@@ -20,12 +20,14 @@ import {
   useFetchPFGroupData,
   useFetchRelicSetData
 } from "@/lib/hooks"
+import { useTranslations } from "next-intl"
 
 export default function ClientDataFetcher({
   children
 }: {
   children: React.ReactNode
 }) {
+  const transI18n = useTranslations("DataPage")
   useEffect(() => startBattleConfigSync(), [])
 
   const q1 = useFetchConfigData()
@@ -74,10 +76,10 @@ export default function ClientDataFetcher({
   if (failed.length > 0) {
     return (
       <div role="alert" className="flex h-screen flex-col items-center justify-center gap-4 p-4 text-center">
-        <div>Failed to load required data. Please retry before continuing.</div>
+        <div>{transI18n("failedToLoadDataRetry")}</div>
         <button className="btn btn-primary" onClick={() => {
           for (const query of failed) void query.refetch()
-        }}>Retry loading data</button>
+        }}>{transI18n("retryLoadingData")}</button>
       </div>
     )
   }
@@ -85,7 +87,7 @@ export default function ClientDataFetcher({
   if (!ready) {
     return (
       <div className="flex h-screen flex-col items-center justify-center gap-4">
-        <div className="text-lg font-semibold">Loading data...</div>
+        <div className="text-lg font-semibold">{transI18n("loadingData")}</div>
 
         <progress
           className="progress progress-primary w-56"

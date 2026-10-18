@@ -5,8 +5,10 @@ import { useEffect } from 'react'
 import useDetailDataStore from '@/stores/detailDataStore'
 import { toast } from 'react-toastify'
 import { useShallow } from 'zustand/react/shallow'
+import { useTranslations } from 'next-intl'
 
 export const useFetchMonsterData = () => {
+    const transI18n = useTranslations("DataPage")
     const { setMapMonster } = useDetailDataStore(
         useShallow((state) => ({ setMapMonster: state.setMapMonster }))
     )
@@ -20,9 +22,9 @@ export const useFetchMonsterData = () => {
         if (query.data && !query.error) {
             setMapMonster(query.data)
         } else if (query.error) {
-            toast.error("Failed to load Monster data")
+            toast.error(transI18n("failedToLoadData", { type: "Monster" }))
         }
-    }, [query.data, query.error, setMapMonster])
+    }, [query.data, query.error, setMapMonster, transI18n])
 
     return query
 }

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import CharacterInfoCard from "../card/characterInfoCard";
 import useEnkaStore from "@/stores/enkaStore";
 import { SendDataThroughProxy } from "@/lib/api/api";
@@ -84,6 +84,7 @@ export default function EnkaImport() {
 
     const [isLoading, setIsLoading] = useState(false);
     const [errorMsg, setErrorMsg] = useState("");
+    const uidInputRef = useRef<HTMLInputElement>(null);
     const validCharacters = enkaData?.detailInfo?.avatarDetailList?.filter((character) => mapAvatar?.[character.avatarId]) ?? [];
 
     const handlerFetchData = async () => {
@@ -105,10 +106,10 @@ export default function EnkaImport() {
             const parsed = enkaResponseSchema.safeParse(data);
 
             if (!parsed.success) {
-                console.error("Enka data validation failed:", parsed.error);
                 setEnkaData(null);
                 setSelectedCharacters([]);
                 setErrorMsg(transI18n("failedToFetchEnkaData"));
+                toast.error(transI18n("failedToFetchEnkaData"));
                 return;
             }
 
@@ -118,11 +119,11 @@ export default function EnkaImport() {
                 .map(toCharacterInfoCard);
             setSelectedCharacters(validChars);
             setErrorMsg("");
-        } catch (error) {
-            console.error("Enka fetch failed:", error);
+        } catch {
             setEnkaData(null);
             setSelectedCharacters([]);
             setErrorMsg(transI18n("failedToFetchEnkaData"));
+            toast.error(transI18n("failedToFetchEnkaData"));
         } finally {
             setIsLoading(false);
         }
@@ -212,10 +213,10 @@ export default function EnkaImport() {
                         <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest rounded-md bg-emerald-500/15 text-emerald-400 border border-emerald-500/25">
                             Enka.Network Live
                         </span>
-                        <span className="text-xs text-base-content/50 font-medium">Showcase Fetcher</span>
+                        <span className="text-xs text-base-content/50 font-medium">{transI18n("showcaseFetcher")}</span>
                     </div>
                     <h2 className="text-xl sm:text-2xl font-black tracking-tight text-base-content flex items-center gap-2">
-                        HSR UID Showcase
+                        {transI18n("hsrUidShowcase")}
                     </h2>
                 </div>
 
@@ -224,6 +225,7 @@ export default function EnkaImport() {
                     <div className="relative flex-1 md:w-72">
                         <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-base-content/50 pointer-events-none" />
                         <input
+                            ref={uidInputRef}
                             type="text"
                             value={uidInput}
                             onChange={(e) => setUidInput(e.target.value)}
@@ -381,17 +383,20 @@ export default function EnkaImport() {
 
             {/* Empty State (when no UID fetched yet) */}
             {!isLoading && !enkaData && (
-                <div className="relative overflow-hidden py-12 sm:py-16 px-4 sm:px-6 rounded-2xl border border-dashed border-white/15 bg-base-200/20 hover:bg-base-200/40 transition-all duration-300 text-center select-none">
+                <div 
+                    onClick={() => uidInputRef.current?.focus()}
+                    className="relative overflow-hidden py-12 sm:py-16 px-4 sm:px-6 rounded-2xl border border-dashed border-white/15 bg-base-200/20 hover:bg-base-200/40 transition-all duration-300 text-center cursor-pointer group select-none"
+                >
                     {/* Ambient Glow */}
-                    <div className="pointer-events-none absolute -top-12 left-1/2 -translate-x-1/2 h-40 w-40 rounded-full bg-emerald-500/10 group-hover:scale-150 transition-transform duration-700" />
+                    <div className="pointer-events-none absolute -top-12 left-1/2 -translate-x-1/2 h-44 w-44 rounded-full bg-emerald-500/15 blur-2xl group-hover:scale-150 group-hover:bg-emerald-500/25 transition-all duration-700" />
 
                     <div className="relative z-10 max-w-md mx-auto space-y-4">
-                        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-base-300/60 border border-white/10 text-emerald-400 mx-auto flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:border-primary/40 transition-all duration-300">
+                        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-base-300/60 border border-white/10 text-emerald-400 mx-auto flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:border-emerald-500/40 group-hover:shadow-emerald-500/20 transition-all duration-300">
                             <Globe className="w-7 h-7 sm:w-8 sm:h-8 stroke-[1.5]" />
                         </div>
 
                         <div className="space-y-1.5">
-                            <h3 className="text-base sm:text-lg font-bold text-base-content">
+                            <h3 className="text-base sm:text-lg font-bold text-base-content group-hover:text-emerald-400 transition-colors duration-200">
                                 {transI18n("fetchFromEnka")}
                             </h3>
                             <p className="text-xs text-base-content/60 leading-relaxed">
@@ -401,15 +406,15 @@ export default function EnkaImport() {
 
                         {/* Step hints */}
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3 pt-3 text-left border-t border-white/5">
-                            <div className="p-3 rounded-xl bg-base-300/30">
+                            <div className="p-3 rounded-xl bg-base-300/30 group-hover:bg-base-300/50 transition-colors duration-200">
                                 <span className="text-[10px] font-bold text-emerald-400 block mb-0.5">{transI18n("step1")}</span>
                                 <p className="text-[11px] text-base-content/70 leading-tight">{transI18n("inGameProfile")}</p>
                             </div>
-                            <div className="p-3 rounded-xl bg-base-300/30">
+                            <div className="p-3 rounded-xl bg-base-300/30 group-hover:bg-base-300/50 transition-colors duration-200">
                                 <span className="text-[10px] font-bold text-emerald-400 block mb-0.5">{transI18n("step2")}</span>
                                 <p className="text-[11px] text-base-content/70 leading-tight">{transI18n("displayCharactersPublicly")}</p>
                             </div>
-                            <div className="p-3 rounded-xl bg-base-300/30">
+                            <div className="p-3 rounded-xl bg-base-300/30 group-hover:bg-base-300/50 transition-colors duration-200">
                                 <span className="text-[10px] font-bold text-emerald-400 block mb-0.5">{transI18n("step3")}</span>
                                 <p className="text-[11px] text-base-content/70 leading-tight">{transI18n("enterUidAndSync")}</p>
                             </div>

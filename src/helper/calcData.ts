@@ -67,6 +67,48 @@ export const calcAffixBonus = (affix?: SubAffixData, stepCount?: number, rollCou
     return (affix.BaseValue * rollCount + affix.StepValue * stepCount).toFixed(0);
 }
 
+export const calcSubAffixRolls = (
+    affix?: SubAffixData,
+    displayedVal?: number | string,
+    isRatio?: boolean
+): { count: number; step: number } => {
+    if (!affix) return { count: 1, step: 0 };
+    const num = typeof displayedVal === "number" ? displayedVal : parseFloat(String(displayedVal || "0").replace("%", ""));
+    if (isNaN(num) || num <= 0) return { count: 1, step: 0 };
+
+    const ratio = isRatio ?? (
+        ratioStats.includes(affix.Property) ||
+        affix.Property.includes("Ratio") ||
+        affix.Property.includes("Base") ||
+        mappingStats[affix.Property]?.unit === "%"
+    );
+    const target = ratio ? num / 100 : num;
+
+    let bestCount = 1;
+    let bestStep = 0;
+    let minDiff = Infinity;
+
+    for (let count = 1; count <= 6; count++) {
+        for (let step = 0; step <= 2 * count; step++) {
+            const candidate = affix.BaseValue * count + affix.StepValue * step;
+            const diff = Math.abs(candidate - target);
+            if (diff < minDiff) {
+                minDiff = diff;
+                bestCount = count;
+                bestStep = step;
+            }
+        }
+    }
+
+    return { count: bestCount, step: bestStep };
+}
+
+// Aliases for backward compatibility & importer naming parity
+export const calculatePromotion = calcPromotion;
+export const calculateSubAffixRolls = calcSubAffixRolls;
+export const getExactSubAffixValue = calcAffixBonus;
+
+
 export const calcBaseStat = (baseStat: number, stepStat: number, roundFixed: number, level: number) => {
     const promotionStat = baseStat + stepStat * (level-1);
     return promotionStat.toFixed(roundFixed);

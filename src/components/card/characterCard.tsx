@@ -53,7 +53,6 @@ function CharacterCard({ data, priority = false }: CharacterCardProps) {
           width={376}
           height={512}
           unoptimized
-          crossOrigin="anonymous"
           src={`${process.env.CDN_URL}/${data.Image.AvatarIconPath}`}
           loading={priority ? "eager" : "lazy"}
           fetchPriority={priority ? "high" : "auto"}
@@ -86,7 +85,6 @@ function CharacterCard({ data, priority = false }: CharacterCardProps) {
             width={28}
             height={28}
             unoptimized
-            crossOrigin="anonymous"
             src={`${process.env.CDN_URL}/${damageType[data.DamageType].Icon}`}
             className="absolute top-1 left-1 w-6 h-6 object-contain drop-shadow-sm"
             alt={data.DamageType.toLowerCase()}
@@ -99,7 +97,6 @@ function CharacterCard({ data, priority = false }: CharacterCardProps) {
             width={28}
             height={28}
             unoptimized
-            crossOrigin="anonymous"
             src={`${process.env.CDN_URL}/${baseType[data.BaseType].Icon}`}
             className="absolute top-1 right-1 w-6 h-6 object-contain rounded-full drop-shadow-sm"
             alt={data.BaseType.toLowerCase()}

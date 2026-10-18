@@ -2,6 +2,7 @@
 
 import NextImage from "next/image"
 import { AvatarDetail, RelicShowcaseType } from "@/types";
+import { useTranslations } from "next-intl";
 
 export default function RelicShowcase({
     relic,
@@ -10,6 +11,7 @@ export default function RelicShowcase({
     relic: RelicShowcaseType;
     avatarInfo: AvatarDetail;
 }) {
+    const transI18n = useTranslations("DataPage");
     return (
         <div
             className="relative w-full flex flex-row items-center rounded-s-lg border-l-2 p-1 border-yellow-600/60 bg-linear-to-r from-yellow-600/20 to-transparent"
@@ -22,10 +24,9 @@ export default function RelicShowcase({
                 <NextImage
                     src={relic?.img || ""}
                     unoptimized
-                    crossOrigin="anonymous"
                     width={78}
                     height={78}
-                    alt="Relic Icon"
+                    alt={transI18n("relic")}
                     className="h-19.5 w-19.5 rounded-lg"
                 />
 
@@ -45,15 +46,18 @@ export default function RelicShowcase({
             <div className="flex w-1/6 flex-col items-center justify-center">
                 <div className="relative">
                     <div className="absolute inset-0 bg-yellow-500/15 rounded-full blur-md -z-10"></div>
-                    <NextImage
-                        src={`${process.env.CDN_URL}/${relic?.mainAffix?.detail?.icon}` || ""}
-                        unoptimized
-                        crossOrigin="anonymous"
-                        width={35}
-                        height={35}
-                        alt="Main Affix Icon"
-                        className="h-8.75 w-8.75"
-                    />
+                    {relic?.mainAffix?.detail?.icon ? (
+                        <NextImage
+                            src={`${process.env.CDN_URL}/${relic.mainAffix.detail.icon}`}
+                            unoptimized
+                            width={35}
+                            height={35}
+                            alt={relic?.mainAffix?.detail?.name || transI18n("relic")}
+                            className="h-8.75 w-8.75"
+                        />
+                    ) : (
+                        <div className="h-8.75 w-8.75" />
+                    )}
                 </div>
                 <span className="text-base text-yellow-400 font-semibold drop-shadow-[0_0_4px_rgba(251,191,36,0.5)]">
                     {relic?.mainAffix?.valueAffix + (relic?.mainAffix?.detail?.unit || "")}
@@ -75,10 +79,9 @@ export default function RelicShowcase({
                                     <NextImage
                                         src={`${process.env.CDN_URL}/${subAffix?.detail?.icon}` || ""}
                                         unoptimized
-                                        crossOrigin="anonymous"
                                         width={32}
                                         height={32}
-                                        alt="Sub Affix Icon"
+                                        alt={subAffix?.detail?.name || transI18n("relic")}
                                         className="h-6 w-6 shrink-0"
                                     />
                                 ) : (

@@ -143,7 +143,6 @@ export default function EidolonsInfo() {
                                             alt=""
                                             priority
                                             unoptimized
-                                            crossOrigin="anonymous"
                                             width={160}
                                             height={160}
                                         />
@@ -250,7 +249,6 @@ export default function EidolonsInfo() {
                                             alt={`Rank ${rank.Rank} Image`}
                                             priority
                                             unoptimized
-                                            crossOrigin="anonymous"
                                             width={240}
                                             height={240}
                                         />

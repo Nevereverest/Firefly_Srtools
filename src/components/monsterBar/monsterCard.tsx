@@ -107,7 +107,6 @@ export default function MonsterCard({
             <div className="relative w-13 h-13 sm:w-14 sm:h-14 rounded-full border border-rose-500/40 shadow-sm overflow-hidden bg-base-100">
               <Image
                 unoptimized
-                crossOrigin="anonymous"
                 src={`${process.env.CDN_URL}/${monster.Image.IconPath}`}
                 alt={monsterName}
                 width={140}
@@ -117,7 +116,7 @@ export default function MonsterCard({
             </div>
           ) : (
             <div className="w-13 h-13 rounded-full bg-base-300 flex items-center justify-center text-xs text-base-content/50">
-              Enemy
+              {transI18n("enemy")}
             </div>
           )}
         </div>
@@ -138,7 +137,6 @@ export default function MonsterCard({
             <Image
               key={iconIndex}
               unoptimized
-              crossOrigin="anonymous"
               src={`${process.env.CDN_URL}/${damageType[icon]?.Icon}`}
               alt={icon}
               width={22}
@@ -214,7 +212,6 @@ export default function MonsterCard({
           <div className="relative w-13 h-13 sm:w-14 sm:h-14 rounded-full border border-base-content/15 shadow-xs overflow-hidden bg-base-100">
             <Image
               unoptimized
-              crossOrigin="anonymous"
               src={`${process.env.CDN_URL}/${monster.Image.IconPath}`}
               alt={monsterName}
               width={140}
@@ -224,7 +221,7 @@ export default function MonsterCard({
           </div>
         ) : (
           <div className="w-13 h-13 rounded-full bg-base-300 flex items-center justify-center text-xs text-base-content/50">
-            Enemy
+            {transI18n("enemy")}
           </div>
         )}
       </div>
@@ -245,7 +242,6 @@ export default function MonsterCard({
           <Image
             key={iconIndex}
             unoptimized
-            crossOrigin="anonymous"
             src={`${process.env.CDN_URL}/${damageType[icon]?.Icon}`}
             alt={icon}
             width={22}

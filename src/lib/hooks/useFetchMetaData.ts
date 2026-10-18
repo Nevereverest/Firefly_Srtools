@@ -6,8 +6,10 @@ import { getMetadataApi } from '@/lib/api'
 import useCurrentDataStore from '@/stores/currentDataStore'
 import useDetailDataStore from '@/stores/detailDataStore'
 import { useShallow } from 'zustand/react/shallow'
+import { useTranslations } from 'next-intl'
 
 export const useFetchConfigData = () => {
+    const transI18n = useTranslations("DataPage")
     const { setMetaData } = useDetailDataStore(
         useShallow((state) => ({ setMetaData: state.setMetaData }))
     )
@@ -30,9 +32,9 @@ export const useFetchConfigData = () => {
             setMetaData(query.data.metaData)
         }
         else if (query.error) {
-            toast.error("Failed to load initial config data")
+            toast.error(transI18n("failedToLoadData", { type: "initial config" }))
         }
-    }, [query.data, query.error, setMetaData, setSettingData])
+    }, [query.data, query.error, setMetaData, setSettingData, transI18n])
 
     return query
 }

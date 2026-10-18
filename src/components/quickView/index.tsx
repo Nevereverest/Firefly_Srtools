@@ -434,7 +434,6 @@ export default function QuickView() {
                                         <NextImage
                                             src={`${process.env.CDN_URL}/${stat?.icon}`}
                                             unoptimized
-                                            crossOrigin="anonymous"
                                             alt={stat.name}
                                             width={20}
                                             height={20}

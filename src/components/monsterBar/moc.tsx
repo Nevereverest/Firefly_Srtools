@@ -157,7 +157,7 @@ export default function MocBar() {
                         </label>
                     </div>
                 </div>
-                <div className="label-text font-bold text-success mb-2">StageId: {moc_config?.stage_id}</div>
+                <div className="label-text font-bold text-success mb-2">{transI18n("stageId")}: {moc_config?.stage_id}</div>
 
                 {/* Turbulence Buff */}
                 <div className="pt-3 border-t border-base-content/10 space-y-2">

@@ -5,8 +5,10 @@ import { useEffect } from 'react'
 import useDetailDataStore from '@/stores/detailDataStore'
 import { toast } from 'react-toastify'
 import { useShallow } from 'zustand/react/shallow'
+import { useTranslations } from 'next-intl'
 
 export const useFetchMOCGroupData = () => {
+    const transI18n = useTranslations("DataPage")
     const { setMapMoc } = useDetailDataStore(
         useShallow((state) => ({ setMapMoc: state.setMapMoc }))
     )
@@ -20,9 +22,9 @@ export const useFetchMOCGroupData = () => {
         if (query.data && !query.error) {
             setMapMoc(query.data)
         } else if (query.error) {
-            toast.error("Failed to load MOCGroup data")
+            toast.error(transI18n("failedToLoadData", { type: "MOCGroup" }))
         }
-    }, [query.data, query.error, setMapMoc])
+    }, [query.data, query.error, setMapMoc, transI18n])
 
     return query
 }

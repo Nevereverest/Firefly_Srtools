@@ -8,7 +8,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import ParseText from "../parseText";
 import useLocaleStore from "@/stores/localeStore";
 import { getNameChar } from "@/helper/getName";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import useModelStore from "@/stores/modelStore";
 import useUserDataStore from "@/stores/userDataStore";
 import { ModalConfig, RelicStore, AvatarProfileStore } from "@/types";
@@ -20,10 +20,11 @@ import useCopyProfileStore from "@/stores/copyProfile";
 import AvatarBar from "../avatarBar";
 import useCurrentDataStore from "@/stores/currentDataStore";
 import useDetailDataStore from "@/stores/detailDataStore";
-import { useShallow } from "zustand/react/shallow";
-import { User, Shield, Sparkles, Zap, Image as ImageIcon, RefreshCw, Plus, Copy, Edit2, Trash2 } from "lucide-react";
+import { useShallow } from 'zustand/react/shallow';
+import { User, Shield, Sparkles, Zap, Image as ImageIcon, RefreshCw, Plus, Copy, Edit2, Trash2, SlidersHorizontal, Lock } from "lucide-react";
 
 const CopyImport = dynamic(() => import("../importBar/copy"), { ssr: false });
+const ProfileManagerModal = dynamic(() => import("../profileManager"), { ssr: false });
 
 export default function ActionBar() {
   const router = useRouter()
@@ -50,7 +51,9 @@ export default function ActionBar() {
     isOpenCopy,
     setIsOpenCopy,
     isOpenAvatars,
-    setIsOpenAvatars
+    setIsOpenAvatars,
+    isOpenManageProfiles,
+    setIsOpenManageProfiles,
   } = useModelStore(
     useShallow((state) => ({
       isOpenCreateProfile: state.isOpenCreateProfile,
@@ -59,6 +62,8 @@ export default function ActionBar() {
       setIsOpenCopy: state.setIsOpenCopy,
       isOpenAvatars: state.isOpenAvatars,
       setIsOpenAvatars: state.setIsOpenAvatars,
+      isOpenManageProfiles: state.isOpenManageProfiles,
+      setIsOpenManageProfiles: state.setIsOpenManageProfiles,
     }))
   )
 
@@ -79,6 +84,14 @@ export default function ActionBar() {
   }, [avatarSelected, userAvatar]);
 
   const [profileToDelete, setProfileToDelete] = useState<{ id: number; name: string } | null>(null);
+  const [dropdownSelectedIndices, setDropdownSelectedIndices] = useState<Set<number>>(new Set());
+  const [confirmDropdownBatchOpen, setConfirmDropdownBatchOpen] = useState(false);
+
+  // Controlled dropdown states to prevent ghost overlaying
+  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const profileDropdownRef = useRef<HTMLDivElement>(null);
+  const [isActionsDropdownOpen, setIsActionsDropdownOpen] = useState(false);
+  const actionsDropdownRef = useRef<HTMLDivElement>(null);
 
   const listProfile = useMemo(() => {
     if (!avatarSelected) return [];
@@ -143,6 +156,7 @@ export default function ActionBar() {
   };
 
   const handleProfileSelect = (profileId: number) => {
+    setIsProfileDropdownOpen(false);
     if (!avatarSelected || !userAvatar) return;
     if (userAvatar.profileSelect === profileId) return;
     setAvatar({ ...userAvatar, profileSelect: profileId })
@@ -153,7 +167,8 @@ export default function ActionBar() {
   }
 
   const requestDeleteProfile = (profileId: number, e: React.MouseEvent) => {
-    e.stopPropagation()
+    e.stopPropagation();
+    setIsProfileDropdownOpen(false);
     if (!avatarSelected || profileId === 0 || !userAvatar) return;
     const targetProfile = userAvatar.profileList?.[profileId];
     if (!targetProfile) return;
@@ -176,6 +191,46 @@ export default function ActionBar() {
     handleCloseModal("delete_profile_confirm_modal");
     setProfileToDelete(null);
   }
+
+  const toggleDropdownSelect = (idx: number, e?: React.SyntheticEvent) => {
+    if (e) {
+      e.stopPropagation();
+    }
+    if (idx === 0) return;
+    setDropdownSelectedIndices((prev) => {
+      const next = new Set(prev);
+      if (next.has(idx)) next.delete(idx);
+      else next.add(idx);
+      return next;
+    });
+  };
+
+  const handleDropdownSelectAll = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    const customCount = Math.max(0, listProfile.length - 1);
+    if (dropdownSelectedIndices.size === customCount) {
+      setDropdownSelectedIndices(new Set());
+    } else {
+      const next = new Set<number>();
+      for (let i = 1; i < listProfile.length; i++) next.add(i);
+      setDropdownSelectedIndices(next);
+    }
+  };
+
+  const handleConfirmDropdownBatchDelete = () => {
+    if (dropdownSelectedIndices.size < 2 || !avatarSelected || !userAvatar) return;
+    const validIndices = new Set(Array.from(dropdownSelectedIndices).filter((i) => i > 0));
+    if (validIndices.size < 2) return;
+    const currentSelectedObj = listProfile[userAvatar.profileSelect];
+    const newListProfile = listProfile.filter((_, idx) => !validIndices.has(idx));
+    let nextSelect = newListProfile.indexOf(currentSelectedObj);
+    if (nextSelect === -1) nextSelect = 0;
+    setAvatar({ ...userAvatar, profileList: newListProfile, profileSelect: nextSelect });
+    toast.success(transI18n("batchDeleteProfilesSuccess", { count: validIndices.size }));
+    setDropdownSelectedIndices(new Set());
+    setConfirmDropdownBatchOpen(false);
+  };
 
   const handleConnectOrSyncPS = async () => {
     if (isConnectPS) {
@@ -251,6 +306,16 @@ export default function ActionBar() {
         handleCloseModal("avatars_modal")
       },
       content: <AvatarBar onClose={() => { setIsOpenAvatars(false); handleCloseModal("avatars_modal") }} />
+    },
+    {
+      id: "manage_profiles_modal",
+      title: transI18n("manageProfiles"),
+      isOpen: isOpenManageProfiles,
+      onClose: () => {
+        setIsOpenManageProfiles(false)
+        handleCloseModal("manage_profiles_modal")
+      },
+      content: <ProfileManagerModal />
     }
   ]
 
@@ -271,7 +336,47 @@ export default function ActionBar() {
 
     window.addEventListener('keydown', handleEscKey);
     return () => window.removeEventListener('keydown', handleEscKey);
-  }, [isOpenCopy, isOpenCreateProfile, isOpenAvatars]);
+  }, [isOpenCopy, isOpenCreateProfile, isOpenAvatars, isOpenManageProfiles]);
+
+  // Close dropdowns on outside click or Escape
+  useEffect(() => {
+    if (!isProfileDropdownOpen && !isActionsDropdownOpen) return;
+
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+      const target = event.target as Node;
+      if (isProfileDropdownOpen && profileDropdownRef.current && !profileDropdownRef.current.contains(target)) {
+        setIsProfileDropdownOpen(false);
+      }
+      if (isActionsDropdownOpen && actionsDropdownRef.current && !actionsDropdownRef.current.contains(target)) {
+        setIsActionsDropdownOpen(false);
+      }
+    };
+
+    const handleDropdownEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setIsProfileDropdownOpen(false);
+        setIsActionsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("touchstart", handleClickOutside);
+    document.addEventListener("keydown", handleDropdownEsc);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+      document.removeEventListener("keydown", handleDropdownEsc);
+    };
+  }, [isProfileDropdownOpen, isActionsDropdownOpen]);
+
+  // Close dropdowns on route or avatar switch during render
+  const [prevRouteKey, setPrevRouteKey] = useState(() => `${pathname}_${avatarSelected?.ID}`);
+  const currentRouteKey = `${pathname}_${avatarSelected?.ID}`;
+  if (prevRouteKey !== currentRouteKey) {
+    setPrevRouteKey(currentRouteKey);
+    setIsProfileDropdownOpen(false);
+    setIsActionsDropdownOpen(false);
+  }
 
   const navTabs = [
     { label: transI18n("characterInformation"), path: "", icon: User },
@@ -294,7 +399,6 @@ export default function ActionBar() {
               src={`${process.env.CDN_URL}/${damageType?.[avatarSelected?.DamageType]?.Icon}`}
               alt="damage type"
               unoptimized
-              crossOrigin="anonymous"
               className="h-5 w-5 object-contain"
               width={20}
               height={20}
@@ -312,92 +416,234 @@ export default function ActionBar() {
 
         {/* Profile Selector & Quick Actions */}
         <div className="flex items-center h-8.5 rounded-xl bg-base-200/80 border border-base-content/10 p-0.5 shadow-xs">
-          <div className="dropdown dropdown-bottom dropdown-start h-full flex items-center">
-            <div
-              tabIndex={0}
-              role="button"
-              className="btn btn-sm btn-ghost gap-1.5 h-7 min-h-7 font-bold rounded-lg hover:bg-base-300/80 px-2"
+          <div ref={profileDropdownRef} className="relative h-full flex items-center">
+            <button
+              type="button"
+              onClick={() => setIsProfileDropdownOpen((prev) => !prev)}
+              className="btn btn-sm btn-ghost gap-1.5 h-7 min-h-7 font-bold rounded-lg hover:bg-base-300/80 px-2 cursor-pointer"
             >
               <span className="text-[11px] uppercase tracking-wider text-base-content/60 font-semibold">{transI18n("profile")}:</span>
               <span className="truncate max-w-28 sm:max-w-40 text-xs text-base-content font-bold">
-                {profileCurrent?.profile_name || "Default Profile"}
+                {profileCurrent?.profile_name || transI18n("defaultProfile")}
               </span>
-              <svg className="w-3.5 h-3.5 opacity-60 ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className={`w-3.5 h-3.5 opacity-60 ml-0.5 transition-transform duration-200 ${isProfileDropdownOpen ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
-            </div>
+            </button>
 
-            <ul className="dropdown-content z-50 menu p-2 shadow-2xl bg-base-100 rounded-2xl min-w-60 mt-2 border border-base-300 max-h-72 overflow-y-auto space-y-1">
-              {listProfile.map((profile, index) => (
-                <li key={index} className="flex flex-row items-center justify-between rounded-xl px-1 hover:bg-base-200">
+            {isProfileDropdownOpen && (
+              <div
+                className="absolute top-full left-0 z-50 p-2.5 shadow-2xl bg-base-100 rounded-2xl w-72 sm:w-80 mt-2 border border-base-300 max-h-96 overflow-y-auto overflow-x-hidden flex flex-col flex-nowrap space-y-2 animate-in fade-in zoom-in-95 duration-100"
+              >
+                {/* Header with Select All / Clear All when >= 2 custom profiles */}
+                {listProfile.length > 2 && (
+                  <div className="flex items-center justify-between px-2 pt-0.5 pb-1 text-[11px] text-base-content/60 border-b border-base-300/60 shrink-0">
+                    <span className="font-semibold text-base-content/75">
+                      {dropdownSelectedIndices.size > 0
+                        ? transI18n("selectedCount", { count: dropdownSelectedIndices.size })
+                        : transI18n("profiles")}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleDropdownSelectAll}
+                      className="text-primary hover:underline font-semibold cursor-pointer"
+                    >
+                      {dropdownSelectedIndices.size === listProfile.length - 1
+                        ? transI18n("clearAll")
+                        : transI18n("selectAll")}
+                    </button>
+                  </div>
+                )}
+
+                {/* Profiles list: Strictly vertical, no horizontal wrapping */}
+                <div className="flex flex-col flex-nowrap space-y-1 overflow-y-auto max-h-56 pr-0.5">
+                  {listProfile.map((profile, index) => {
+                    const isDefault = index === 0;
+                    const isActive = index === userAvatar?.profileSelect;
+                    const isSelected = dropdownSelectedIndices.has(index);
+
+                    return (
+                      <div
+                        key={index}
+                        className={`group flex items-center gap-2 rounded-xl px-2 py-1.5 transition-colors shrink-0 ${
+                          isActive
+                            ? "bg-primary/10 border border-primary/25"
+                            : "hover:bg-base-200 border border-transparent"
+                        }`}
+                      >
+                        {/* Left: Tick box for custom profiles or Lock for Default */}
+                        {isDefault ? (
+                          <div
+                            className="w-4 h-4 flex items-center justify-center shrink-0 text-base-content/30"
+                            title={transI18n("defaultProfileCannotBeDeleted")}
+                          >
+                            <Lock className="w-3.5 h-3.5" />
+                          </div>
+                        ) : (
+                          <label
+                            className="cursor-pointer flex items-center justify-center shrink-0 p-0.5"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={(e) => toggleDropdownSelect(index, e)}
+                              onClick={(e) => e.stopPropagation()}
+                              className="checkbox checkbox-xs checkbox-error rounded cursor-pointer"
+                            />
+                          </label>
+                        )}
+
+                        {/* Clickable Profile Name (Switches active profile & closes dropdown) */}
+                        <button
+                          type="button"
+                          onClick={() => handleProfileSelect(index)}
+                          className="flex-1 text-left min-w-0 flex items-center gap-1.5 cursor-pointer py-0.5"
+                          title={transI18n("switchToProfile")}
+                        >
+                          <span
+                            className={`truncate text-xs ${
+                              isActive ? "font-bold text-primary" : "font-medium text-base-content"
+                            }`}
+                          >
+                            {profile.profile_name}
+                          </span>
+                          {isDefault && (
+                            <span className="text-[10px] text-base-content/50 font-mono shrink-0">
+                              ({transI18n("default")})
+                            </span>
+                          )}
+                        </button>
+
+                        {/* Right: Edit & Single Delete Buttons */}
+                        {!isDefault && (
+                          <div className="flex items-center gap-0.5 shrink-0 opacity-80 group-hover:opacity-100 transition-opacity">
+                            <button
+                              type="button"
+                              className="btn btn-ghost btn-xs btn-circle text-warning hover:bg-warning/20 h-6 w-6 min-h-6"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setIsProfileDropdownOpen(false);
+                                setFormState("EDIT");
+                                setProfileName(profile.profile_name);
+                                setProfileEdit(index);
+                                setIsOpenCreateProfile(true);
+                                handleShow("update_profile_modal");
+                              }}
+                              title={transI18n("editProfile")}
+                            >
+                              <Edit2 className="w-3 h-3" />
+                            </button>
+                            <button
+                              type="button"
+                              className="btn btn-ghost btn-xs btn-circle text-error hover:bg-error/20 h-6 w-6 min-h-6"
+                              onClick={(e) => {
+                                setIsProfileDropdownOpen(false);
+                                requestDeleteProfile(index, e);
+                              }}
+                              title={transI18n("deleteProfile")}
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Batch Delete Profiles Action - ONLY ENABLED WHEN >= 2 PROFILES ARE SELECTED */}
+                {listProfile.length > 2 && (
+                  <div className="pt-1 border-t border-base-300 shrink-0">
+                    <button
+                      type="button"
+                      disabled={dropdownSelectedIndices.size < 2}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (dropdownSelectedIndices.size >= 2) {
+                          setIsProfileDropdownOpen(false);
+                          setConfirmDropdownBatchOpen(true);
+                        }
+                      }}
+                      className={`w-full flex items-center justify-between py-2 px-3 text-xs font-semibold rounded-xl transition-all ${
+                        dropdownSelectedIndices.size >= 2
+                          ? "bg-rose-500/15 text-rose-400 hover:bg-rose-500/25 border border-rose-500/30 cursor-pointer shadow-xs"
+                          : "opacity-40 text-base-content/40 cursor-not-allowed border border-transparent pointer-events-none"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>{transI18n("batchDeleteProfiles")}</span>
+                      </div>
+                      <span className="text-[10px] font-bold font-mono px-1.5 py-0.2 rounded-md bg-base-300/40">
+                        {dropdownSelectedIndices.size >= 2
+                          ? `(${dropdownSelectedIndices.size})`
+                          : `${dropdownSelectedIndices.size}/2+`}
+                      </span>
+                    </button>
+                  </div>
+                )}
+
+                {/* Quick Navigation & Creation Actions */}
+                <div className="pt-1 border-t border-base-300 space-y-0.5 shrink-0">
                   <button
-                    className="flex-1 text-left py-2 px-2 text-xs font-medium truncate"
-                    onClick={() => handleProfileSelect(index)}
+                    type="button"
+                    onClick={() => {
+                      setIsProfileDropdownOpen(false);
+                      setIsOpenManageProfiles(true);
+                      handleShow("manage_profiles_modal");
+                    }}
+                    className="w-full flex items-center gap-2 py-1.5 px-3 text-xs font-semibold text-indigo-400 hover:bg-indigo-500/10 rounded-xl cursor-pointer"
                   >
-                    <span className="truncate">{profile.profile_name}</span>
-                    {index === 0 && (
-                      <span className="text-[10px] text-base-content/50 ml-1.5 font-mono">({transI18n("default")})</span>
-                    )}
+                    <SlidersHorizontal className="w-3.5 h-3.5 text-indigo-400" />
+                    <span>{transI18n("manageProfiles")}</span>
                   </button>
-                  {index !== 0 && (
-                    <div className="flex items-center gap-1">
-                      <button
-                        className="btn btn-ghost btn-xs btn-circle text-warning hover:bg-warning/20"
-                        onClick={() => {
-                          setFormState("EDIT");
-                          setProfileName(profile.profile_name)
-                          setProfileEdit(index)
-                          setIsOpenCreateProfile(true)
-                          handleShow("update_profile_modal")
-                        }}
-                        title={transI18n("editProfile")}
-                      >
-                        <Edit2 className="w-3 h-3" />
-                      </button>
-                      <button
-                        className="btn btn-ghost btn-xs btn-circle text-error hover:bg-error/20"
-                        onClick={(e) => requestDeleteProfile(index, e)}
-                        title={transI18n("deleteProfile")}
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </button>
-                    </div>
-                  )}
-                </li>
-              ))}
 
-              <li className="border-t border-base-300 pt-1 mt-1">
-                <button
-                  onClick={() => {
-                    setIsOpenCopy(true)
-                    setResetData(baseType, damageType)
-                    handleShow("copy_profile_modal")
-                  }}
-                  className="flex items-center gap-2 py-2 px-3 text-xs font-semibold text-primary hover:bg-primary/10 rounded-xl"
-                >
-                  <Copy className="w-3.5 h-3.5" />
-                  {transI18n("copyProfiles")}
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => {
-                    setIsOpenCreateProfile(true)
-                    setFormState("CREATE");
-                    setProfileName("")
-                    handleShow("update_profile_modal")
-                  }}
-                  className="flex items-center gap-2 py-2 px-3 text-xs font-semibold text-primary hover:bg-primary/10 rounded-xl"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  {transI18n("addNewProfile")}
-                </button>
-              </li>
-            </ul>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsProfileDropdownOpen(false);
+                      setIsOpenCopy(true);
+                      setResetData(baseType, damageType);
+                      handleShow("copy_profile_modal");
+                    }}
+                    className="w-full flex items-center gap-2 py-1.5 px-3 text-xs font-semibold text-primary hover:bg-primary/10 rounded-xl cursor-pointer"
+                  >
+                    <Copy className="w-3.5 h-3.5" />
+                    <span>{transI18n("copyProfiles")}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsProfileDropdownOpen(false);
+                      setIsOpenCreateProfile(true);
+                      setFormState("CREATE");
+                      setProfileName("");
+                      handleShow("update_profile_modal");
+                    }}
+                    className="w-full flex items-center gap-2 py-1.5 px-3 text-xs font-semibold text-primary hover:bg-primary/10 rounded-xl cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>{transI18n("addNewProfile")}</span>
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Quick Profile Actions */}
           <div className="flex items-center border-l border-base-content/10 pl-1 pr-0.5 gap-0.5 h-5">
+            <button
+              onClick={() => {
+                setIsOpenManageProfiles(true);
+                handleShow("manage_profiles_modal");
+              }}
+              className="btn btn-ghost btn-xs btn-circle h-6 w-6 min-h-6 text-base-content/60 hover:text-indigo-400 hover:bg-indigo-500/10"
+              title={transI18n("manageProfiles")}
+            >
+              <SlidersHorizontal className="w-3.5 h-3.5" />
+            </button>
             <button
               onClick={() => {
                 setIsOpenCopy(true)
@@ -452,38 +698,53 @@ export default function ActionBar() {
           {transI18n("avatars")}
         </button>
 
-        <div className="dropdown dropdown-end w-full">
-          <div tabIndex={0} role="button" className="btn btn-info btn-sm w-full font-bold shadow-xs">
-            {transI18n("actions")}
-          </div>
-          <ul
-            tabIndex={0}
-            className="dropdown-content z-50 menu p-2 shadow-2xl bg-base-100 rounded-2xl w-56 mt-2 border border-base-300 space-y-1"
+        <div ref={actionsDropdownRef} className="relative w-full">
+          <button
+            type="button"
+            onClick={() => setIsActionsDropdownOpen((prev) => !prev)}
+            className="btn btn-info btn-sm w-full font-bold shadow-xs cursor-pointer flex items-center justify-center gap-1.5"
           >
-            {navTabs.map((tab) => {
-              const Icon = tab.icon;
-              return (
-                <li key={tab.path}>
-                  <button
-                    onClick={() => actionMove(tab.path)}
-                    className="flex items-center gap-2 py-2 px-3 text-xs font-semibold"
-                  >
-                    <Icon className="w-4 h-4" />
-                    <span>{tab.label}</span>
-                  </button>
-                </li>
-              );
-            })}
-            <li className="border-t border-base-300 pt-1 mt-1">
-              <button
-                onClick={handleConnectOrSyncPS}
-                className="btn btn-primary btn-sm w-full font-bold mt-1"
-              >
-                <RefreshCw className="w-3.5 h-3.5" />
-                <span>{isConnectPS ? transI18n("sync") : transI18n("connectPs")}</span>
-              </button>
-            </li>
-          </ul>
+            <span>{transI18n("actions")}</span>
+            <svg className={`w-3.5 h-3.5 opacity-70 transition-transform duration-200 ${isActionsDropdownOpen ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          {isActionsDropdownOpen && (
+            <ul
+              className="absolute top-full right-0 z-50 menu p-2 shadow-2xl bg-base-100 rounded-2xl w-56 mt-2 border border-base-300 space-y-1 animate-in fade-in zoom-in-95 duration-100"
+            >
+              {navTabs.map((tab) => {
+                const Icon = tab.icon;
+                return (
+                  <li key={tab.path}>
+                    <button
+                      onClick={() => {
+                        setIsActionsDropdownOpen(false);
+                        actionMove(tab.path);
+                      }}
+                      className="flex items-center gap-2 py-2 px-3 text-xs font-semibold cursor-pointer"
+                    >
+                      <Icon className="w-4 h-4" />
+                      <span>{tab.label}</span>
+                    </button>
+                  </li>
+                );
+              })}
+              <li className="border-t border-base-300 pt-1 mt-1">
+                <button
+                  onClick={() => {
+                    setIsActionsDropdownOpen(false);
+                    handleConnectOrSyncPS();
+                  }}
+                  className="btn btn-primary btn-sm w-full font-bold mt-1 cursor-pointer"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  <span>{isConnectPS ? transI18n("sync") : transI18n("connectPs")}</span>
+                </button>
+              </li>
+            </ul>
+          )}
         </div>
       </div>
 
@@ -512,36 +773,43 @@ export default function ActionBar() {
       </div>
 
         {/* Modals */}
-        {modalConfigs.map(({ id, title, isOpen, onClose, content }) => (
-          <dialog key={id} id={id} className={`modal ${isOpen ? "modal-open" : ""}`}>
-            <div className="modal-box w-11/12 max-w-[92vw] sm:max-w-[88vw] max-h-[90vh] flex flex-col bg-base-100 text-base-content border border-base-300 shadow-2xl rounded-2xl p-0 overflow-hidden">
-              <div className="sticky top-0 z-20 flex items-center justify-between px-6 py-4 border-b border-base-300 bg-base-100 shrink-0">
-                <h3 className="font-bold text-xl tracking-tight text-primary">
-                  {title}
-                </h3>
-                <button
-                  type="button"
-                  className="btn btn-sm btn-circle btn-ghost text-base-content/60 hover:text-base-content hover:bg-base-200 transition-colors"
-                  onClick={onClose}
-                >
-                  ✕
-                </button>
+        {modalConfigs.map(({ id, title, isOpen, onClose, content }) => {
+          const isManageProfiles = id === "manage_profiles_modal";
+          return (
+            <dialog key={id} id={id} className={`modal ${isOpen ? "modal-open" : ""}`}>
+              <div
+                className={`modal-box flex flex-col bg-base-100 text-base-content border border-base-300 shadow-2xl p-0 overflow-hidden ${
+                  isManageProfiles
+                    ? "w-[96vw] sm:w-11/12 max-w-6xl h-[85vh] max-h-[85vh] max-h-[85dvh] sm:h-[88vh] sm:max-h-[90vh] rounded-2xl sm:rounded-3xl"
+                    : "w-[96vw] sm:w-11/12 max-w-[96vw] sm:max-w-[88vw] max-h-[85vh] sm:max-h-[90vh] rounded-2xl"
+                }`}
+              >
+                <div className="sticky top-0 z-20 flex items-center justify-between px-3.5 sm:px-6 py-3 sm:py-4 border-b border-base-300 bg-base-100 shrink-0">
+                  <h3 className="font-bold text-lg sm:text-xl tracking-tight text-primary">
+                    {title}
+                  </h3>
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-circle btn-ghost text-base-content/60 hover:text-base-content hover:bg-base-200 transition-colors"
+                    onClick={onClose}
+                  >
+                    ✕
+                  </button>
+                </div>
+                <div className={`flex-1 min-h-0 ${isManageProfiles ? "p-0 overflow-hidden flex flex-col" : "px-3 py-3.5 sm:p-6 overflow-y-auto"}`}>
+                  <MountOnOpen open={isOpen}>{content}</MountOnOpen>
+                </div>
               </div>
-              <div className="p-4 sm:p-6 overflow-y-auto flex-1">
-                <MountOnOpen open={isOpen}>{content}</MountOnOpen>
-              </div>
-            </div>
-            <form method="dialog" className="modal-backdrop">
-              <button onClick={onClose}>close</button>
-            </form>
-          </dialog>
-        ))}
+              <form method="dialog" className="modal-backdrop">
+                <button onClick={onClose}>close</button>
+              </form>
+            </dialog>
+          );
+        })}
 
         {/* Delete Profile Confirmation Modal */}
         <dialog id="delete_profile_confirm_modal" className="modal modal-bottom sm:modal-middle">
-          <div className="modal-box max-w-md bg-base-100/95 backdrop-blur-xl border border-white/10 shadow-2xl rounded-2xl p-6 overflow-hidden relative">
-            <div className="pointer-events-none absolute -top-12 left-1/2 -translate-x-1/2 w-32 h-32 bg-rose-500/15 rounded-full blur-2xl" />
-
+          <div className="modal-box max-w-md bg-base-100 border border-white/10 shadow-2xl rounded-2xl p-6 overflow-hidden relative">
             <div className="relative z-10 text-center space-y-4">
               <div className="w-12 h-12 rounded-2xl bg-rose-500/15 text-rose-400 border border-rose-500/30 flex items-center justify-center mx-auto shadow-[0_0_20px_rgba(244,63,94,0.2)]">
                 <Trash2 className="w-6 h-6 stroke-[1.75]" />
@@ -583,6 +851,49 @@ export default function ActionBar() {
             <button onClick={handleCancelDeleteProfile}>close</button>
           </form>
         </dialog>
+
+        {/* Dropdown Batch Delete Confirmation Modal */}
+        {confirmDropdownBatchOpen && (
+          <dialog open className="modal modal-open modal-bottom sm:modal-middle">
+            <div className="modal-box max-w-md bg-base-100 border border-white/10 shadow-2xl rounded-2xl p-6 overflow-hidden relative">
+              <div className="relative z-10 text-center space-y-4">
+                <div className="w-12 h-12 rounded-2xl bg-rose-500/15 text-rose-400 border border-rose-500/30 flex items-center justify-center mx-auto shadow-[0_0_20px_rgba(244,63,94,0.2)]">
+                  <Trash2 className="w-6 h-6 stroke-[1.75]" />
+                </div>
+
+                <div className="space-y-1.5">
+                  <h3 className="font-black text-lg text-base-content tracking-tight">
+                    {transI18n("batchDeleteProfiles")}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-base-content/70 leading-relaxed">
+                    {transI18n("batchDeleteConfirm", { count: dropdownSelectedIndices.size })}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setConfirmDropdownBatchOpen(false)}
+                    className="flex-1 h-10 px-4 rounded-xl font-bold text-xs sm:text-sm bg-base-200 hover:bg-base-300 text-base-content/80 hover:text-base-content border border-white/10 transition-all cursor-pointer"
+                  >
+                    {transI18n("cancel")}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleConfirmDropdownBatchDelete}
+                    className="flex-1 h-10 px-4 rounded-xl font-bold text-xs sm:text-sm bg-linear-to-r from-rose-500 to-red-600 hover:from-rose-400 hover:to-red-500 text-white shadow-md shadow-rose-500/25 hover:shadow-rose-500/40 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    <span>{transI18n("confirmDelete")}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <form method="dialog" className="modal-backdrop">
+              <button onClick={() => setConfirmDropdownBatchOpen(false)}>close</button>
+            </form>
+          </dialog>
+        )}
       </div>
   );
 }

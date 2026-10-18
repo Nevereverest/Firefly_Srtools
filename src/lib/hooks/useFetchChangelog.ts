@@ -6,8 +6,10 @@ import { toast } from 'react-toastify'
 import useModelStore from '@/stores/modelStore'
 import useLocaleStore from '@/stores/localeStore'
 import { useShallow } from 'zustand/react/shallow'
+import { useTranslations } from 'next-intl'
 
 export const useFetchChangelog = () => {
+    const transI18n = useTranslations("DataPage")
     const { currentVersion, setChangelog, setCurrentVersion } = useLocaleStore(
         useShallow((state) => ({
             currentVersion: state.currentVersion,
@@ -32,10 +34,10 @@ export const useFetchChangelog = () => {
                 setCurrentVersion(query.data[0].version)
             }
         } else if (query.error) {
-            toast.error("Failed to load changelog data")
+            toast.error(transI18n("failedToLoadData", { type: "changelog" }))
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [query.data, query.error, setChangelog, setCurrentVersion, setIsChangelog])
+    }, [query.data, query.error, setChangelog, setCurrentVersion, setIsChangelog, transI18n])
 
     return query
 }

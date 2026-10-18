@@ -155,9 +155,8 @@ export default function SkillsInfo() {
                                 <div className="relative w-full max-w-155 aspect-square select-none">
                                     <Image
                                         unoptimized
-                                        crossOrigin="anonymous"
                                         src={`/skilltree/${avatarSelected?.BaseType?.toUpperCase()}.webp`}
-                                        alt="Skill Tree"
+                                        alt={transI18n("skillTree")}
                                         width={312}
                                         priority={true}
                                         height={312}
@@ -204,7 +203,6 @@ export default function SkillsInfo() {
                                                     alt={btn.id.replaceAll("Point", "")}
                                                     priority={true}
                                                     unoptimized
-                                                    crossOrigin="anonymous"
                                                     width={124}
                                                     height={124}
                                                     style={{
@@ -392,7 +390,7 @@ export default function SkillsInfo() {
                             </div>
                         ) : (
                             <div className="text-center py-16 text-base-content/40 text-sm italic">
-                                Select a trace node from the skill tree to configure
+                                {transI18n("selectTraceNodePrompt")}
                             </div>
                         )}
                     </div>

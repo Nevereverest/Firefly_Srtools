@@ -5,7 +5,7 @@ import Image from "next/image";
 import dynamic from "next/dynamic";
 import useUserDataStore from "@/stores/userDataStore";
 import { useTranslations } from "next-intl";
-import RelicCard from "../card/relicCard";
+import RelicCard, { slotIconMap } from "../card/relicCard";
 import useModelStore from '@/stores/modelStore';
 import { replaceByParam } from '@/helper';
 import useRelicMakerStore from '@/stores/relicMakerStore';
@@ -58,6 +58,11 @@ export default function RelicsInfo() {
     }))
   )
   const transI18n = useTranslations("DataPage")
+
+  const getSlotName = (slot: string) => {
+    const slotKey = slotIconMap[slot]?.key;
+    return slotKey && transI18n.has(slotKey) ? transI18n(slotKey) : slot;
+  };
   const { avatarSelected } = useCurrentDataStore(
     useShallow((state) => ({
       avatarSelected: state.avatarSelected,
@@ -205,7 +210,7 @@ export default function RelicsInfo() {
   const modalConfigs: ModalConfig[] = [
     {
       id: "action_detail_modal",
-      title: transI18n("changeRelic") || "Cài đặt di vật",
+      title: transI18n("changeRelic"),
       isOpen: isOpenRelic,
       onClose: () => {
         setIsOpenRelic(false);
@@ -266,7 +271,7 @@ export default function RelicsInfo() {
               {["1", "2", "3", "4", "5", "6"].map((item, index) => (
                 <div
                   key={index}
-                  onClick={() => setSelectedRelicSlot(item)}
+                  onClick={() => handlerChangeRelic(item)}
                   className={`group relative rounded-xl transition-all duration-200 cursor-pointer ${selectedRelicSlot === item
                     ? "ring-2 ring-primary ring-offset-2 ring-offset-base-100 shadow-md"
                     : "hover:ring-1 hover:ring-base-content/20"
@@ -278,14 +283,14 @@ export default function RelicsInfo() {
                   />
 
                   {/* Micro Actions */}
-                  <div className="absolute top-1.5 right-1.5 opacity-0 group-hover:opacity-100 transition-all duration-200 flex gap-1 z-20">
+                  <div className="absolute top-1.5 right-1.5 flex gap-1 z-20">
                     <button
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
                         handlerChangeRelic(item);
                       }}
-                      className="w-6 h-6 rounded-lg bg-primary text-primary-content shadow-xs hover:scale-110 active:scale-95 transition-all flex items-center justify-center border border-white/20 cursor-pointer"
+                      className="w-6 h-6 rounded-lg bg-primary text-primary-content shadow-xs hover:scale-110 active:scale-95 transition-all hidden sm:flex items-center justify-center border border-white/20 cursor-pointer opacity-0 group-hover:opacity-100"
                       title={transI18n("changeRelic")}
                     >
                       <SlidersHorizontal className="w-3 h-3 stroke-[2.2]" />
@@ -298,10 +303,10 @@ export default function RelicsInfo() {
                           e.stopPropagation();
                           requestDeleteRelic(item);
                         }}
-                        className="w-6 h-6 rounded-lg bg-rose-500 text-white shadow-xs hover:scale-110 active:scale-95 transition-all flex items-center justify-center border border-white/20 cursor-pointer"
+                        className="w-7 h-7 sm:w-6 sm:h-6 rounded-lg bg-rose-500 text-white shadow-xs hover:scale-110 active:scale-95 transition-all flex items-center justify-center border border-white/20 cursor-pointer opacity-90 sm:opacity-0 sm:group-hover:opacity-100 [@media(hover:none)]:opacity-95"
                         title={transI18n("deleteRelic")}
                       >
-                        <Trash2 className="w-3 h-3 stroke-[2.2]" />
+                        <Trash2 className="w-3.5 h-3.5 sm:w-3 sm:h-3 stroke-[2.2]" />
                       </button>
                     )}
                   </div>
@@ -381,7 +386,7 @@ export default function RelicsInfo() {
                           return (
                             <div key={requireNum} className="text-xs space-y-0.5 pl-2 border-l-2 border-primary/40">
                               <div className="font-bold text-emerald-500">
-                                {requireNum}-PC Bonus
+                                {transI18n("pieceBonus", { count: requireNum })}
                               </div>
                               <div
                                 className="text-base-content/80 leading-relaxed"
@@ -412,9 +417,9 @@ export default function RelicsInfo() {
       {/* Modals */}
       {modalConfigs.map(({ id, title, isOpen, onClose, content }) => (
         <dialog key={id} id={id} className={`modal ${isOpen ? "modal-open" : ""}`} open={isOpen}>
-          <div className="modal-box w-11/12 max-w-[94vw] xl:max-w-340 max-h-[92vh] flex flex-col bg-base-100 text-base-content border border-base-content/10 shadow-2xl rounded-2xl p-0 overflow-hidden">
-            <div className="sticky top-0 z-20 flex items-center justify-between px-4 sm:px-6 py-2.5 sm:py-3 border-b border-base-content/10 bg-base-100 shrink-0">
-              <h3 className="font-bold text-lg sm:text-xl tracking-tight bg-clip-text text-transparent bg-linear-to-r from-primary via-accent to-secondary">
+          <div className="modal-box w-11/12 max-w-[94vw] xl:max-w-340 max-h-[90vh] max-h-[90dvh] my-auto flex flex-col bg-base-100 text-base-content border border-base-content/10 shadow-2xl rounded-2xl p-0 overflow-hidden">
+            <div className="sticky top-0 z-20 flex items-center justify-between px-3.5 sm:px-6 py-2 sm:py-2.5 border-b border-base-content/10 bg-base-100 shrink-0">
+              <h3 className="font-bold text-base sm:text-xl tracking-tight bg-clip-text text-transparent bg-linear-to-r from-primary via-accent to-secondary">
                 {title}
               </h3>
               <button
@@ -426,7 +431,7 @@ export default function RelicsInfo() {
               </button>
             </div>
 
-            <div className="p-2.5 sm:p-4 overflow-y-auto flex-1">
+            <div className="p-2 sm:p-3.5 overflow-y-auto flex-1">
               <MountOnOpen open={isOpen}>{content}</MountOnOpen>
             </div>
           </div>
@@ -454,7 +459,7 @@ export default function RelicsInfo() {
               <p className="text-xs sm:text-sm text-base-content/70 leading-relaxed">
                 {transI18n("deleteRelicConfirm")}{" "}
                 <span className="font-bold text-amber-400 capitalize font-mono">
-                  {relicSlotToDelete ? (transI18n({ "1": "HEAD", "2": "HAND", "3": "BODY", "4": "FOOT", "5": "NECK", "6": "OBJECT" }[relicSlotToDelete] || relicSlotToDelete) || relicSlotToDelete) : ""}
+                  {relicSlotToDelete ? getSlotName(relicSlotToDelete) : ""}
                 </span>
                 ?
               </p>
@@ -466,9 +471,8 @@ export default function RelicsInfo() {
                 <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-base-300/60 border border-amber-500/30 shrink-0">
                   <Image
                     src={`${process.env.CDN_URL}/spriteoutput/relicfigures/IconRelic_${getRelic(relicSlotToDelete)?.relic_set_id}_${relicSlotToDelete}.png`}
-                    alt="Relic"
+                    alt={transI18n("relic")}
                     unoptimized
-                    crossOrigin="anonymous"
                     width={36}
                     height={36}
                     className="w-7 h-7 object-contain"
@@ -479,7 +483,7 @@ export default function RelicsInfo() {
                     {getLocaleName(locale, mapRelicSet[getRelic(relicSlotToDelete)?.relic_set_id || ""]?.Name)}
                   </p>
                   <p className="text-[11px] text-base-content/60 font-mono">
-                    +{getRelic(relicSlotToDelete)?.level} &bull; <span>{transI18n({ "1": "HEAD", "2": "HAND", "3": "BODY", "4": "FOOT", "5": "NECK", "6": "OBJECT" }[relicSlotToDelete] || relicSlotToDelete)}</span>
+                    +{getRelic(relicSlotToDelete)?.level} &bull; <span>{relicSlotToDelete ? getSlotName(relicSlotToDelete) : ""}</span>
                   </p>
                 </div>
               </div>

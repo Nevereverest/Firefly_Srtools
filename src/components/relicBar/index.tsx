@@ -8,7 +8,7 @@ import useModelStore from '@/stores/modelStore';
 import useRelicMakerStore from '@/stores/relicMakerStore';
 import { toast } from 'react-toastify';
 import { useTranslations } from 'next-intl'
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp, Trash2, Copy, AlertTriangle, Check, X } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import useDetailDataStore from '@/stores/detailDataStore';
 import useCurrentDataStore from '@/stores/currentDataStore';
@@ -93,8 +93,86 @@ export default function RelicMaker() {
         return avatar.profileList?.[avatar.profileSelect] ?? avatar.profileList?.[0] ?? null;
     }, [avatar]);
 
-    const handleSwitchSlot = (newSlot: string) => {
-        if (newSlot === selectedRelicSlot) return;
+    // Switch dialog states
+    const [switchDialogType, setSwitchDialogType] = useState<"hasRelic" | "emptySlot" | null>(null);
+    const [pendingTargetSlot, setPendingTargetSlot] = useState<string | null>(null);
+    const [previewMainStat, setPreviewMainStat] = useState<string>("");
+    const [conflictReplacementMap, setConflictReplacementMap] = useState<Record<string, string>>({});
+    const [switchError, setSwitchError] = useState<string>("");
+
+    const isCompatibleSet = (setId: string, targetSlot: string): boolean => {
+        if (!setId) return false;
+        const setDetail = mapRelicSet[setId];
+        if (!setDetail || !setDetail.Parts) return false;
+        const targetSlotKey = mappingRelicSlot[targetSlot];
+        return Boolean(setDetail.Parts[targetSlotKey]);
+    };
+
+    const isCurrentRelicChanged = (): boolean => {
+        const saved = currentProfile?.relics?.[selectedRelicSlot];
+        if (!saved) {
+            const hasSet = Boolean(selectedRelicSet);
+            const hasMain = Boolean(selectedMainStat);
+            const hasSub = listSelectedSubStats.some((s) => Boolean(s.affixId));
+            return hasSet || hasMain || hasSub;
+        }
+
+        if ((saved.relic_set_id?.toString() || "") !== selectedRelicSet) return true;
+        if ((saved.main_affix_id?.toString() || "") !== selectedMainStat) return true;
+        if ((saved.level ?? 15) !== selectedRelicLevel) return true;
+
+        const savedSubs = saved.sub_affixes || [];
+        for (let i = 0; i < 4; i++) {
+            const cur = listSelectedSubStats[i];
+            const prev = savedSubs[i];
+            if (!cur && !prev) continue;
+            if (!cur || !prev) return true;
+            if ((cur.affixId || "") !== (prev.sub_affix_id?.toString() || "")) return true;
+            if (cur.rollCount !== (prev.count ?? 0)) return true;
+            if (cur.stepCount !== (prev.step ?? 0)) return true;
+        }
+
+        return false;
+    };
+
+    const isCurrentRelicValid = (): boolean => {
+        if (!selectedRelicSet || !selectedMainStat || !selectedRelicLevel || !selectedRelicSlot) return false;
+        if (listSelectedSubStats.length !== 4) return false;
+        if (listSelectedSubStats.some((item) => !item.affixId)) return false;
+        return true;
+    };
+
+    const saveCurrentRelic = (): boolean => {
+        if (!isCurrentRelicValid()) return false;
+        if (avatar && currentProfile) {
+            const profileIndex = avatar.profileSelect;
+            const newProfileList = [...avatar.profileList];
+            newProfileList[profileIndex] = {
+                ...currentProfile,
+                relics: {
+                    ...currentProfile.relics,
+                    [selectedRelicSlot]: {
+                        level: selectedRelicLevel,
+                        relic_id: Number(`6${selectedRelicSet}${selectedRelicSlot}`),
+                        relic_set_id: Number(selectedRelicSet),
+                        main_affix_id: Number(selectedMainStat),
+                        sub_affixes: listSelectedSubStats.map((item) => ({
+                            sub_affix_id: Number(item.affixId),
+                            count: item.rollCount,
+                            step: item.stepCount
+                        }))
+                    }
+                }
+            };
+            setAvatar({
+                ...avatar,
+                profileList: newProfileList
+            });
+        }
+        return true;
+    };
+
+    const doSwitchSlot = (newSlot: string) => {
         setError("");
         setSelectedRelicSlot(newSlot);
         resetHistory(null);
@@ -121,7 +199,7 @@ export default function RelicMaker() {
             setListSelectedSubStats(newSubAffixes);
         } else {
             setSelectedMainStat("");
-            setSelectedRelicSet("");
+            setSelectedRelicSet(isCompatibleSet(selectedRelicSet, newSlot) ? selectedRelicSet : "");
             setSelectedRelicLevel(15);
             setListSelectedSubStats([
                 { affixId: "", property: "", rollCount: 0, stepCount: 0 },
@@ -130,6 +208,210 @@ export default function RelicMaker() {
                 { affixId: "", property: "", rollCount: 0, stepCount: 0 }
             ]);
         }
+    };
+
+    const handleSwitchSlot = (newSlot: string) => {
+        if (newSlot === selectedRelicSlot) return;
+        setSwitchError("");
+
+        const hasTargetRelic = Boolean(currentProfile?.relics?.[newSlot]);
+        const hasCurrentRelic = Boolean(currentProfile?.relics?.[selectedRelicSlot]) || isCurrentRelicChanged();
+
+        // Case 1: Target slot is empty, and current slot has a relic configuration
+        // Prompt to copy configuration to the empty slot!
+        if (!hasTargetRelic && hasCurrentRelic) {
+            setPendingTargetSlot(newSlot);
+            setSwitchDialogType("emptySlot");
+            const targetMainMap = mainAffix["5" + newSlot] || {};
+            const firstKey = Object.keys(targetMainMap)[0] || "";
+            setPreviewMainStat(firstKey);
+            setConflictReplacementMap({});
+            return;
+        }
+
+        // Case 2: Target slot already has a relic, and current slot has unsaved changes
+        // Prompt to save/discard before switching
+        if (isCurrentRelicChanged()) {
+            setPendingTargetSlot(newSlot);
+            setSwitchDialogType("hasRelic");
+            return;
+        }
+
+        // Case 3: No unsaved changes (and target has relic or both empty) -> switch directly
+        doSwitchSlot(newSlot);
+    };
+
+    // Target slot main affixes for Case 2
+    const targetSlotMainAffixes = useMemo(() => {
+        if (!pendingTargetSlot) return {};
+        return mainAffix["5" + pendingTargetSlot] || {};
+    }, [mainAffix, pendingTargetSlot]);
+
+    // Target main stat property
+    const targetMainProperty = useMemo(() => {
+        return targetSlotMainAffixes[previewMainStat]?.Property || "";
+    }, [targetSlotMainAffixes, previewMainStat]);
+
+    // Check if any source substat conflicts with target main property
+    const conflictingSubStatIndex = useMemo(() => {
+        if (!targetMainProperty) return -1;
+        return listSelectedSubStats.findIndex(
+            (item) => item.affixId && item.property === targetMainProperty
+        );
+    }, [targetMainProperty, listSelectedSubStats]);
+
+    // Replacement options for the conflicting substat
+    const replacementOptions = useMemo(() => {
+        if (conflictingSubStatIndex === -1) return {};
+        const options: Record<string, SubAffixData> = {};
+        const all5StarSubs = subAffix["5"] || {};
+
+        const usedProperties = new Set<string>();
+        usedProperties.add(targetMainProperty);
+        listSelectedSubStats.forEach((sub, idx) => {
+            if (idx !== conflictingSubStatIndex && sub.property) {
+                usedProperties.add(sub.property);
+            }
+        });
+
+        for (const [key, val] of Object.entries(all5StarSubs)) {
+            if (!usedProperties.has(val.Property)) {
+                options[key] = val;
+            }
+        }
+        return options;
+    }, [conflictingSubStatIndex, subAffix, targetMainProperty, listSelectedSubStats]);
+
+    const hasUnresolvedConflict = useMemo(() => {
+        if (conflictingSubStatIndex === -1) return false;
+        const repId = conflictReplacementMap[targetMainProperty];
+        return !repId || !replacementOptions[repId];
+    }, [conflictingSubStatIndex, conflictReplacementMap, targetMainProperty, replacementOptions]);
+
+    // Resolved preview substats for Case 2
+    const previewResolvedSubStats = useMemo(() => {
+        return listSelectedSubStats.map((item, idx) => {
+            if (idx === conflictingSubStatIndex) {
+                const repId = conflictReplacementMap[targetMainProperty] || "";
+                const repData = subAffix["5"]?.[repId];
+                return {
+                    affixId: repId,
+                    property: repData?.Property || "",
+                    rollCount: item.rollCount,
+                    stepCount: item.stepCount,
+                    isConflict: true,
+                    originalProperty: item.property,
+                };
+            }
+            return {
+                affixId: item.affixId,
+                property: item.property,
+                rollCount: item.rollCount,
+                stepCount: item.stepCount,
+                isConflict: false,
+                originalProperty: item.property,
+            };
+        });
+    }, [listSelectedSubStats, conflictingSubStatIndex, conflictReplacementMap, targetMainProperty, subAffix]);
+
+    const handleConfirmSaveAndSwitchCase1 = () => {
+        setSwitchError("");
+        if (!pendingTargetSlot) return;
+
+        if (!isCurrentRelicValid()) {
+            setSwitchError(transI18n("incompleteRelicWarning"));
+            return;
+        }
+
+        saveCurrentRelic();
+        doSwitchSlot(pendingTargetSlot);
+        const slotInfo = slotIconMap[pendingTargetSlot];
+        const slotName = slotInfo?.key && transI18n.has(slotInfo.key)
+            ? transI18n(slotIconMap[pendingTargetSlot].key)
+            : pendingTargetSlot;
+        setSwitchDialogType(null);
+        setPendingTargetSlot(null);
+        toast.success(transI18n("relicSavedAndSwitched", { slot: slotName }));
+    };
+
+    const handleConfirmCopyAndSwitch = () => {
+        setSwitchError("");
+        if (!pendingTargetSlot) return;
+
+        if (!isCurrentRelicValid()) {
+            setSwitchError(transI18n("incompleteRelicWarning"));
+            return;
+        }
+
+        if (!previewMainStat) {
+            setSwitchError(transI18n("pleaseSelectAllOptions"));
+            return;
+        }
+
+        if (hasUnresolvedConflict) {
+            setSwitchError(transI18n("pleaseSelectReplacement"));
+            return;
+        }
+
+        if (isCurrentRelicChanged()) {
+            saveCurrentRelic();
+        }
+
+        const targetSlot = pendingTargetSlot;
+        setSelectedRelicSlot(targetSlot);
+        resetHistory(null);
+        setSelectedMainStat(previewMainStat);
+        setSelectedRelicSet(isCompatibleSet(selectedRelicSet, targetSlot) ? selectedRelicSet : "");
+        setSelectedRelicLevel(15);
+        setListSelectedSubStats(
+            previewResolvedSubStats.map((item) => ({
+                affixId: item.affixId,
+                property: item.property,
+                rollCount: item.rollCount,
+                stepCount: item.stepCount,
+            }))
+        );
+
+        const slotInfo = slotIconMap[targetSlot];
+        const slotName = slotInfo?.key && transI18n.has(slotInfo.key)
+            ? transI18n(slotInfo.key)
+            : targetSlot;
+        setSwitchDialogType(null);
+        setPendingTargetSlot(null);
+        toast.success(transI18n("copiedSubstatsSuccessfully", { slot: slotName }));
+    };
+
+    const handleConfirmSaveOnlyAndSwitch = () => {
+        setSwitchError("");
+        if (!pendingTargetSlot) return;
+
+        if (!isCurrentRelicValid()) {
+            setSwitchError(transI18n("incompleteRelicWarning"));
+            return;
+        }
+
+        saveCurrentRelic();
+        doSwitchSlot(pendingTargetSlot);
+        const slotInfo = slotIconMap[pendingTargetSlot];
+        const slotName = slotInfo?.key && transI18n.has(slotInfo.key)
+            ? transI18n(slotInfo.key)
+            : pendingTargetSlot;
+        setSwitchDialogType(null);
+        setPendingTargetSlot(null);
+        toast.success(transI18n("relicSavedAndSwitched", { slot: slotName }));
+    };
+
+    const handleConfirmDiscardAndSwitch = () => {
+        if (!pendingTargetSlot) return;
+        doSwitchSlot(pendingTargetSlot);
+        setSwitchDialogType(null);
+        setPendingTargetSlot(null);
+    };
+
+    const handleCancelSwitch = () => {
+        setSwitchDialogType(null);
+        setPendingTargetSlot(null);
+        setSwitchError("");
     };
 
     const relicSets = useMemo(() => {
@@ -340,9 +622,28 @@ export default function RelicMaker() {
         toast.success(transI18n("relicSavedSuccessfully"));
     }
 
+    const handlerDeleteCurrentRelic = () => {
+        if (avatar && currentProfile && selectedRelicSlot) {
+            const profileIndex = avatar.profileSelect;
+            const newRelics = { ...currentProfile.relics };
+            delete newRelics[selectedRelicSlot];
+            const newProfileList = [...avatar.profileList];
+            newProfileList[profileIndex] = {
+                ...currentProfile,
+                relics: newRelics,
+            };
+            setAvatar({
+                ...avatar,
+                profileList: newProfileList,
+            });
+            setIsOpenRelic(false);
+            toast.success(transI18n("relicDeletedSuccessfully"));
+        }
+    };
+
     const renderSlotSwitcher = () => (
-        <div className="p-2 sm:p-2.5 rounded-xl bg-base-200/50 border border-base-content/10 shadow-xs">
-            <div className="flex items-center justify-between px-1 pb-1.5 border-b border-base-content/10 text-xs font-bold text-base-content/70">
+        <div className="p-1.5 sm:p-2.5 rounded-xl bg-base-200/50 border border-base-content/10 shadow-xs">
+            <div className="flex items-center justify-between px-1 pb-1 sm:pb-1.5 border-b border-base-content/10 text-xs font-bold text-base-content/70">
                 <span className="uppercase tracking-wider flex items-center gap-1.5">
                     <span className="w-1.5 h-3 bg-primary rounded-full" />
                     {transI18n("slot")}
@@ -353,7 +654,7 @@ export default function RelicMaker() {
                         : (selectedRelicSlot ? (slotIconMap[selectedRelicSlot]?.key || selectedRelicSlot) : "")}
                 </span>
             </div>
-            <div className="grid grid-cols-6 gap-1 sm:gap-1.5 pt-1.5">
+            <div className="grid grid-cols-6 gap-1 sm:gap-1.5 pt-1 sm:pt-1.5">
                 {["1", "2", "3", "4", "5", "6"].map((slotKey) => {
                     const isSelected = selectedRelicSlot === slotKey;
                     const equippedRelic = currentProfile?.relics?.[slotKey];
@@ -385,7 +686,6 @@ export default function RelicMaker() {
                                         src={relicImgUrl}
                                         alt={slotName}
                                         unoptimized
-                                        crossOrigin="anonymous"
                                         width={32}
                                         height={32}
                                         className={`w-6 h-6 sm:w-7 sm:h-7 object-contain transition-transform duration-150 ${
@@ -420,28 +720,28 @@ export default function RelicMaker() {
     );
 
     return (
-        <div className="space-y-3">
+        <div className="space-y-2 sm:space-y-3">
             {/* On mobile / tablet (< lg:), Slot Switcher is shown at the top */}
             <div className="lg:hidden">
                 {renderSlotSwitcher()}
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 sm:gap-3 lg:gap-4">
                 {/* Left Panel: Main Stat & Set Configuration */}
-                <div className="lg:col-span-5 xl:col-span-4 space-y-2.5">
+                <div className="lg:col-span-5 xl:col-span-4 space-y-2 sm:space-y-2.5">
                     {/* Main Settings Card */}
-                    <div className="p-3 sm:p-3.5 rounded-xl bg-base-200/50 border border-base-content/10 shadow-xs space-y-2.5">
-                        <div className="pb-1.5 border-b border-base-content/10">
+                    <div className="p-2.5 sm:p-3.5 rounded-xl bg-base-200/50 border border-base-content/10 shadow-xs space-y-2 sm:space-y-2.5">
+                        <div className="pb-1 sm:pb-1.5 border-b border-base-content/10">
                             <h2 className="text-sm font-bold text-primary flex items-center gap-1.5">
                                 <span className="w-1.5 h-3.5 bg-primary rounded-full"></span>
                                 {transI18n("mainSettings")}
                             </h2>
                         </div>
 
-                        <div className="space-y-2.5">
+                        <div className="space-y-2 sm:space-y-2.5">
                             {/* Main Stat Picker */}
                             <div>
-                                <label className="block text-[11px] font-bold uppercase tracking-wider text-base-content/75 mb-1">
+                                <label className="block text-[11px] font-bold uppercase tracking-wider text-base-content/75 mb-0.5 sm:mb-1">
                                     {transI18n("mainStat")}
                                 </label>
                                 <SelectCustomImage
@@ -459,7 +759,7 @@ export default function RelicMaker() {
 
                             {/* Relic Set Picker */}
                             <div>
-                                <label className="block text-[11px] font-bold uppercase tracking-wider text-base-content/75 mb-1">
+                                <label className="block text-[11px] font-bold uppercase tracking-wider text-base-content/75 mb-0.5 sm:mb-1">
                                     {transI18n("set")}
                                 </label>
                                 <SelectCustomImage
@@ -476,11 +776,11 @@ export default function RelicMaker() {
                             </div>
 
                             {/* Set Bonus Display (Expanded height on desktop, with overflow-y-auto so text is never truncated) */}
-                            <div className="py-2 px-2.5 text-xs border border-base-content/10 rounded-lg bg-base-100/50 max-h-48 xl:max-h-56 overflow-y-auto">
+                            <div className="py-1.5 px-2 sm:py-2 sm:px-2.5 text-xs border border-base-content/10 rounded-lg bg-base-100/50 max-h-40 sm:max-h-48 xl:max-h-56 overflow-y-auto">
                                 {selectedRelicSet !== "" && mapRelicSet[selectedRelicSet] ? (
                                     Object.entries(mapRelicSet[selectedRelicSet].Skills).map(([key, value]) => (
                                         <div key={key} className="mb-2 last:mb-0 space-y-0.5">
-                                            <span className="font-bold text-amber-500 text-[11px]">{key}-Piece:</span>
+                                            <span className="font-bold text-amber-500 text-[11px]">{transI18n("pieceBonus", { count: key })}</span>
                                             <div
                                                 className="text-base-content/85 text-[11px] leading-relaxed pl-1"
                                                 dangerouslySetInnerHTML={{
@@ -498,7 +798,7 @@ export default function RelicMaker() {
                             </div>
 
                             {/* Effect Bonus & Level */}
-                            <div className="space-y-2 pt-0.5">
+                            <div className="space-y-1.5 sm:space-y-2 pt-0.5">
                                 <div className="flex items-center justify-between text-xs font-semibold">
                                     <span className="text-base-content/75">{transI18n("effectBonus")}:</span>
                                     <span className="font-mono text-primary font-bold text-sm">+{effectBonus}</span>
@@ -535,36 +835,49 @@ export default function RelicMaker() {
                                 )}
                             </AnimatePresence>
 
-                            {/* Save Actions: Save & Save and Close */}
-                            <div className="grid grid-cols-2 gap-2 mt-1.5 pt-1 border-t border-base-content/10">
-                                <button
-                                    type="button"
-                                    onClick={() => handlerSaveRelic(false)}
-                                    className="btn btn-outline btn-primary btn-sm rounded-xl font-bold shadow-xs transition-all active:scale-[0.98] cursor-pointer"
-                                >
-                                    {transI18n("save")}
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => handlerSaveRelic(true)}
-                                    className="btn btn-primary btn-sm rounded-xl font-bold shadow-xs transition-all active:scale-[0.98] cursor-pointer"
-                                >
-                                    {transI18n("saveAndClose")}
-                                </button>
+                            {/* Save Actions: Delete (if equipped) + Save & Save and Close */}
+                            <div className="flex flex-col sm:flex-row gap-1.5 sm:gap-2 mt-1 pt-1 border-t border-base-content/10">
+                                {currentProfile?.relics?.[selectedRelicSlot] && (
+                                    <button
+                                        type="button"
+                                        onClick={handlerDeleteCurrentRelic}
+                                        className="btn btn-outline btn-error btn-sm rounded-xl font-bold shadow-xs transition-all active:scale-[0.98] cursor-pointer gap-1.5"
+                                        title={transI18n("deleteRelic")}
+                                    >
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                        <span>{transI18n("deleteRelic")}</span>
+                                    </button>
+                                )}
+                                <div className="grid grid-cols-2 gap-1.5 sm:gap-2 flex-1">
+                                    <button
+                                        type="button"
+                                        onClick={() => handlerSaveRelic(false)}
+                                        className="btn btn-outline btn-primary btn-sm rounded-xl font-bold shadow-xs transition-all active:scale-[0.98] cursor-pointer"
+                                    >
+                                        {transI18n("save")}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => handlerSaveRelic(true)}
+                                        className="btn btn-primary btn-sm rounded-xl font-bold shadow-xs transition-all active:scale-[0.98] cursor-pointer"
+                                    >
+                                        {transI18n("saveAndClose")}
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 {/* Right Panel: Slot Switcher (on lg+) + Sub Stats Configurator */}
-                <div className="lg:col-span-7 xl:col-span-8 space-y-2">
+                <div className="lg:col-span-7 xl:col-span-8 space-y-1.5 sm:space-y-2">
                     {/* On desktop (lg:), Slot Switcher is shown at the top of the right column */}
                     <div className="hidden lg:block">
                         {renderSlotSwitcher()}
                     </div>
 
                     {/* Header with Total Rolls & Randomizers */}
-                    <div className="px-3 py-2 rounded-xl bg-base-200/50 border border-base-content/10 flex flex-wrap items-center justify-between gap-2 shadow-xs">
+                    <div className="px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl bg-base-200/50 border border-base-content/10 flex flex-wrap items-center justify-between gap-1.5 sm:gap-2 shadow-xs">
                         <div className="flex items-center gap-2">
                             <span className="text-sm font-extrabold uppercase tracking-wider text-base-content/85">{transI18n("totalRoll")}:</span>
                             <span className="text-sm font-mono font-bold px-2.5 py-0.5 rounded-full bg-primary/20 text-primary border border-primary/30">
@@ -591,9 +904,9 @@ export default function RelicMaker() {
                     </div>
 
                     {/* 4 Sub-Stat Slots in 2x2 Grid on md+ screens, 1 column on smaller (mobile) */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-2.5">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-1.5 sm:gap-2 md:gap-2.5">
                         {listSelectedSubStats.map((v, index) => (
-                            <div key={index} className="p-2.5 sm:p-3 rounded-xl bg-base-200/40 border border-base-content/10 space-y-2.5 shadow-xs">
+                            <div key={index} className="p-2 sm:p-2.5 md:p-3 rounded-xl bg-base-200/40 border border-base-content/10 space-y-1.5 sm:space-y-2.5 shadow-xs">
                                 <div className="flex items-center justify-between gap-2">
                                     <div className="flex-1 min-w-0">
                                         <SelectCustomImage
@@ -614,20 +927,20 @@ export default function RelicMaker() {
                                     </div>
 
                                     {/* Stat Value Readout */}
-                                    <div className="px-2.5 py-1 rounded-lg bg-base-100 border border-base-content/10 text-right min-w-22 shadow-xs shrink-0">
+                                    <div className="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg bg-base-100 border border-base-content/10 text-right min-w-20 sm:min-w-22 shadow-xs shrink-0">
                                         <span className="text-sm sm:text-base font-mono font-black text-primary block leading-tight">
                                             +{calcAffixBonus(subAffixOptions[v.affixId], v.stepCount, v.rollCount)}{mappingStats?.[subAffixOptions[v.affixId]?.Property]?.unit || ""}
                                         </span>
-                                        <span className="text-xs text-base-content/60 font-mono font-semibold">
+                                        <span className="text-[11px] sm:text-xs text-base-content/60 font-mono font-semibold">
                                             R: {v.rollCount} | S: {v.stepCount}
                                         </span>
                                     </div>
                                 </div>
 
                                 {/* Up / Down Steppers */}
-                                <div className="grid grid-cols-2 gap-2 pt-0.5">
+                                <div className="grid grid-cols-2 gap-1.5 sm:gap-2 pt-0.5">
                                     {/* Up Rolls */}
-                                    <div className="space-y-1.5">
+                                    <div className="space-y-1 sm:space-y-1.5">
                                         <div className="flex items-center gap-1 text-xs font-bold text-success leading-none">
                                             <ChevronUp className="w-3.5 h-3.5" />
                                             <span>{transI18n("upRoll")}</span>
@@ -647,7 +960,7 @@ export default function RelicMaker() {
                                     </div>
 
                                     {/* Down Rolls */}
-                                    <div className="space-y-1.5">
+                                    <div className="space-y-1 sm:space-y-1.5">
                                         <div className="flex items-center gap-1 text-xs font-bold text-error leading-none">
                                             <ChevronDown className="w-3.5 h-3.5" />
                                             <span>{transI18n("downRoll")}</span>
@@ -668,17 +981,17 @@ export default function RelicMaker() {
                                 </div>
 
                                 {/* Reset & Rollback actions */}
-                                <div className="flex items-center justify-end gap-2 pt-1 border-t border-base-content/10">
+                                <div className="flex items-center justify-end gap-1.5 sm:gap-2 pt-1 border-t border-base-content/10">
                                     <button
                                         type="button"
-                                        className="btn btn-ghost btn-xs text-warning hover:bg-warning/10 rounded-md text-xs sm:text-[13px] font-bold h-7 min-h-7 px-2.5 cursor-pointer"
+                                        className="btn btn-ghost btn-xs text-warning hover:bg-warning/10 rounded-md text-xs sm:text-[13px] font-bold h-7 min-h-7 px-2 sm:px-2.5 cursor-pointer"
                                         onClick={() => handlerRollback(index)}
                                     >
                                         {transI18n("rollBack")}
                                     </button>
                                     <button
                                         type="button"
-                                        className="btn btn-ghost btn-xs text-error hover:bg-error/10 rounded-md text-xs sm:text-[13px] font-bold h-7 min-h-7 px-2.5 cursor-pointer"
+                                        className="btn btn-ghost btn-xs text-error hover:bg-error/10 rounded-md text-xs sm:text-[13px] font-bold h-7 min-h-7 px-2 sm:px-2.5 cursor-pointer"
                                         onClick={() => resetSubStat(index)}
                                     >
                                         {transI18n("reset")}
@@ -689,6 +1002,333 @@ export default function RelicMaker() {
                     </div>
                 </div>
             </div>
+
+            {/* Modal Switch Dialogs */}
+            <AnimatePresence>
+                {switchDialogType === "emptySlot" && pendingTargetSlot && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/70">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                            className="relative w-full max-w-lg bg-base-100 border border-base-content/15 rounded-2xl p-4 sm:p-5 shadow-2xl space-y-3.5 max-h-[85vh] overflow-y-auto"
+                        >
+                            {/* Header */}
+                            <div className="flex items-center justify-between pb-3 border-b border-base-content/10">
+                                <div className="flex items-center gap-2.5">
+                                    <div className="p-2 rounded-xl bg-primary/10 text-primary">
+                                        <Copy className="w-5 h-5" />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-bold text-sm sm:text-base text-base-content">
+                                            {transI18n("emptySlotCopyTitle")}
+                                        </h3>
+                                        <p className="text-xs text-base-content/60">
+                                            {transI18n("emptySlotCopyPrompt", {
+                                                slot: slotIconMap[pendingTargetSlot]?.key && transI18n.has(slotIconMap[pendingTargetSlot].key)
+                                                    ? transI18n(slotIconMap[pendingTargetSlot].key)
+                                                    : pendingTargetSlot
+                                            })}
+                                        </p>
+                                    </div>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={handleCancelSwitch}
+                                    className="btn btn-ghost btn-xs btn-circle text-base-content/60 hover:text-base-content cursor-pointer"
+                                >
+                                    <X className="w-4 h-4" />
+                                </button>
+                            </div>
+
+                            {/* Target Slot Main Stat Picker */}
+                            <div className="p-3 rounded-xl bg-base-200/60 border border-base-content/10 space-y-2">
+                                <label className="text-xs font-bold text-base-content flex items-center justify-between">
+                                    <span>{transI18n("selectTargetMainStat")}</span>
+                                    <span className="font-mono text-[11px] text-primary">
+                                        {slotIconMap[pendingTargetSlot]?.key && transI18n.has(slotIconMap[pendingTargetSlot].key)
+                                            ? transI18n(slotIconMap[pendingTargetSlot].key)
+                                            : pendingTargetSlot}
+                                    </span>
+                                </label>
+                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                                    {Object.entries(targetSlotMainAffixes).map(([key, affix]) => {
+                                        const statMeta = mappingStats[affix.Property];
+                                        const isSelected = previewMainStat === key;
+                                        return (
+                                            <button
+                                                key={key}
+                                                type="button"
+                                                onClick={() => setPreviewMainStat(key)}
+                                                className={`flex items-center gap-1.5 p-2 rounded-lg border text-left transition-all cursor-pointer ${
+                                                    isSelected
+                                                        ? "bg-primary text-primary-content border-primary shadow-xs font-bold"
+                                                        : "bg-base-100 hover:bg-base-200 border-base-content/10 text-base-content"
+                                                }`}
+                                            >
+                                                {statMeta?.icon && (
+                                                    <Image
+                                                        src={`${process.env.CDN_URL}/${statMeta.icon}`}
+                                                        alt={statMeta.name}
+                                                        unoptimized
+                                                        width={18}
+                                                        height={18}
+                                                        className="w-4 h-4 object-contain"
+                                                    />
+                                                )}
+                                                <span className="text-xs truncate">
+                                                    {statMeta?.name} {statMeta?.unit}
+                                                </span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
+                            {/* Substats Preview & Conflict Resolver */}
+                            <div className="space-y-2">
+                                <div className="flex items-center justify-between text-xs font-bold text-base-content/80">
+                                    <span>{transI18n("subStatsPreview")}</span>
+                                    {hasUnresolvedConflict ? (
+                                        <span className="text-warning flex items-center gap-1 text-[11px]">
+                                            <AlertTriangle className="w-3.5 h-3.5" />
+                                            {transI18n("mainStatConflict", {
+                                                stat: mappingStats[targetMainProperty]?.name || targetMainProperty
+                                            })}
+                                        </span>
+                                    ) : (
+                                        <span className="text-success flex items-center gap-1 text-[11px]">
+                                            <Check className="w-3.5 h-3.5" />
+                                            {transI18n("valid")}
+                                        </span>
+                                    )}
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                    {previewResolvedSubStats.map((sub, idx) => {
+                                        const originalMeta = mappingStats[sub.originalProperty];
+                                        if (sub.isConflict) {
+                                            const currentReplacementId = conflictReplacementMap[targetMainProperty] || "";
+                                            const isResolved = Boolean(currentReplacementId && replacementOptions[currentReplacementId]);
+                                            return (
+                                                <div
+                                                    key={idx}
+                                                    className={`p-2.5 rounded-xl border-2 transition-all space-y-1.5 ${
+                                                        isResolved
+                                                            ? "border-emerald-500/40 bg-emerald-500/5 dark:border-emerald-400/30"
+                                                            : "border-warning/50 bg-warning/5"
+                                                    }`}
+                                                >
+                                                    <div className="flex items-center justify-between text-[11px] font-bold">
+                                                        {isResolved ? (
+                                                            <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+                                                                <Check className="w-3.5 h-3.5" />
+                                                                <span>{transI18n("valid")}</span>
+                                                            </span>
+                                                        ) : (
+                                                            <span className="flex items-center gap-1 text-warning">
+                                                                <AlertTriangle className="w-3 h-3" />
+                                                                {transI18n("mainStatConflict", {
+                                                                    stat: originalMeta?.name || sub.originalProperty
+                                                                })}
+                                                            </span>
+                                                        )}
+                                                        <span className="text-[10px] font-mono text-base-content/60">
+                                                            {sub.rollCount > 0 ? transI18n("rollCount", { count: sub.rollCount }) : ""}
+                                                        </span>
+                                                    </div>
+                                                    <select
+                                                        value={currentReplacementId}
+                                                        onChange={(e) => {
+                                                            const val = e.target.value;
+                                                            setConflictReplacementMap(prev => ({
+                                                                ...prev,
+                                                                [targetMainProperty]: val,
+                                                            }));
+                                                        }}
+                                                        className={`select select-xs w-full bg-base-100 text-xs font-semibold rounded-lg ${
+                                                            isResolved
+                                                                ? "border-emerald-500/30 focus:border-emerald-500"
+                                                                : "border-warning/40 focus:border-warning"
+                                                        }`}
+                                                    >
+                                                        <option value="" disabled>-- {transI18n("replaceWith")} --</option>
+                                                        {Object.entries(replacementOptions).map(([affixKey, affixVal]) => {
+                                                            const repMeta = mappingStats[affixVal.Property];
+                                                            return (
+                                                                <option key={affixKey} value={affixKey}>
+                                                                    {repMeta?.name} {repMeta?.unit}
+                                                                </option>
+                                                            );
+                                                        })}
+                                                    </select>
+                                                    {isResolved && sub.affixId && (
+                                                        <div className="flex items-center justify-between pt-1 border-t border-emerald-500/15 text-xs">
+                                                            <div className="flex items-center gap-1.5 min-w-0">
+                                                                {mappingStats[sub.property]?.icon && (
+                                                                    <Image
+                                                                        src={`${process.env.CDN_URL}/${mappingStats[sub.property].icon}`}
+                                                                        alt={mappingStats[sub.property]?.name || "Stat"}
+                                                                        unoptimized
+                                                                        width={16}
+                                                                        height={16}
+                                                                        className="w-4 h-4 object-contain"
+                                                                    />
+                                                                )}
+                                                                <span className="font-semibold text-base-content truncate">
+                                                                    {mappingStats[sub.property]?.name} {mappingStats[sub.property]?.unit}
+                                                                </span>
+                                                            </div>
+                                                            <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400 text-[11px]">
+                                                                +{calcAffixBonus(subAffix["5"]?.[sub.affixId], sub.stepCount, sub.rollCount)}{mappingStats?.[subAffix["5"]?.[sub.affixId]?.Property]?.unit || ""}
+                                                            </span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            );
+                                        }
+
+                                        const statMeta = mappingStats[sub.property];
+                                        return (
+                                            <div
+                                                key={idx}
+                                                className="flex items-center justify-between p-2 rounded-xl bg-base-200/40 border border-base-content/10 text-xs"
+                                            >
+                                                <div className="flex items-center gap-1.5 min-w-0">
+                                                    {statMeta?.icon && (
+                                                        <Image
+                                                            src={`${process.env.CDN_URL}/${statMeta.icon}`}
+                                                            alt={statMeta?.name || "Stat"}
+                                                            unoptimized
+                                                            width={16}
+                                                            height={16}
+                                                            className="w-4 h-4 object-contain"
+                                                        />
+                                                    )}
+                                                    <span className="font-semibold text-base-content truncate">
+                                                        {statMeta?.name || transI18n("notSelected")} {statMeta?.unit}
+                                                    </span>
+                                                </div>
+                                                {sub.affixId && (
+                                                    <span className="font-mono font-bold text-primary text-[11px]">
+                                                        +{calcAffixBonus(subAffix["5"]?.[sub.affixId], sub.stepCount, sub.rollCount)}{mappingStats?.[subAffix["5"]?.[sub.affixId]?.Property]?.unit || ""}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
+                            {/* Error Message if any */}
+                            {switchError && (
+                                <div className="p-2 rounded-lg bg-error/10 border border-error/20 text-error text-xs font-bold text-center">
+                                    {switchError}
+                                </div>
+                            )}
+
+                            {/* Action Buttons */}
+                            <div className="flex flex-col gap-2 pt-2 border-t border-base-content/10">
+                                <button
+                                    type="button"
+                                    onClick={handleConfirmCopyAndSwitch}
+                                    className="btn btn-primary btn-sm rounded-xl font-bold shadow-md shadow-primary/25 cursor-pointer gap-2"
+                                >
+                                    <Copy className="w-4 h-4" />
+                                    <span>{isCurrentRelicChanged() ? transI18n("saveAndCopy") : transI18n("copy")}</span>
+                                </button>
+                                {isCurrentRelicChanged() ? (
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <button
+                                            type="button"
+                                            onClick={handleConfirmSaveOnlyAndSwitch}
+                                            className="btn btn-outline btn-sm rounded-xl font-bold cursor-pointer"
+                                        >
+                                            {transI18n("saveOnly")}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={handleConfirmDiscardAndSwitch}
+                                            className="btn btn-ghost btn-sm text-error hover:bg-error/10 rounded-xl font-bold cursor-pointer"
+                                        >
+                                            {transI18n("discardAndSwitch")}
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        onClick={handleConfirmDiscardAndSwitch}
+                                        className="btn btn-outline btn-sm rounded-xl font-bold cursor-pointer"
+                                    >
+                                        {transI18n("discardAndSwitch")}
+                                    </button>
+                                )}
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+
+                {switchDialogType === "hasRelic" && pendingTargetSlot && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/70">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                            className="relative w-full max-w-md bg-base-100 border border-base-content/15 rounded-2xl p-5 shadow-2xl space-y-4 max-h-[85vh] overflow-y-auto"
+                        >
+                            <div className="flex items-center justify-between pb-3 border-b border-base-content/10">
+                                <h3 className="font-bold text-base text-base-content flex items-center gap-2">
+                                    <span className="w-2 h-4 bg-primary rounded-full"></span>
+                                    {transI18n("switchSlotTitle")}
+                                </h3>
+                                <button
+                                    type="button"
+                                    onClick={handleCancelSwitch}
+                                    className="btn btn-ghost btn-xs btn-circle text-base-content/60 hover:text-base-content cursor-pointer"
+                                >
+                                    <X className="w-4 h-4" />
+                                </button>
+                            </div>
+
+                            <p className="text-sm text-base-content/80 leading-relaxed">
+                                {transI18n("saveChangesPrompt")}
+                            </p>
+
+                            {switchError && (
+                                <div className="p-2 rounded-lg bg-error/10 border border-error/20 text-error text-xs font-bold text-center">
+                                    {switchError}
+                                </div>
+                            )}
+
+                            <div className="flex flex-col gap-2 pt-2 border-t border-base-content/10">
+                                <button
+                                    type="button"
+                                    onClick={handleConfirmSaveAndSwitchCase1}
+                                    className="btn btn-primary btn-sm rounded-xl font-bold shadow-md shadow-primary/25 cursor-pointer"
+                                >
+                                    {transI18n("saveAndSwitch")}
+                                </button>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={handleConfirmDiscardAndSwitch}
+                                        className="btn btn-outline btn-warning btn-sm rounded-xl font-bold cursor-pointer"
+                                    >
+                                        {transI18n("discardAndSwitch")}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={handleCancelSwitch}
+                                        className="btn btn-ghost btn-sm rounded-xl font-bold cursor-pointer"
+                                    >
+                                        {transI18n("cancel")}
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };

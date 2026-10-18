@@ -308,13 +308,12 @@ export default function AvatarInfo() {
                                         <div className="sm:col-span-4 aspect-3/4 rounded-xl overflow-hidden bg-base-200/60 flex items-center justify-center border border-base-content/10 shadow-xs">
                                             <Image
                                                 unoptimized
-                                                crossOrigin="anonymous"
                                                 width={904}
                                                 height={1260}
                                                 priority
                                                 src={`${process.env.CDN_URL}/${lightconeDetail?.Image?.ImagePath}`}
                                                 className="w-full h-full object-cover"
-                                                alt="Lightcone"
+                                                alt={transI18n("lightcone")}
                                             />
                                         </div>
 

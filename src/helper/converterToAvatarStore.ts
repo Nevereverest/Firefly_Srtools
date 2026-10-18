@@ -1,4 +1,6 @@
-import { AvatarEnkaDetail, AvatarProfileStore, AvatarStore, AvatarDetail, FreeSRJson, RelicStore } from "@/types";
+import { AvatarEnkaDetail, AvatarProfileStore, AvatarStore, AvatarDetail, FreeSRJson, RelicStore, LightconeJson, RelicJson } from "@/types";
+import { FribbelsProfileItem } from "./converterFribbels";
+import { FreeSRProfileItem } from "./converterFreeSR";
 
 function safeNumber(val: string | number | null, fallback = 0): number {
     if (!val) return fallback;
@@ -100,3 +102,138 @@ export function converterOneFreeSRDataToAvatarStore(data: FreeSRJson, count: num
     }
     return profile
 }
+
+export function converterImportedDataToAvatarStore(
+    profilePrefix: string,
+    lightcones: LightconeJson[],
+    relics: RelicJson[],
+    avatar_id: number,
+    count: number
+): AvatarProfileStore | null {
+    const lightcone = (lightcones ?? []).find((lc) => lc.equip_avatar === avatar_id);
+    const charRelics = (relics ?? []).filter((relic) => relic.equip_avatar === avatar_id);
+    if (!lightcone && (!charRelics || charRelics.length === 0)) return null;
+
+    const relicsMap = {} as Record<string, RelicStore>;
+    charRelics.forEach((relic) => {
+        const slotKey = relic.relic_id.toString().slice(-1);
+        relicsMap[slotKey] = {
+            level: relic.level,
+            relic_id: relic.relic_id,
+            relic_set_id: relic.relic_set_id,
+            main_affix_id: relic.main_affix_id,
+            sub_affixes: (relic.sub_affixes ?? []).map((subAffix) => ({
+                sub_affix_id: subAffix.sub_affix_id,
+                count: subAffix.count,
+                step: subAffix.step ?? 0,
+            })),
+        };
+    });
+
+    const profile: AvatarProfileStore = {
+        profile_name: `${profilePrefix} Profile ${count}`,
+        lightcone: (lightcone && lightcone.item_id) ? {
+            level: lightcone?.level ?? 0,
+            item_id: lightcone?.item_id ?? 0,
+            rank: lightcone?.rank ?? 0,
+            promotion: lightcone?.promotion ?? 0,
+        } : null,
+        relics: relicsMap,
+    };
+    return profile;
+}
+
+export function converterOneHoyolabDataToAvatarStore(
+    data: { lightcones: LightconeJson[]; relics: RelicJson[] },
+    count: number,
+    avatar_id: number
+): AvatarProfileStore | null {
+    return converterImportedDataToAvatarStore("HoYoLAB", data.lightcones, data.relics, avatar_id, count);
+}
+
+export function converterOneFribbelsDataToAvatarStore(
+    data: { lightcones: LightconeJson[]; relics: RelicJson[] },
+    count: number,
+    avatar_id: number
+): AvatarProfileStore | null {
+    return converterImportedDataToAvatarStore("Fribbels", data.lightcones, data.relics, avatar_id, count);
+}
+
+export function converterFribbelsProfileToAvatarStore(
+    profileItem: FribbelsProfileItem,
+    customName?: string
+): AvatarProfileStore | null {
+    if (!profileItem.lightcone && (!profileItem.relics || profileItem.relics.length === 0)) {
+        return null;
+    }
+    const relicsMap: Record<string, RelicStore> = {};
+    (profileItem.relics ?? []).forEach((relic) => {
+        const slotKey = relic.relic_id.toString().slice(-1);
+        relicsMap[slotKey] = {
+            level: relic.level,
+            relic_id: relic.relic_id,
+            relic_set_id: relic.relic_set_id,
+            main_affix_id: relic.main_affix_id,
+            sub_affixes: (relic.sub_affixes ?? []).map((subAffix) => ({
+                sub_affix_id: subAffix.sub_affix_id,
+                count: subAffix.count,
+                step: subAffix.step ?? 0,
+            })),
+        };
+    });
+
+    const displayName = customName || (profileItem.isDefault ? "Fribbels (Equipped)" : profileItem.name) || "Fribbels Profile";
+
+    const profile: AvatarProfileStore = {
+        profile_name: displayName,
+        lightcone: (profileItem.lightcone && profileItem.lightcone.item_id) ? {
+            level: profileItem.lightcone.level ?? 0,
+            item_id: profileItem.lightcone.item_id ?? 0,
+            rank: profileItem.lightcone.rank ?? 0,
+            promotion: profileItem.lightcone.promotion ?? 0,
+        } : null,
+        relics: relicsMap,
+    };
+    return profile;
+}
+
+export function converterFreeSRProfileToAvatarStore(
+    profileItem: FreeSRProfileItem,
+    customName?: string
+): AvatarProfileStore | null {
+    if (!profileItem.lightcone && (!profileItem.relics || profileItem.relics.length === 0)) {
+        return null;
+    }
+    const relicsMap: Record<string, RelicStore> = {};
+    (profileItem.relics ?? []).forEach((relic) => {
+        const slotKey = relic.relic_id.toString().slice(-1);
+        relicsMap[slotKey] = {
+            level: relic.level,
+            relic_id: relic.relic_id,
+            relic_set_id: relic.relic_set_id,
+            main_affix_id: relic.main_affix_id,
+            sub_affixes: (relic.sub_affixes ?? []).map((subAffix) => ({
+                sub_affix_id: subAffix.sub_affix_id,
+                count: subAffix.count,
+                step: subAffix.step ?? 0,
+            })),
+        };
+    });
+
+    const displayName = customName || (profileItem.isDefault ? "FreeSR (Equipped)" : profileItem.name) || "FreeSR Profile";
+
+    const profile: AvatarProfileStore = {
+        profile_name: displayName,
+        lightcone: (profileItem.lightcone && profileItem.lightcone.item_id) ? {
+            level: profileItem.lightcone.level ?? 0,
+            item_id: profileItem.lightcone.item_id ?? 0,
+            rank: profileItem.lightcone.rank ?? 0,
+            promotion: profileItem.lightcone.promotion ?? 0,
+        } : null,
+        relics: relicsMap,
+    };
+    return profile;
+}
+
+
+

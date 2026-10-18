@@ -5,8 +5,10 @@ import { useEffect } from 'react'
 import { toast } from 'react-toastify'
 import useDetailDataStore from '@/stores/detailDataStore'
 import { useShallow } from 'zustand/react/shallow'
+import { useTranslations } from 'next-intl'
 
 export const useFetchASGroupData = () => {
+    const transI18n = useTranslations("DataPage")
     const { setMapAS } = useDetailDataStore(
         useShallow((state) => ({ setMapAS: state.setMapAS }))
     )
@@ -21,9 +23,9 @@ export const useFetchASGroupData = () => {
         if (query.data) {
             setMapAS(query.data)
         } else if (query.error) {
-            toast.error("Failed to load ASGroup data")
+            toast.error(transI18n("failedToLoadData", { type: "ASGroup" }))
         }
-    }, [query.data, query.error, setMapAS])
+    }, [query.data, query.error, setMapAS, transI18n])
     
     return query
 }

@@ -155,7 +155,7 @@ export default function PeakBar() {
             )}
         </div>
         <div className="label-text font-bold text-success mb-2">
-          StageId: {peak_config?.stage_id}
+          {transI18n("stageId")}: {peak_config?.stage_id}
         </div>
         {eventSelected &&
           eventSelected.BossLevel?.ID === peak_config.challenge_id &&

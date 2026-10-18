@@ -104,7 +104,6 @@ export default function SelectCustomImage({ customSet, excludeSet, selectedCusto
     <div className="flex items-center gap-1 w-full h-full">
       <Image
         unoptimized
-        crossOrigin="anonymous"
         src={option.imageUrl}
         alt=""
         width={125}

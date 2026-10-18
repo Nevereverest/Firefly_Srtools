@@ -8,3 +8,7 @@ export * from "./random";
 export * from "./json";
 export * from "./convertData";
 export * from "./connect";
+export * from "./converterHoyolab";
+export * from "./converterFribbels";
+export * from "./converterFreeSR";
+export * from "./canvasWorker";

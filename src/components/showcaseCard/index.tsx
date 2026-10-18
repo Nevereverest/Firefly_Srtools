@@ -4,7 +4,22 @@ import { FastAverageColor } from 'fast-average-color';
 import NextImage from 'next/image';
 import ParseText from '../parseText';
 import useLocaleStore from '@/stores/localeStore';
-import { calcAffixBonus, calcBaseStat, calcBaseStatRaw, calcBonusStatRaw, calcMainAffixBonus, calcMainAffixBonusRaw, calcPromotion, calcSubAffixBonusRaw, convertToRoman, getNameChar, replaceByParam } from '@/helper';
+import { 
+  calcAffixBonus, 
+  calcBaseStat, 
+  calcBaseStatRaw, 
+  calcBonusStatRaw, 
+  calcMainAffixBonus, 
+  calcMainAffixBonusRaw, 
+  calcPromotion, 
+  calcSubAffixBonusRaw, 
+  convertToRoman, 
+  getNameChar, 
+  replaceByParam,
+  canvasToBlobWorker,
+  inlineClonedImages,
+  prewarmCardImages
+} from '@/helper';
 import useUserDataStore from '@/stores/userDataStore';
 import { traceShowCaseMap } from '@/constant/traceConstant';
 import { mappingStats } from '@/constant/constant';
@@ -16,7 +31,6 @@ import useCurrentDataStore from '@/stores/currentDataStore';
 import { getLocaleName } from '@/helper';
 import { useShallow } from 'zustand/react/shallow';
 import { Copy, Download, Image as ImageIcon } from 'lucide-react';
-
 
 export default function ShowCaseInfo() {
   const { avatarSelected } = useCurrentDataStore(
@@ -40,81 +54,47 @@ export default function ShowCaseInfo() {
   const [isSaving, setIsSaving] = useState(false);
   const [isCopyingImage, setIsCopyingImage] = useState(false);
   const imgRef = useRef(null);
-  const cardRef = useRef(null)
+  const cardRef = useRef<HTMLDivElement>(null);
+  const cardBlobCacheRef = useRef<{ cacheKey: string; blob: Blob } | null>(null);
   const { locale } = useLocaleStore(
     useShallow((state) => ({ locale: state.locale }))
   )
   const transI18n = useTranslations("DataPage")
 
-  const handleSaveImage = useCallback(async () => {
-    if (cardRef.current === null || !avatarSelected) {
-      toast.error(transI18n("noAvatarSelected") || "Avatar showcase not found!");
-      return;
-    }
-    if (isSaving) return;
-
-    setIsSaving(true);
-    try {
-      const { default: html2canvas } = await import("html2canvas-pro");
-      const canvas = await html2canvas(cardRef.current!, {
-        scale: 2,
-        backgroundColor: "#000000",
-        allowTaint: false,
-        useCORS: true,
-        logging: false,
-        width: 1600,
-        height: 650,
-        windowWidth: 1600,
-        windowHeight: 650,
-        onclone: (clonedDoc) => {
-          const clonedCard = clonedDoc.querySelector('[data-showcase-card="true"]') as HTMLElement | null;
-          if (clonedCard) {
-            clonedCard.style.transform = "none";
-            clonedCard.style.width = "1600px";
-            clonedCard.style.minHeight = "650px";
-          }
-        }
-      });
-
-      canvas.toBlob((blob) => {
-        if (!blob) {
-          toast.error(transI18n("failedToGenerateImage"));
-          setIsSaving(false);
-          return;
-        }
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.download = `${getNameChar(locale, transI18n, avatarSelected)}_showcase.png`;
-        link.href = url;
-        link.click();
-        URL.revokeObjectURL(url);
-        setIsSaving(false);
-        toast.success(transI18n("imageSavedSuccessfully"));
-      }, "image/png");
-    } catch {
-      toast.error(transI18n("errorGeneratingShowcaseCard"));
-      setIsSaving(false);
-    }
-  }, [avatarSelected, locale, transI18n, isSaving]);
-
   useEffect(() => {
-    if (!avatarSelected) return;
+    if (!avatarSelected?.Image?.AvatarCutinFrontImgPath) return;
     const fac = new FastAverageColor();
-    const img = new Image();
+    const src = `${process.env.CDN_URL}/${avatarSelected.Image.AvatarCutinFrontImgPath}`;
+    const corsSrc = src.includes("?") ? `${src}&_cors=1` : `${src}?_cors=1`;
+    let isCancelled = false;
+    let objectUrl = "";
 
-    img.crossOrigin = 'anonymous';
-    img.src = `${process.env.CDN_URL}/${avatarSelected?.Image?.AvatarCutinFrontImgPath}`;
+    fetch(corsSrc, { mode: "cors" })
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.blob();
+      })
+      .then((blob) => {
+        if (isCancelled) return;
+        objectUrl = URL.createObjectURL(blob);
+        const img = new Image();
+        img.onload = () => {
+          if (isCancelled) return;
+          fac.getColorAsync(img)
+            .then((color) => {
+              if (!isCancelled) setAvgColor(color.hex);
+            })
+            .catch((e) => console.error("FastAverageColor error:", e));
+        };
+        img.onerror = (e) => console.error("FastAverageColor img error:", e);
+        img.src = objectUrl;
+      })
+      .catch((e) => console.error("FastAverageColor fetch error:", e));
 
-    img.onload = () => {
-      fac.getColorAsync(img)
-        .then((color) => {
-          setAvgColor(color.hex);
-        })
-        .catch(e => console.error("Error:", e));
-    };
     return () => {
+      isCancelled = true;
       fac.destroy();
-      img.onload = null;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
   }, [avatarSelected]);
 
@@ -624,14 +604,21 @@ export default function ShowCaseInfo() {
       for (const effect of relicEffects) {
         const relicSetData = mapRelicSet?.[effect.key];
         if (relicSetData) {
-          const setName = getLocaleName(locale, relicSetData.Name) || relicSetData.Name?.en || "Relic Set";
-          relicSetList.push(`• ${setName} (${effect.count}pc)`);
+          const setName = getLocaleName(locale, relicSetData.Name) || relicSetData.Name?.en || transI18n("relic");
+          relicSetList.push(`• ${setName} (${transI18n("pieceBonus", { count: effect.count })})`);
         }
       }
     }
 
     // Individual Relics (Slots 1-6)
-    const relicSlotNames = ["Head", "Hands", "Body", "Feet", "Planar Sphere", "Link Rope"];
+    const relicSlotNames = [
+      transI18n("HEAD"),
+      transI18n("HAND"),
+      transI18n("BODY"),
+      transI18n("FOOT"),
+      transI18n("NECK"),
+      transI18n("OBJECT"),
+    ];
     const relicDetails: string[] = [];
     if (relicStats && relicStats.length > 0) {
       relicStats.forEach((r, idx) => {
@@ -645,17 +632,17 @@ export default function ShowCaseInfo() {
 
     const lines = [
       `=== ${charName} (${eidolonRank} | ${charLevel}) ===`,
-      `Light Cone: ${lcText}`,
+      `${transI18n("lightConeLabel")}: ${lcText}`,
       ``,
-      `[Attributes]`,
+      `[${transI18n("copyTextAttributes")}]`,
       ...statsList,
       ``,
-      `[Relic Sets]`,
-      relicSetList.length > 0 ? relicSetList.join("\n") : "None",
+      `[${transI18n("copyTextRelicSets")}]`,
+      relicSetList.length > 0 ? relicSetList.join("\n") : transI18n("none"),
     ];
 
     if (relicDetails.length > 0) {
-      lines.push(``, `[Relic Details]`, ...relicDetails);
+      lines.push(``, `[${transI18n("copyTextRelicDetails")}]`, ...relicDetails);
     }
 
     const textToCopy = lines.join("\n");
@@ -668,57 +655,118 @@ export default function ShowCaseInfo() {
       });
   }, [avatarSelected, avatarData, avatarProfile, mapLightCone, locale, transI18n, characterStats, relicEffects, mapRelicSet, relicStats]);
 
-  const handleCopyImage = useCallback(async () => {
+  // Prewarm image cache in background when card renders to ensure 0ms latency on click
+  useEffect(() => {
+    if (!cardRef.current) return;
+    const timer = setTimeout(() => {
+      prewarmCardImages(cardRef.current);
+    }, 600);
+    return () => clearTimeout(timer);
+  }, [avatarSelected, avatarProfile, locale]);
+
+  const getCardCacheKey = useCallback(() => {
+    return `${avatarSelected?.ID}_${avatarProfile?.lightcone?.item_id}_${avatarProfile?.lightcone?.level}_${avatarData?.profileSelect}_${locale}`;
+  }, [avatarSelected, avatarProfile, avatarData, locale]);
+
+  const generateCardBlob = useCallback(async (): Promise<Blob | null> => {
+    if (!cardRef.current || !avatarSelected) return null;
+
+    const cacheKey = getCardCacheKey();
+    if (cardBlobCacheRef.current && cardBlobCacheRef.current.cacheKey === cacheKey) {
+      return cardBlobCacheRef.current.blob;
+    }
+
+    const { default: html2canvas } = await import("html2canvas-pro");
+    const canvas = await html2canvas(cardRef.current, {
+      scale: 2,
+      backgroundColor: "#000000",
+      allowTaint: false,
+      useCORS: false,
+      logging: false,
+      width: 1600,
+      height: 650,
+      windowWidth: 1600,
+      windowHeight: 650,
+      imageTimeout: 0,
+      onclone: async (clonedDoc) => {
+        const clonedCard = clonedDoc.querySelector('[data-showcase-card="true"]') as HTMLElement | null;
+        if (clonedCard) {
+          clonedCard.style.transform = "none";
+          clonedCard.style.width = "1600px";
+          clonedCard.style.minHeight = "650px";
+          await inlineClonedImages(clonedCard);
+        }
+      },
+    });
+
+    // Offload PNG compression to Web Worker via OffscreenCanvas
+    const blob = await canvasToBlobWorker(canvas);
+    if (blob) {
+      cardBlobCacheRef.current = { cacheKey, blob };
+    }
+    return blob;
+  }, [avatarSelected, getCardCacheKey]);
+
+  const handleSaveImage = useCallback(async () => {
     if (cardRef.current === null || !avatarSelected) {
-      toast.error(transI18n("noAvatarSelected") || "Avatar showcase not found!");
+      toast.error(transI18n("noAvatarSelected"));
       return;
     }
-    if (isCopyingImage) return;
+    if (isSaving || isCopyingImage) return;
+
+    setIsSaving(true);
+    // Yield to let React re-render and paint the loading spinner immediately
+    await new Promise((resolve) => setTimeout(resolve, 30));
+
+    try {
+      const blob = await generateCardBlob();
+      if (!blob) {
+        toast.error(transI18n("failedToGenerateImage"));
+        return;
+      }
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.download = `${getNameChar(locale, transI18n, avatarSelected)}_showcase.png`;
+      link.href = url;
+      link.click();
+      URL.revokeObjectURL(url);
+      toast.success(transI18n("imageSavedSuccessfully"));
+    } catch (e) {
+      console.error("Error generating showcase card image:", e);
+      toast.error(transI18n("errorGeneratingShowcaseCard"));
+    } finally {
+      setIsSaving(false);
+    }
+  }, [avatarSelected, locale, transI18n, isSaving, isCopyingImage, generateCardBlob]);
+
+  const handleCopyImage = useCallback(async () => {
+    if (cardRef.current === null || !avatarSelected) {
+      toast.error(transI18n("noAvatarSelected"));
+      return;
+    }
+    if (isCopyingImage || isSaving) return;
 
     setIsCopyingImage(true);
-    try {
-      const { default: html2canvas } = await import("html2canvas-pro");
-      const canvas = await html2canvas(cardRef.current!, {
-        scale: 2,
-        backgroundColor: "#000000",
-        allowTaint: false,
-        useCORS: true,
-        logging: false,
-        width: 1600,
-        height: 650,
-        windowWidth: 1600,
-        windowHeight: 650,
-        onclone: (clonedDoc) => {
-          const clonedCard = clonedDoc.querySelector('[data-showcase-card="true"]') as HTMLElement | null;
-          if (clonedCard) {
-            clonedCard.style.transform = "none";
-            clonedCard.style.width = "1600px";
-            clonedCard.style.minHeight = "650px";
-          }
-        }
-      });
+    // Yield to let React re-render and paint the loading spinner immediately
+    await new Promise((resolve) => setTimeout(resolve, 30));
 
-      canvas.toBlob((blob) => {
-        if (!blob) {
-          toast.error(transI18n("failedToGenerateImage"));
-          setIsCopyingImage(false);
-          return;
-        }
-        navigator.clipboard.write([
-          new ClipboardItem({ "image/png": blob })
-        ]).then(() => {
-          toast.success(transI18n("imageCopiedToClipboard"));
-        }).catch(() => {
-          toast.error(transI18n("clipboardWriteFailed"));
-        }).finally(() => {
-          setIsCopyingImage(false);
-        });
-      }, "image/png");
-    } catch {
+    try {
+      const blob = await generateCardBlob();
+      if (!blob) {
+        toast.error(transI18n("failedToGenerateImage"));
+        return;
+      }
+      await navigator.clipboard.write([
+        new ClipboardItem({ "image/png": blob })
+      ]);
+      toast.success(transI18n("imageCopiedToClipboard"));
+    } catch (e) {
+      console.error("Error generating showcase card image for clipboard:", e);
       toast.error(transI18n("errorGeneratingShowcaseCard"));
+    } finally {
       setIsCopyingImage(false);
     }
-  }, [avatarSelected, isCopyingImage, transI18n]);
+  }, [avatarSelected, isCopyingImage, isSaving, transI18n, generateCardBlob]);
 
   return (
     <div className="w-full space-y-4">
@@ -741,7 +789,7 @@ export default function ShowCaseInfo() {
               <span>{transI18n("copyText")}</span>
             </button>
             <button
-              disabled={isCopyingImage}
+              disabled={isCopyingImage || isSaving}
               className="btn btn-sm btn-ghost border border-base-content/20 rounded-xl font-bold shadow-xs active-press gap-1.5 hover:bg-base-200"
               onClick={handleCopyImage}
               title={transI18n("copyImage")}
@@ -754,7 +802,7 @@ export default function ShowCaseInfo() {
               <span>{isCopyingImage ? transI18n("processing") : transI18n("copyImage")}</span>
             </button>
             <button
-              disabled={isSaving}
+              disabled={isSaving || isCopyingImage}
               className="btn btn-sm btn-primary rounded-xl font-bold shadow-xs active-press gap-1.5"
               onClick={handleSaveImage}
             >
@@ -805,7 +853,6 @@ export default function ShowCaseInfo() {
                   <NextImage
                     ref={imgRef}
                     unoptimized
-                    crossOrigin="anonymous"
                     src={`${process.env.CDN_URL}/${avatarSelected?.Image?.AvatarCutinFrontImgPath}`}
                     className="object-contain scale-[2] overflow-hidden"
                     alt="Character Preview"
@@ -882,7 +929,6 @@ export default function ShowCaseInfo() {
                                 width={125}
                                 height={125}
                                 unoptimized
-                                crossOrigin="anonymous"
                                 className="block rounded-full object-contain"
                                 style={{
                                   width: "44px",
@@ -951,7 +997,6 @@ export default function ShowCaseInfo() {
                                 width={125}
                                 height={125}
                                 unoptimized
-                                crossOrigin="anonymous"
                                 className="block rounded-full object-contain"
                                 style={{
                                   width: "44px",
@@ -999,7 +1044,6 @@ export default function ShowCaseInfo() {
                         <div className="flex gap-1">
                           <NextImage
                             unoptimized
-                            crossOrigin="anonymous"
                             src={`${process.env.CDN_URL}/${baseType[avatarSelected?.BaseType]?.Icon}`}
                             alt="Path Icon"
                             width={32}
@@ -1008,7 +1052,6 @@ export default function ShowCaseInfo() {
                           />
                           <NextImage
                             unoptimized
-                            crossOrigin="anonymous"
                             src={`${process.env.CDN_URL}/${damageType[avatarSelected?.DamageType]?.Icon}`}
                             alt="Element Icon"
                             width={32}
@@ -1026,7 +1069,6 @@ export default function ShowCaseInfo() {
                       <div className="absolute inset-0 flex items-center justify-center">
                         <NextImage
                           unoptimized
-                          crossOrigin="anonymous"
                           src={`${process.env.CDN_URL}/${baseType[avatarSelected?.BaseType]?.Icon}`}
                           alt="Path Icon"
                           width={160}
@@ -1081,7 +1123,6 @@ export default function ShowCaseInfo() {
                                         <NextImage
                                           src={`${process.env.CDN_URL}/${avatarSelected?.SkillTrees?.[btn.id]?.["1"]?.Icon}`}
                                           unoptimized
-                                          crossOrigin="anonymous"
                                           alt={btn.id}
                                           width={125}
                                           height={125}
@@ -1137,9 +1178,8 @@ export default function ShowCaseInfo() {
                         <NextImage
                           className="absolute object-contain rounded-xl z-9 w-[95%]"
                           unoptimized
-                          crossOrigin="anonymous"
                           src={`${process.env.CDN_URL}/spriteoutput/lightconemaxfigures/${avatarProfile?.lightcone.item_id}.png`}
-                          alt="Lightcone Image"
+                          alt={transI18n("lightcone")}
                           width={904}
                           height={1206}
                           priority
@@ -1234,7 +1274,6 @@ export default function ShowCaseInfo() {
                             <div className="flex items-center gap-1 rounded bg-black/30 px-1 w-fit py-1">
                               <NextImage
                                 unoptimized
-                                crossOrigin="anonymous"
                                 src={`${process.env.CDN_URL}/spriteoutput/ui/avatar/icon/IconMaxHP.png`}
                                 alt="HP"
                                 width={16}
@@ -1249,7 +1288,6 @@ export default function ShowCaseInfo() {
                               <NextImage
                                 src={`${process.env.CDN_URL}/spriteoutput/ui/avatar/icon/IconAttack.png`}
                                 unoptimized
-                                crossOrigin="anonymous"
                                 alt="ATK"
                                 width={16}
                                 height={16}
@@ -1262,7 +1300,6 @@ export default function ShowCaseInfo() {
                           <div className="flex items-center gap-1 rounded bg-black/30 px-1 w-fit py-1">
                             <NextImage
                               unoptimized
-                              crossOrigin="anonymous"
                               src={`${process.env.CDN_URL}/spriteoutput/ui/avatar/icon/IconDefence.png`}
                               alt="DEF"
                               width={16}
@@ -1289,14 +1326,18 @@ export default function ShowCaseInfo() {
                     return (
                       <div key={index} className="flex flex-row items-center justify-between text-white">
                         <div className="flex flex-row items-center">
-                          <NextImage src={`${process.env.CDN_URL}/${stat?.icon}`}
-                            unoptimized
-                            crossOrigin="anonymous"
-                            alt="Stat Icon"
-                            width={40}
-                            height={40}
-                            className="h-10 w-10 p-2"
-                          />
+                          {stat?.icon ? (
+                            <NextImage
+                              src={`${process.env.CDN_URL}/${stat.icon}`}
+                              unoptimized
+                              alt="Stat Icon"
+                              width={40}
+                              height={40}
+                              className="h-10 w-10 p-2"
+                            />
+                          ) : (
+                            <div className="h-10 w-10 p-2" />
+                          )}
                           <span className="font-bold text-white">{stat.name}</span>
                         </div>
                         <div className="ml-3 mr-3 grow border-b border-white/20" />

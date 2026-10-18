@@ -295,9 +295,8 @@ export default function CeBar() {
                                                 <div className="flex justify-center">
                                                     {mapMonster?.[member.monster_id.toString()]?.Image?.IconPath && <Image
                                                         unoptimized
-                                                        crossOrigin="anonymous"
                                                         src={`${process.env.CDN_URL}/${mapMonster?.[member.monster_id.toString()]?.Image?.IconPath}`}
-                                                        alt="Enemy Icon"
+                                                        alt={transI18n("enemy")}
                                                         width={376}
                                                         height={512}
                                                         className=" object-contain w-20 h-20 overflow-hidden"
@@ -308,7 +307,6 @@ export default function CeBar() {
                                                     {mapMonster?.[member.monster_id.toString()]?.StanceWeakList?.map((icon, iconIndex) => (
                                                         <Image
                                                             unoptimized
-                                                            crossOrigin="anonymous"
                                                             src={`${process.env.CDN_URL}/${damageType[icon]?.Icon}`}
                                                             alt={icon}
                                                             className="h-7 w-7 2xl:h-10 2xl:w-10 object-contain rounded-md border border-white/20 shadow-sm"
@@ -445,9 +443,8 @@ export default function CeBar() {
                                                                 {mapMonster?.[monster.ID.toString()]?.Image?.IconPath && (
                                                                     <Image
                                                                         unoptimized
-                                                                        crossOrigin="anonymous"
                                                                         src={`${process.env.CDN_URL}/${mapMonster?.[monster.ID.toString()]?.Image?.IconPath}`}
-                                                                        alt="Enemy Icon"
+                                                                        alt={transI18n("enemy")}
                                                                         width={376}
                                                                         height={512}
                                                                         className="w-full h-full object-cover"

@@ -8,8 +8,10 @@ import useCurrentDataStore from '@/stores/currentDataStore'
 import useUserDataStore from '@/stores/userDataStore'
 import { converterToAvatarStore } from '@/helper'
 import { useShallow } from 'zustand/react/shallow'
+import { useTranslations } from 'next-intl'
 
 export const useFetchAvatarData = () => {
+  const transI18n = useTranslations("DataPage")
   const { setMapAvatar, mapAvatar } = useDetailDataStore(
     useShallow((state) => ({
       setMapAvatar: state.setMapAvatar,
@@ -47,8 +49,8 @@ export const useFetchAvatarData = () => {
             setAvatarSelected(Object.values(query.data)[0] ?? null)
         }
     }
-    if (query.error) toast.error("Failed to load Avatar data")
-  }, [query.data, query.error, setMapAvatar, setAvatarSelected])
+    if (query.error) toast.error(transI18n("failedToLoadData", { type: "Avatar" }))
+  }, [query.data, query.error, setMapAvatar, setAvatarSelected, transI18n])
 
   return query
 }

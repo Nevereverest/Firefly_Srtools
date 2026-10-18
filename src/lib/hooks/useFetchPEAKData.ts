@@ -5,8 +5,10 @@ import { useEffect } from 'react'
 import useDetailDataStore from '@/stores/detailDataStore'
 import { toast } from 'react-toastify'
 import { useShallow } from 'zustand/react/shallow'
+import { useTranslations } from 'next-intl'
 
 export const useFetchPeakGroupData = () => {
+    const transI18n = useTranslations("DataPage")
     const { setMapPeak } = useDetailDataStore(
         useShallow((state) => ({ setMapPeak: state.setMapPeak }))
     )
@@ -20,9 +22,9 @@ export const useFetchPeakGroupData = () => {
         if (query.data && !query.error) {
             setMapPeak(query.data)
         } else if (query.error) {
-            toast.error("Failed to load PeakGroup data")
+            toast.error(transI18n("failedToLoadData", { type: "PeakGroup" }))
         }
-    }, [query.data, query.error, setMapPeak])
+    }, [query.data, query.error, setMapPeak, transI18n])
     
     return query
 }

@@ -250,7 +250,9 @@ export default function ExtraSettingBar() {
                           >
                             {transI18n("previous")}
                           </button>
-                          <span className="font-mono text-base-content/50">Page {stagePage}</span>
+                          <span className="font-mono text-base-content/50">
+                            {transI18n("pageWithParam", { page: stagePage })}
+                          </span>
                           <button
                             disabled={!hasMorePages}
                             className="btn btn-xs btn-outline rounded-lg"
@@ -506,7 +508,7 @@ export default function ExtraSettingBar() {
               {transI18n("challenge")}
             </h3>
             <p className="text-xs text-base-content/60 line-clamp-1 mt-0.5">
-              Configure anomaly peak mode and node skip settings
+              {transI18n("challengeSettingsDesc")}
             </p>
           </div>
         </div>
@@ -593,7 +595,7 @@ export default function ExtraSettingBar() {
               {transI18n("extraFeatures")}
             </h3>
             <p className="text-xs text-base-content/60 line-clamp-1 mt-0.5">
-              UI display overrides and visual preferences
+              {transI18n("extraFeaturesDesc")}
             </p>
           </div>
         </div>
@@ -780,17 +782,17 @@ export default function ExtraSettingBar() {
             </div>
             <div>
               <h3 className="text-sm font-bold tracking-tight text-base-content">
-                Lua Scripting
+                {transI18n("luaScripting")}
               </h3>
               <p className="text-xs text-base-content/60 line-clamp-1 mt-0.5">
-                Inject custom Lua runtime scripts and behaviors
+                {transI18n("luaScriptingDesc")}
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-2.5">
             <span className={`text-xs font-semibold uppercase tracking-wider hidden sm:inline ${isEnableLua ? 'text-amber-400' : 'text-base-content/40'}`}>
-              {isEnableLua ? 'Active' : 'Off'}
+              {isEnableLua ? transI18n("active") : transI18n("off")}
             </span>
             <input
               type="checkbox"
@@ -823,23 +825,37 @@ export default function ExtraSettingBar() {
             </div>
 
             {/* Code Editor */}
-            <Editor
-              value={extraData?.lua || ""}
-              onValueChange={(code) =>
-                setExtraData({
-                  ...extraData,
-                  lua: code
-                })
-              }
-              highlight={(code) => Prism.highlight(code, Prism.languages.lua, "lua")}
-              padding={16}
-              textareaClassName="outline-none font-mono"
-              className="text-xs font-mono min-h-60 text-slate-100 bg-[#0d0e15]"
-              style={{
-                background: "#0d0e15",
-                color: "#e2e8f0",
-              }}
-            />
+            <div className="max-h-80 sm:max-h-96 overflow-auto scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+              <Editor
+                value={extraData?.lua || ""}
+                onValueChange={(code) =>
+                  setExtraData({
+                    ...extraData,
+                    lua: code
+                  })
+                }
+                highlight={(code) => {
+                  if (!code) return "";
+                  const LIMIT = 30000;
+                  if (code.length <= LIMIT) {
+                    return Prism.highlight(code, Prism.languages.lua, "lua");
+                  }
+                  const cut = code.indexOf("\n", LIMIT);
+                  const splitAt = (cut !== -1 && cut <= LIMIT + 2000) ? cut : LIMIT;
+                  const head = code.slice(0, splitAt);
+                  const tail = code.slice(splitAt);
+                  return Prism.highlight(head, Prism.languages.lua, "lua") + tail.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                }}
+                padding={16}
+                textareaClassName="outline-none font-mono text-xs selection:bg-amber-500/30"
+                preClassName="font-mono text-xs"
+                className="text-xs font-mono min-h-60 text-slate-100 bg-[#0d0e15]"
+                style={{
+                  background: "#0d0e15",
+                  color: "#e2e8f0",
+                }}
+              />
+            </div>
           </div>
         )}
       </section>

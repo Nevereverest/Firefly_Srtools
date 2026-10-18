@@ -131,7 +131,6 @@ export default function LightconeBar() {
                                 >
                                     <Image
                                         unoptimized
-                                        crossOrigin="anonymous"
                                         src={`${process.env.CDN_URL}/${value.Icon}`}
                                         alt={key}
                                         className={`w-4.5 h-4.5 object-contain ${

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { memo } from 'react';
+import { memo } from 'react';
 import { CharacterInfoCardType } from '@/types';
 import useLocaleStore from '@/stores/localeStore';
 import Image from 'next/image';
@@ -9,6 +9,7 @@ import useDetailDataStore from '@/stores/detailDataStore';
 import { getLocaleName } from '@/helper/getName';
 import { useShallow } from 'zustand/react/shallow';
 import { Check } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 function CharacterInfoCard({
     character, 
@@ -19,6 +20,7 @@ function CharacterInfoCard({
     selectedCharacters: CharacterInfoCardType[], 
     onCharacterToggle: (characterId: CharacterInfoCardType) => void 
 }) {
+    const transI18n = useTranslations("DataPage");
     const isSelected = selectedCharacters.some((selectedCharacter) => selectedCharacter.avatar_id === character.avatar_id);
     const { mapAvatar, mapLightCone, baseType, damageType } = useDetailDataStore(
         useShallow((state) => ({
@@ -62,7 +64,6 @@ function CharacterInfoCard({
                             width={376}
                             height={512}
                             unoptimized
-                            crossOrigin="anonymous"
                             loading="lazy"
                             className="w-full h-full object-contain transition-transform duration-500 ease-out group-hover:scale-108"
                         />
@@ -74,7 +75,6 @@ function CharacterInfoCard({
                                         width={20}
                                         height={20}
                                         unoptimized
-                                        crossOrigin="anonymous"
                                         src={`${process.env.CDN_URL}/${damageType[avatar.DamageType].Icon}`}
                                         className="w-4 h-4 object-contain"
                                         alt={avatar.DamageType.toLowerCase()}
@@ -87,7 +87,6 @@ function CharacterInfoCard({
                                         width={20}
                                         height={20}
                                         unoptimized
-                                        crossOrigin="anonymous"
                                         src={`${process.env.CDN_URL}/${baseType[avatar.BaseType].Icon}`}
                                         className="w-4 h-4 object-contain"
                                         alt={avatar.BaseType.toLowerCase()}
@@ -129,9 +128,8 @@ function CharacterInfoCard({
                             <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center bg-base-100/90 border border-amber-500/30 hover:border-amber-400 transition-colors shadow-xs">
                                 <Image
                                     src={`${process.env.CDN_URL}/spriteoutput/relicfigures/IconRelic_${relic.relic_set_id}_${relic.relic_id.toString()[relic.relic_id.toString().length - 1]}.png`}
-                                    alt="Relic"
+                                    alt={transI18n("relic")}
                                     unoptimized
-                                    crossOrigin="anonymous"
                                     width={32}
                                     height={32}
                                     className="w-5 h-5 sm:w-6 sm:h-6 object-contain"
@@ -151,9 +149,8 @@ function CharacterInfoCard({
                     <div className="h-12 w-9 shrink-0 flex items-center justify-center rounded bg-base-300/40 overflow-hidden">
                         <Image
                             unoptimized
-                            crossOrigin="anonymous"
                             src={`${process.env.CDN_URL}/${mapLightCone?.[character.lightcone.item_id.toString()]?.Image?.ImagePath}`}
-                            alt="Lightcone"
+                            alt={transI18n("lightcone")}
                             width={72}
                             height={96}
                             className="h-full w-auto object-contain"

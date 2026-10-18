@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+
 import { AvatarProfileCardType } from '@/types';
 import useLocaleStore from '@/stores/localeStore';
 import Image from 'next/image';
@@ -8,6 +8,7 @@ import ParseText from '../parseText';
 import useDetailDataStore from '@/stores/detailDataStore';
 import { getLocaleName } from '@/helper/getName';
 import { useShallow } from 'zustand/react/shallow';
+import { useTranslations } from 'next-intl';
 
 export default function ProfileCard({ 
     profile, 
@@ -18,6 +19,7 @@ export default function ProfileCard({
     selectedProfile: AvatarProfileCardType[], 
     onProfileToggle: (profileId: AvatarProfileCardType) => void 
 }) {
+    const transI18n = useTranslations("DataPage");
     const isSelected = selectedProfile.some((selectedProfile) => selectedProfile.key === profile.key);
     const { mapLightCone } = useDetailDataStore(
         useShallow((state) => ({ mapLightCone: state.mapLightCone }))
@@ -41,9 +43,8 @@ export default function ProfileCard({
                     <div className="h-32 flex items-center justify-center mb-2">
                         <Image
                             unoptimized
-                            crossOrigin="anonymous"
                             src={`${process.env.CDN_URL}/spriteoutput/lightconemaxfigures/${profile.lightcone.item_id}.png`}
-                            alt="Lightcone"
+                            alt={transI18n("lightcone")}
                             width={240}
                             height={300}
                             className="h-full w-auto object-contain rounded-lg transition-transform duration-200 group-hover:scale-105"
@@ -70,9 +71,8 @@ export default function ProfileCard({
                             <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-base-200 border border-amber-500/40">
                                 <Image
                                     unoptimized
-                                    crossOrigin="anonymous"
                                     src={`${process.env.CDN_URL}/spriteoutput/relicfigures/IconRelic_${relic.relic_set_id}_${relic.relic_id.toString()[relic.relic_id.toString().length - 1]}.png`}
-                                    alt="Relic"
+                                    alt={transI18n("relic")}
                                     width={32}
                                     height={32}
                                     className="w-6 h-6 object-contain"

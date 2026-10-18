@@ -13,6 +13,8 @@ interface ModelState {
     isOpenQuickView: boolean;
     isOpenExtra: boolean;
     isChangelog: boolean;
+    isOpenManageProfiles: boolean;
+    setIsOpenManageProfiles: (open: boolean) => void;
     setIsOpenExtra: (newIsOpenExtra: boolean) => void;
     setIsOpenQuickView: (newIsOpenQuickView: boolean) => void;
     setIsOpenAvatars: (newIsOpenAvatars: boolean) => void;
@@ -38,6 +40,8 @@ const useModelStore = create<ModelState>((set) => ({
     isOpenQuickView: false,
     isOpenExtra: false,
     isChangelog: false,
+    isOpenManageProfiles: false,
+    setIsOpenManageProfiles: (newIsOpenManageProfiles: boolean) => set({ isOpenManageProfiles: newIsOpenManageProfiles }),
     setIsOpenExtra: (newIsOpenExtra: boolean) => set({ isOpenExtra: newIsOpenExtra }),
     setIsOpenQuickView: (newIsOpenQuickView: boolean) => set({ isOpenQuickView: newIsOpenQuickView }),
     setIsOpenAvatars: (newIsOpenAvatars: boolean) => set({ isOpenAvatars: newIsOpenAvatars }),

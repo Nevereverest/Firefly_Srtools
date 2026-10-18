@@ -151,7 +151,7 @@ export default function AsBar() {
                         </select>
                     </div>
                 </div>
-                <div className="label-text font-bold text-success mb-2">StageId: {as_config?.stage_id}</div>
+                <div className="label-text font-bold text-success mb-2">{transI18n("stageId")}: {as_config?.stage_id}</div>
                 {eventSelected && (
                     <div className="mb-4 w-full">
                         <SelectCustomText

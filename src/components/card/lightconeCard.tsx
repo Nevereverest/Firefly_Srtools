@@ -35,7 +35,6 @@ function LightconeCard({ data }: LightconeCardProps) {
                     loading="lazy"
                     src={`${process.env.CDN_URL}/${data?.Image?.ThumbnailPath}`}
                     unoptimized
-                    crossOrigin="anonymous"
                     width={348}
                     height={408}
                     className="w-full h-full object-cover transition-transform duration-300 ease-out group-hover:scale-105"

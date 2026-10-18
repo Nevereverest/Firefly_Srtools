@@ -38,13 +38,13 @@ export default function ChangelogBar() {
     const getTypeLabel = (type: string) => {
         switch (type) {
             case 'feature':
-                return transI18n("feature") || 'Feature';
+                return transI18n("feature");
             case 'fix':
-                return transI18n("fix") || 'Fix';
+                return transI18n("fix");
             case 'improvement':
-                return transI18n("improvement") || 'Improvement';
+                return transI18n("improvement");
             default:
-                return transI18n("update") || 'Update';
+                return transI18n("update");
         }
     };
 
@@ -61,7 +61,7 @@ export default function ChangelogBar() {
                                     {getTypeLabel(change.type)}
                                 </span>
                                 <h3 className="font-extrabold text-sm sm:text-base tracking-tight">
-                                    {transI18n("version") || "Version"} {change.version}
+                                    {transI18n("version")} {change.version}
                                 </h3>
                             </div>
 

@@ -133,7 +133,7 @@ export default function PfBar() {
                         </select>
                     </div>
                 </div>
-                <div className="label-text font-bold text-success mb-2">StageId: {pf_config?.stage_id}</div>
+                <div className="label-text font-bold text-success mb-2">{transI18n("stageId")}: {pf_config?.stage_id}</div>
                 {eventSelected && (
                     <div className="mb-4 w-full">
                         <SelectCustomText

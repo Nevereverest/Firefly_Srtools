@@ -121,7 +121,6 @@ export default function AvatarBar({ onClose }: { onClose?: () => void }) {
                                     src={`${process.env.CDN_URL}/${value.Icon}`}
                                     alt={key}
                                     unoptimized
-                                    crossOrigin="anonymous"
                                     className="w-6.5 h-6.5 object-contain drop-shadow-xs"
                                     width={32}
                                     height={32}
@@ -152,7 +151,6 @@ export default function AvatarBar({ onClose }: { onClose?: () => void }) {
                                 <Image
                                     src={`${process.env.CDN_URL}/${value.Icon}`}
                                     unoptimized
-                                    crossOrigin="anonymous"
                                     alt={key}
                                     className={`w-5.5 h-5.5 object-contain ${
                                         isActive ? "theme-path-icon-active" : "theme-path-icon"

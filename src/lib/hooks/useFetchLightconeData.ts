@@ -5,8 +5,10 @@ import { useEffect } from 'react'
 import { toast } from 'react-toastify'
 import useDetailDataStore from '@/stores/detailDataStore';
 import { useShallow } from 'zustand/react/shallow';
+import { useTranslations } from 'next-intl';
 
 export const useFetchLightconeData = () => {
+    const transI18n = useTranslations("DataPage")
     const { setMapLightCone } = useDetailDataStore(
         useShallow((state) => ({ setMapLightCone: state.setMapLightCone }))
     )
@@ -20,9 +22,9 @@ export const useFetchLightconeData = () => {
         if (query.data && !query.error) {
             setMapLightCone(query.data)
         } else if (query.error) {
-            toast.error("Failed to load lightcone data")
+            toast.error(transI18n("failedToLoadData", { type: "lightcone" }))
         }
-    }, [query.data, query.error, setMapLightCone])
+    }, [query.data, query.error, setMapLightCone, transI18n])
 
     return query
 }
