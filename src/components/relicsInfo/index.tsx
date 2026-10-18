@@ -1,7 +1,8 @@
 "use client";
+import MountOnOpen from "../mountOnOpen";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
-import RelicMaker from "../relicBar";
+import dynamic from "next/dynamic";
 import useUserDataStore from "@/stores/userDataStore";
 import { useTranslations } from "next-intl";
 import RelicCard from "../card/relicCard";
@@ -17,13 +18,10 @@ import { useShallow } from 'zustand/react/shallow';
 import { Trash2, SlidersHorizontal } from "lucide-react";
 import { toast } from "react-toastify";
 
+const RelicMaker = dynamic(() => import("../relicBar"), { ssr: false });
+
 export default function RelicsInfo() {
-  const { avatars, setAvatar } = useUserDataStore(
-    useShallow((state) => ({
-      avatars: state.avatars,
-      setAvatar: state.setAvatar,
-    }))
-  )
+
   const {
     setSelectedRelicSlot,
     selectedRelicSlot,
@@ -77,6 +75,9 @@ export default function RelicsInfo() {
     }))
   )
 
+  const userAvatar = useUserDataStore(state => state.avatars[avatarSelected?.ID ?? ""])
+  const setAvatar = useUserDataStore(state => state.setAvatar)
+
   const [relicSlotToDelete, setRelicSlotToDelete] = useState<string | null>(null);
 
   const handleShow = (modalId: string) => {
@@ -97,17 +98,16 @@ export default function RelicsInfo() {
 
 
   const getRelic = useCallback((slot: string) => {
-    const avatar = avatars[avatarSelected?.ID.toString() || ""];
+    const avatar = userAvatar;
     if (avatar) {
       const profile = avatar.profileList?.[avatar.profileSelect] ?? avatar.profileList?.[0];
       return profile?.relics?.[slot] || null;
     }
     return null;
-  }, [avatars, avatarSelected]);
+  }, [userAvatar]);
 
   const handlerDeleteRelic = (slot: string) => {
-    const avatarKey = avatarSelected?.ID.toString() || "";
-    const avatar = avatars[avatarKey];
+    const avatar = userAvatar;
     if (avatar) {
       const profileIndex = avatar.profileSelect;
       const currentProfile = avatar.profileList?.[profileIndex];
@@ -183,7 +183,7 @@ export default function RelicsInfo() {
   }
 
   const relicEffects = useMemo(() => {
-    const avatar = avatars[avatarSelected?.ID.toString() || ""];
+    const avatar = userAvatar;
     const relicCount: { [key: string]: number } = {};
     const currentProfile = avatar?.profileList?.[avatar?.profileSelect] ?? avatar?.profileList?.[0];
     if (currentProfile?.relics) {
@@ -200,7 +200,7 @@ export default function RelicsInfo() {
       }
     });
     return listEffects;
-  }, [avatars, avatarSelected]);
+  }, [userAvatar]);
 
   const modalConfigs: ModalConfig[] = [
     {
@@ -427,7 +427,7 @@ export default function RelicsInfo() {
             </div>
 
             <div className="p-2.5 sm:p-4 overflow-y-auto flex-1">
-              {content}
+              <MountOnOpen open={isOpen}>{content}</MountOnOpen>
             </div>
           </div>
           <div className="modal-backdrop bg-black/60 cursor-pointer" onClick={onClose} />

@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
     Plus,
     Trash2,
@@ -93,29 +93,6 @@ export default function CeBar() {
 
     const hasMorePages = useMemo(() => stagePage * pageSize < filteredStages.length, [stagePage, filteredStages])
 
-    useEffect(() => {
-        if (!ce_config) return
-        if (!extraData || !extraData.theory_craft?.mode) return
-
-        const newExtraData = structuredClone(extraData)
-        if (!newExtraData?.theory_craft?.hp) {
-            newExtraData.theory_craft!.hp = {}
-        }
-
-        for (let i = 0; i < ce_config.monsters.length; i++) {
-            const waveKey = (i + 1).toString()
-            if (!newExtraData.theory_craft!.hp[waveKey]) {
-                newExtraData.theory_craft!.hp[waveKey] = []
-            }
-            for (let j = 0; j < ce_config.monsters[i].length; j++) {
-                if (newExtraData.theory_craft!.hp[waveKey][j] === undefined) {
-                    newExtraData.theory_craft!.hp[waveKey][j] = 0
-                }
-            }
-        }
-        setExtraData(newExtraData)
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [ce_config])
 
 
     return (

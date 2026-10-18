@@ -11,6 +11,9 @@ const withNextIntl = createNextIntlPlugin();
 const nextConfig: NextConfig = {
   reactStrictMode: false,
   output: "standalone",
+  outputFileTracingIncludes: {
+    "/api/data/[name]": ["./data/**/*", "./data/.packed/**/*"],
+  },
   images: {
     unoptimized: true,
     remotePatterns: [

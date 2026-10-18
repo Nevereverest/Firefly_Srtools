@@ -1,9 +1,10 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 "use client"
 
+import MountOnOpen from "../mountOnOpen";
 import useUserDataStore from "@/stores/userDataStore";
 import { useEffect, useMemo } from "react";
-import LightconeBar from '../lightconeBar'
+import dynamic from 'next/dynamic';
 import { calcPromotion, calcRarity, replaceByParam } from '@/helper';
 import { getSkillTree } from '@/helper/getSkillTree';
 import { useTranslations } from 'next-intl';
@@ -16,6 +17,8 @@ import useDetailDataStore from "@/stores/detailDataStore";
 import { getLocaleName } from "@/helper/getName";
 import { useShallow } from "zustand/react/shallow";
 
+const LightconeBar = dynamic(() => import('../lightconeBar'), { ssr: false });
+
 export default function AvatarInfo() {
     const { avatarSelected, setResetDataLightcone } = useCurrentDataStore(
         useShallow((state) => ({
@@ -23,13 +26,7 @@ export default function AvatarInfo() {
             setResetDataLightcone: state.setResetDataLightcone,
         }))
     )
-    const { avatars, setAvatars, setAvatar } = useUserDataStore(
-        useShallow((state) => ({
-            avatars: state.avatars,
-            setAvatars: state.setAvatars,
-            setAvatar: state.setAvatar,
-        }))
-    )
+
     const { isOpenLightcone, setIsOpenLightcone } = useModelStore(
         useShallow((state) => ({
             isOpenLightcone: state.isOpenLightcone,
@@ -47,15 +44,18 @@ export default function AvatarInfo() {
         useShallow((state) => ({ locale: state.locale }))
     );
 
+    const userAvatar = useUserDataStore(state => state.avatars[avatarSelected?.ID ?? ""])
+    const setAvatar = useUserDataStore(state => state.setAvatar)
+
     const lightcone = useMemo(() => {
         if (!avatarSelected) return null;
-        const avatar = avatars[avatarSelected.ID];
+        const avatar = userAvatar;
         return avatar?.profileList?.[avatar?.profileSelect]?.lightcone ?? avatar?.profileList?.[0]?.lightcone ?? null;
-    }, [avatarSelected, avatars]);
+    }, [avatarSelected, userAvatar]);
 
     const handleUpdateLightcone = (updater: (lc: typeof lightcone) => typeof lightcone) => {
-        if (!avatarSelected || !avatars[avatarSelected.ID]) return;
-        const avatar = avatars[avatarSelected.ID];
+        if (!avatarSelected || !userAvatar) return;
+        const avatar = userAvatar;
         const profileIndex = avatar.profileSelect;
         const currentProfile = avatar.profileList?.[profileIndex];
         if (!currentProfile) return;
@@ -117,7 +117,7 @@ export default function AvatarInfo() {
 
     return (
         <div className="w-full space-y-4">
-            {avatarSelected && avatars[avatarSelected?.ID.toString() || ""] && (
+            {avatarSelected && userAvatar && (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 w-full items-start">
                     {/* Left Column: Character Configuration */}
                     <div className="glass-card rounded-2xl p-5 sm:p-6 border border-base-content/10 shadow-xs flex flex-col justify-between">
@@ -144,7 +144,7 @@ export default function AvatarInfo() {
                                             {transI18n("characterLevel")}
                                         </span>
                                         <span className="text-xs font-mono font-bold px-2.5 py-1 rounded-md bg-primary/15 text-primary border border-primary/25">
-                                            {avatars[avatarSelected?.ID.toString() || ""]?.level} / 80
+                                            {userAvatar?.level} / 80
                                         </span>
                                     </div>
 
@@ -153,16 +153,16 @@ export default function AvatarInfo() {
                                             type="range"
                                             min="1"
                                             max="80"
-                                            value={avatars[avatarSelected?.ID.toString() || ""]?.level}
+                                            value={userAvatar?.level}
                                             onChange={(e) => {
                                                 const newLevel = Math.min(80, Math.max(1, parseInt(e.target.value) || 1));
-                                                setAvatars({ ...avatars, [avatarSelected?.ID.toString() || ""]: { ...avatars[avatarSelected?.ID.toString() || ""], level: newLevel, promotion: calcPromotion(newLevel) } });
+                                                setAvatar({ ...userAvatar!, level: newLevel, promotion: calcPromotion(newLevel) });
                                             }}
                                             className="range range-primary range-sm flex-1"
                                         />
                                         <button
                                             onClick={() => {
-                                                setAvatars({ ...avatars, [avatarSelected?.ID.toString() || ""]: { ...avatars[avatarSelected?.ID.toString() || ""], level: 80, promotion: calcPromotion(80) } });
+                                                setAvatar({ ...userAvatar!, level: 80, promotion: calcPromotion(80) });
                                             }}
                                             className="btn btn-sm btn-primary btn-outline h-8 min-h-8 rounded-lg font-bold px-3"
                                         >
@@ -180,10 +180,10 @@ export default function AvatarInfo() {
                                         </span>
                                         <div className="flex items-center gap-2">
                                             <span className="text-xs font-mono font-bold text-amber-500">
-                                                {Math.round(avatars[avatarSelected?.ID.toString() || ""]?.sp_value)} / {avatars[avatarSelected?.ID.toString() || ""]?.sp_max}
+                                                {Math.round(userAvatar?.sp_value)} / {userAvatar?.sp_max}
                                             </span>
                                             <span className="text-xs font-mono text-base-content/70 font-semibold">
-                                                ({((avatars[avatarSelected?.ID.toString() || ""]?.sp_value / avatars[avatarSelected?.ID.toString() || ""]?.sp_max) * 100).toFixed(0)}%)
+                                                ({((userAvatar?.sp_value / userAvatar?.sp_max) * 100).toFixed(0)}%)
                                             </span>
                                         </div>
                                     </div>
@@ -192,21 +192,21 @@ export default function AvatarInfo() {
                                         <input
                                             type="range"
                                             min="0"
-                                            max={avatars[avatarSelected?.ID.toString() || ""]?.sp_max}
-                                            value={avatars[avatarSelected?.ID.toString() || ""]?.sp_value}
+                                            max={userAvatar?.sp_max}
+                                            value={userAvatar?.sp_value}
                                             onChange={(e) => {
-                                                if (!avatars[avatarSelected?.ID.toString() || ""]?.can_change_sp) return
-                                                const newSpValue = Math.min(avatars[avatarSelected?.ID.toString() || ""]?.sp_max, Math.max(0, parseInt(e.target.value) || 0));
-                                                setAvatars({ ...avatars, [avatarSelected?.ID.toString() || ""]: { ...avatars[avatarSelected?.ID.toString() || ""], sp_value: newSpValue } });
+                                                if (!userAvatar?.can_change_sp) return
+                                                const newSpValue = Math.min(userAvatar?.sp_max, Math.max(0, parseInt(e.target.value) || 0));
+                                                setAvatar({ ...userAvatar!, sp_value: newSpValue });
                                             }}
                                             className="range range-warning range-sm flex-1"
                                         />
                                         <button
                                             className="btn btn-sm btn-warning btn-outline h-8 min-h-8 font-bold px-3 rounded-lg shadow-xs active-press"
                                             onClick={() => {
-                                                if (!avatars[avatarSelected?.ID.toString() || ""]?.can_change_sp) return
-                                                const newSpValue = Math.ceil(avatars[avatarSelected?.ID.toString() || ""]?.sp_max / 2);
-                                                const newAvatar = { ...avatars[avatarSelected?.ID.toString() || ""], sp_value: newSpValue }
+                                                if (!userAvatar?.can_change_sp) return
+                                                const newSpValue = Math.ceil(userAvatar?.sp_max / 2);
+                                                const newAvatar = { ...userAvatar, sp_value: newSpValue }
                                                 setAvatar(newAvatar)
                                             }}
                                         >
@@ -226,11 +226,11 @@ export default function AvatarInfo() {
                                     </div>
                                     <input
                                         type="checkbox"
-                                        checked={avatars[avatarSelected?.ID.toString() || ""]?.techniques.length > 0}
+                                        checked={userAvatar?.techniques.length > 0}
                                         onChange={(e) => {
                                             if (!avatarSelected || avatarSelected?.MazeBuff?.length == 0) return
                                              const techniques = e.target.checked ? avatarSelected?.MazeBuff : [];
-                                            const newAvatar = { ...avatars[avatarSelected?.ID.toString() || ""], techniques: techniques };
+                                            const newAvatar = { ...userAvatar, techniques: techniques };
                                             setAvatar(newAvatar);
                                         }}
                                         className="toggle toggle-primary"
@@ -246,13 +246,13 @@ export default function AvatarInfo() {
                                                 {transI18n("enhancement")}
                                             </span>
                                             <span className="text-xs font-mono text-secondary font-bold">
-                                                {avatars[avatarSelected?.ID.toString() || ""]?.enhanced || transI18n("origin")}
+                                                {userAvatar?.enhanced || transI18n("origin")}
                                             </span>
                                         </div>
                                         <select
-                                            value={avatars[avatarSelected?.ID.toString() || ""]?.enhanced || ""}
+                                            value={userAvatar?.enhanced || ""}
                                             onChange={(e) => {
-                                                const currentAvatar = avatars[avatarSelected?.ID.toString() || ""]
+                                                const currentAvatar = userAvatar
                                                 if (currentAvatar && avatarSelected) {
                                                     const skillTree = getSkillTree(avatarSelected, e.target.value)
                                                     const newAvatar = {
@@ -472,7 +472,7 @@ export default function AvatarInfo() {
                         </button>
                     </div>
                     <div className="p-4 sm:p-6 overflow-y-auto flex-1">
-                        <LightconeBar />
+                        <MountOnOpen open={isOpenLightcone}><LightconeBar /></MountOnOpen>
                     </div>
                 </div>
                 <form method="dialog" className="modal-backdrop">

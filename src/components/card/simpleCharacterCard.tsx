@@ -1,4 +1,5 @@
 "use client";
+import { memo } from 'react';
 import Image from 'next/image';
 import { AvatarDetail } from '@/types';
 import useDetailDataStore from '@/stores/detailDataStore';
@@ -12,7 +13,7 @@ interface SimpleAvatarCardProps {
   showRemoveHover?: boolean;
 }
 
-export const SimpleAvatarCard = ({ data, isSelected, onClick, showRemoveHover }: SimpleAvatarCardProps) => {
+const SimpleAvatarCardComponent = ({ data, isSelected, onClick, showRemoveHover }: SimpleAvatarCardProps) => {
   const { baseType, damageType } = useDetailDataStore(
     useShallow((state) => ({
       baseType: state.baseType,
@@ -42,7 +43,7 @@ export const SimpleAvatarCard = ({ data, isSelected, onClick, showRemoveHover }:
           unoptimized
           crossOrigin="anonymous"
           src={`${process.env.CDN_URL}/${data.Image.ActionAvatarHeadIconPath}`}
-          priority={true}
+          loading="lazy"
           className="w-full h-full object-contain transition-transform duration-200 group-hover:scale-105"
           alt="Avatar"
         />
@@ -54,6 +55,7 @@ export const SimpleAvatarCard = ({ data, isSelected, onClick, showRemoveHover }:
               unoptimized
               crossOrigin="anonymous"
               src={`${process.env.CDN_URL}/${damageType[data.DamageType].Icon}`}
+              loading="lazy"
               className="w-full h-full object-contain"
               alt="Element"
             />
@@ -67,6 +69,7 @@ export const SimpleAvatarCard = ({ data, isSelected, onClick, showRemoveHover }:
               unoptimized
               crossOrigin="anonymous"
               src={`${process.env.CDN_URL}/${baseType[data.BaseType].Icon}`}
+              loading="lazy"
               className="w-full h-full object-contain"
               alt="Path"
             />
@@ -82,3 +85,5 @@ export const SimpleAvatarCard = ({ data, isSelected, onClick, showRemoveHover }:
     </div>
   );
 };
+
+export const SimpleAvatarCard = memo(SimpleAvatarCardComponent);

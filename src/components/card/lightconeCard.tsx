@@ -6,12 +6,13 @@ import { useShallow } from 'zustand/react/shallow';
 import ParseText from '../parseText';
 import Image from 'next/image';
 import { LightConeDetail } from '@/types';
+import { memo } from 'react';
 
 interface LightconeCardProps {
     data: LightConeDetail
 }
 
-export default function LightconeCard({ data }: LightconeCardProps) {
+function LightconeCard({ data }: LightconeCardProps) {
     const { locale } = useLocaleStore(useShallow((state) => ({ locale: state.locale })));
     const text = getLocaleName(locale, data.Name);
 
@@ -53,3 +54,5 @@ export default function LightconeCard({ data }: LightconeCardProps) {
         </li>
     );
 }
+
+export default memo(LightconeCard);

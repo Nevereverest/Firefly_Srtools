@@ -10,11 +10,14 @@ import { useShallow } from 'zustand/react/shallow';
 
 import useUserDataStore from '@/stores/userDataStore';
 
+import { memo } from 'react';
+
 interface CharacterCardProps {
   data: AvatarDetail
+  priority?: boolean
 }
 
-export default function CharacterCard({ data }: CharacterCardProps) {
+function CharacterCard({ data, priority = false }: CharacterCardProps) {
   const { locale } = useLocaleStore(useShallow((state) => ({ locale: state.locale })));
   const transI18n = useTranslations("DataPage");
   const { baseType, damageType } = useDetailDataStore(
@@ -23,11 +26,8 @@ export default function CharacterCard({ data }: CharacterCardProps) {
       damageType: state.damageType,
     }))
   )
-  const { avatars } = useUserDataStore(
-    useShallow((state) => ({ avatars: state.avatars }))
-  )
+  const userAvatar = useUserDataStore((state) => state.avatars[data.ID.toString()]);
 
-  const userAvatar = avatars[data.ID.toString()]
   const level = userAvatar?.level
   const rank = userAvatar?.data?.rank ?? 0
   const exRankCount = userAvatar?.data?.ex_rank_id_list?.length ?? 0
@@ -36,7 +36,7 @@ export default function CharacterCard({ data }: CharacterCardProps) {
   const is4Star = data.Rarity === "CombatPowerAvatarRarityType4";
 
   return (
-    <li
+    <div
       className="group relative flex flex-col items-center rounded-xl overflow-hidden bg-base-100 border border-base-content/10 shadow-sm hover:shadow-md cursor-pointer select-none h-full"
     >
       {/* Artwork container with vibrant rarity background */}
@@ -55,7 +55,8 @@ export default function CharacterCard({ data }: CharacterCardProps) {
           unoptimized
           crossOrigin="anonymous"
           src={`${process.env.CDN_URL}/${data.Image.AvatarIconPath}`}
-          priority={true}
+          loading={priority ? "eager" : "lazy"}
+          fetchPriority={priority ? "high" : "auto"}
           className="w-full h-full object-contain transition-transform duration-300 ease-out group-hover:scale-105"
           alt={data.ID.toString()}
         />
@@ -117,6 +118,8 @@ export default function CharacterCard({ data }: CharacterCardProps) {
           className="font-bold text-xs sm:text-[11.5px] lg:text-xs leading-tight px-0.5 text-base-content group-hover:text-primary transition-colors text-center w-full"
         />
       </div>
-    </li>
+    </div>
   );
 }
+
+export default memo(CharacterCard);

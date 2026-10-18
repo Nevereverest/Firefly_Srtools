@@ -1,5 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 "use client"
+import MountOnOpen from "../mountOnOpen";
 import { downloadJson } from "@/helper";
 import { converterToFreeSRJson } from "@/helper/converterToFreeSRJson";
 import { useChangeTheme } from "@/hooks/useChangeTheme";
@@ -8,21 +9,23 @@ import useLocaleStore from "@/stores/localeStore";
 import useUserDataStore from "@/stores/userDataStore";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
-import EnkaImport from "../importBar/enka";
 import useModelStore from "@/stores/modelStore";
-import FreeSRImport from "../importBar/freesr";
 import { toast } from "react-toastify";
 import { micsSchema } from "@/zod";
 import useGlobalStore from "@/stores/globalStore";
-import MonsterBar from "../monsterBar";
 import Image from "next/image";
-import ConnectBar from "../connectBar";
-import ExtraSettingBar from "../extraSettingBar";
-import ChangelogBar from "../changelog";
 import { ModalConfig } from "@/types";
 import { ScrollText } from "lucide-react";
 import { useShallow } from "zustand/react/shallow";
+
+const MonsterBar = dynamic(() => import("../monsterBar"), { ssr: false });
+const ExtraSettingBar = dynamic(() => import("../extraSettingBar"), { ssr: false });
+const ChangelogBar = dynamic(() => import("../changelog"), { ssr: false });
+const ConnectBar = dynamic(() => import("../connectBar"), { ssr: false });
+const EnkaImport = dynamic(() => import("../importBar/enka"), { ssr: false });
+const FreeSRImport = dynamic(() => import("../importBar/freesr"), { ssr: false });
 
 const themes = [
     { label: "Winter" },
@@ -43,39 +46,6 @@ export default function Header() {
         useShallow((state) => ({
             locale: state.locale,
             setLocale: state.setLocale,
-        }))
-    )
-    const {
-        avatars,
-        battle_type,
-        setAvatars,
-        setBattleType,
-        moc_config,
-        pf_config,
-        as_config,
-        ce_config,
-        peak_config,
-        setMocConfig,
-        setPfConfig,
-        setAsConfig,
-        setCeConfig,
-        setPeakConfig,
-    } = useUserDataStore(
-        useShallow((state) => ({
-            avatars: state.avatars,
-            battle_type: state.battle_type,
-            setAvatars: state.setAvatars,
-            setBattleType: state.setBattleType,
-            moc_config: state.moc_config,
-            pf_config: state.pf_config,
-            as_config: state.as_config,
-            ce_config: state.ce_config,
-            peak_config: state.peak_config,
-            setMocConfig: state.setMocConfig,
-            setPfConfig: state.setPfConfig,
-            setAsConfig: state.setAsConfig,
-            setCeConfig: state.setCeConfig,
-            setPeakConfig: state.setPeakConfig,
         }))
     )
 
@@ -109,10 +79,10 @@ export default function Header() {
 
     const [importModal, setImportModal] = useState("enka");
 
-    const { isConnectPS, extraData } = useGlobalStore(
+    const { isConnectPS, hasExtraData } = useGlobalStore(
         useShallow((state) => ({
             isConnectPS: state.isConnectPS,
-            extraData: state.extraData,
+            hasExtraData: !!state.extraData,
         }))
     )
 
@@ -239,7 +209,7 @@ export default function Header() {
         const handleEscKey = (event: KeyboardEvent) => {
             if (event.key === 'Escape') {
                 for (const item of modalConfigs) {
-                    handleCloseModal(item?.id || "")
+                    item.onClose()
                 }
             }
         };
@@ -267,13 +237,9 @@ export default function Header() {
                 try {
                     const data = JSON.parse(e.target?.result as string);
                     const parsed = micsSchema.parse(data)
-                    setAvatars(parsed.avatars)
-                    setBattleType(parsed.battle_type)
-                    setMocConfig(parsed.moc_config)
-                    setPfConfig(parsed.pf_config)
-                    setAsConfig(parsed.as_config)
-                    setCeConfig(parsed.ce_config)
-                    setPeakConfig(parsed.peak_config)
+                    // One notification and one persisted write; battle sync also sees
+                    // the complete imported configuration, never seven partial states.
+                    useUserDataStore.setState(parsed)
                     toast.success(transI18n("importDatabaseSuccess"))
                 } catch {
                     toast.error(transI18n("fileMustBeAValidJsonFile"))
@@ -283,6 +249,15 @@ export default function Header() {
         }
 
     };
+
+    const handleExportFreeSR = () => {
+        const { avatars, battle_type, moc_config, pf_config, as_config, ce_config, peak_config } = useUserDataStore.getState()
+        downloadJson("freesr-data", converterToFreeSRJson(avatars, battle_type, moc_config, pf_config, as_config, ce_config, peak_config))
+    }
+    const handleExportDatabase = () => {
+        const { avatars, battle_type, moc_config, pf_config, as_config, ce_config, peak_config } = useUserDataStore.getState()
+        downloadJson("database-data", { avatars, battle_type, moc_config, pf_config, as_config, ce_config, peak_config })
+    }
 
     return (
         <header className="sticky top-0 z-40 w-full shrink-0 bg-base-100 border-b border-base-300 shadow-xs">
@@ -335,26 +310,8 @@ export default function Header() {
                                 <details>
                                     <summary className="px-3 py-2 hover:bg-base-200/70 rounded-lg transition-all duration-200 font-medium">{transI18n("exportData")}</summary>
                                     <ul className="p-2 space-y-1">
-                                        <li><a className="rounded-md" onClick={() => downloadJson("freesr-data",
-                                            converterToFreeSRJson(
-                                                avatars,
-                                                battle_type,
-                                                moc_config,
-                                                pf_config,
-                                                as_config,
-                                                ce_config,
-                                                peak_config
-                                            )
-                                        )}>{transI18n("freeSr")}</a></li>
-                                        <li><a className="rounded-md" onClick={() => downloadJson("database-data", {
-                                            avatars: avatars,
-                                            battle_type: battle_type,
-                                            moc_config: moc_config,
-                                            pf_config: pf_config,
-                                            as_config: as_config,
-                                            ce_config: ce_config,
-                                            peak_config: peak_config
-                                        })}>{transI18n("database")}</a></li>
+                                        <li><a className="rounded-md" onClick={handleExportFreeSR}>{transI18n("freeSr")}</a></li>
+                                        <li><a className="rounded-md" onClick={handleExportDatabase}>{transI18n("database")}</a></li>
                                     </ul>
                                 </details>
                             </li>
@@ -379,7 +336,7 @@ export default function Header() {
                                 </button>
                             </li>
 
-                            {extraData && (
+                            {hasExtraData && (
                                 <li>
                                     <button
                                         onClick={() => {
@@ -459,26 +416,8 @@ export default function Header() {
                             <details>
                                 <summary className="px-3 py-1.5 hover:bg-base-200/70 rounded-lg transition-all duration-200">{transI18n("exportData")}</summary>
                                 <ul className="p-2 bg-base-100 rounded-xl shadow-xl border border-base-content/15 space-y-1 w-44 z-50">
-                                    <li><a className="rounded-md" onClick={() => downloadJson("freesr-data",
-                                        converterToFreeSRJson(
-                                            avatars,
-                                            battle_type,
-                                            moc_config,
-                                            pf_config,
-                                            as_config,
-                                            ce_config,
-                                            peak_config
-                                        )
-                                    )}>{transI18n("freeSr")}</a></li>
-                                    <li><a className="rounded-md" onClick={() => downloadJson("database-data", {
-                                        avatars: avatars,
-                                        battle_type: battle_type,
-                                        moc_config: moc_config,
-                                        pf_config: pf_config,
-                                        as_config: as_config,
-                                        ce_config: ce_config,
-                                        peak_config: peak_config
-                                    })}>{transI18n("database")}</a></li>
+                                    <li><a className="rounded-md" onClick={handleExportFreeSR}>{transI18n("freeSr")}</a></li>
+                                    <li><a className="rounded-md" onClick={handleExportDatabase}>{transI18n("database")}</a></li>
                                 </ul>
                             </details>
                         </li>
@@ -502,7 +441,7 @@ export default function Header() {
                                 {transI18n("monsterSetting")}
                             </button>
                         </li>
-                        {extraData && (
+                        {hasExtraData && (
                             <li>
                                 <button
                                     onClick={() => {
@@ -639,8 +578,8 @@ export default function Header() {
             </div>
 
             {/* Modals */}
-            {modalConfigs?.map(({ id, title, onClose, content }) => (
-                <dialog key={id} id={id} className="modal">
+            {modalConfigs?.map(({ id, title, isOpen, onClose, content }) => (
+                <dialog key={id} id={id} className={`modal ${isOpen ? "modal-open" : ""}`}>
                     <div className={`modal-box ${
                         id === 'monster_modal'
                             ? 'w-[98vw] max-w-[98vw] xl:w-[94vw] xl:max-w-[94vw] 2xl:w-[92vw] 2xl:max-w-[1750px] h-[90vh]'
@@ -667,7 +606,7 @@ export default function Header() {
 
                         {/* Modal Body */}
                         <div className="p-4 sm:p-6 overflow-y-auto flex-1">
-                            {content}
+                            <MountOnOpen open={isOpen}>{content}</MountOnOpen>
                         </div>
                     </div>
                     <form method="dialog" className="modal-backdrop">

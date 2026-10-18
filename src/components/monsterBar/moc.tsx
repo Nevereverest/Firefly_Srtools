@@ -1,12 +1,11 @@
 "use client"
 
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import SelectCustomText from "../select/customSelectText";
 import { getLocaleName, replaceByParam } from "@/helper";
 import useLocaleStore from "@/stores/localeStore";
 import useUserDataStore from "@/stores/userDataStore";
 import { useTranslations } from "next-intl";
-import { MoCEvent, MonsterStore } from "@/types";
 import useDetailDataStore from "@/stores/detailDataStore";
 import useGlobalStore from "@/stores/globalStore";
 import { useShallow } from "zustand/react/shallow";
@@ -31,11 +30,9 @@ export default function MocBar() {
     )
     const { mapMoc } = useDetailDataStore(
         useShallow((state) => ({
-            mapMonster: state.mapMonster,
+
             mapMoc: state.mapMoc,
-            damageType: state.damageType,
-            hardLevelConfig: state.hardLevelConfig,
-            eliteConfig: state.eliteConfig,
+
         }))
     )
 
@@ -76,89 +73,6 @@ export default function MocBar() {
         return floorList
     }, [moc_config.challenge_id, eventSelected, transI18n])
 
-    useEffect(() => {
-        if (!challengeSelected || moc_config.event_id === 0 || moc_config.challenge_id === 0) return
-
-        const newBattleConfig = structuredClone(moc_config)
-        newBattleConfig.cycle_count = 0
-        if (moc_config.use_cycle_count) {
-            newBattleConfig.cycle_count = challengeSelected.TurnLimit
-        }
-        newBattleConfig.blessings = []
-        if (moc_config.use_turbulence_buff && challengeSelected) {
-            challengeSelected.MazeBuff.map((item) => {
-                newBattleConfig.blessings.push({
-                    id: item.ID,
-                    level: 1
-                })
-            })
-        }
-        newBattleConfig.monsters = []
-        newBattleConfig.stage_id = 0
-
-        let currentSide = moc_config.floor_side;
-        if (currentSide === "first_half" || currentSide === "firstHalf" || !currentSide) currentSide = "firstNode";
-        if (currentSide === "second_half" || currentSide === "secondHalf") currentSide = "secondNode";
-
-        let targetEventList: MoCEvent[] = []
-        if (currentSide === "firstNode" && challengeSelected.EventList1?.length > 0) {
-            targetEventList = challengeSelected.EventList1
-        } else if (currentSide === "secondNode" && challengeSelected.EventList2?.length > 0) {
-            targetEventList = challengeSelected.EventList2
-        } else if (currentSide === "thirdNode" && eventSelected?.Tierce && eventSelected.Tierce.EventList?.length > 0) {
-            targetEventList = eventSelected.Tierce.EventList
-        }
-
-        // Fallback to first available node if currentSide is invalid or has no events
-        if (targetEventList.length === 0) {
-            if (challengeSelected.EventList1?.length) {
-                targetEventList = challengeSelected.EventList1;
-                currentSide = "firstNode";
-            } else if (challengeSelected.EventList2?.length) {
-                targetEventList = challengeSelected.EventList2;
-                currentSide = "secondNode";
-            } else if (eventSelected?.Tierce?.EventList?.length) {
-                targetEventList = eventSelected.Tierce.EventList;
-                currentSide = "thirdNode";
-            }
-        }
-        newBattleConfig.floor_side = currentSide;
-
-        if (targetEventList.length > 0) {
-            newBattleConfig.stage_id = targetEventList[0].ID
-            
-            if (targetEventList[0].Invasion) {
-                newBattleConfig.blessings.push({
-                    id: targetEventList[0].Invasion.MazeBuff.ID,
-                    level: 1
-                })
-            }
-
-            for (const wave of targetEventList[0].MonsterList) {
-                const newWave: MonsterStore[] = []
-                for (const value of Object.values(wave)) {
-                    newWave.push({
-                        monster_id: value,
-                        level: targetEventList[0].Level,
-                        amount: 1,
-                    })
-                }
-                newBattleConfig.monsters.push(newWave)
-            }
-        }
-
-        setMocConfig(newBattleConfig)
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [
-        challengeSelected,
-        eventSelected,
-        moc_config.event_id,
-        moc_config.challenge_id,
-        moc_config.floor_side,
-        moc_config.use_cycle_count,
-        moc_config.use_turbulence_buff,
-        mapMoc,
-    ])
 
     if (!mapMoc) return null
 

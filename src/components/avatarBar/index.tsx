@@ -179,18 +179,23 @@ export default function AvatarBar({ onClose }: { onClose?: () => void }) {
 
             <div className="flex-1 overflow-y-auto pr-0.5 scrollbar-thin">
                 <ul className="grid grid-cols-3 sm:grid-cols-2 lg:grid-cols-3 gap-1.5 auto-rows-fr">
-                    {listAvatar.map((item) => (
-                        <div
+                    {listAvatar.map((item, index) => (
+                        <li
                             key={item.ID}
                             className="h-full flex flex-col"
-                            onClick={() => {
-                                setAvatarSelected(item);
-                                setSkillIDSelected(null)
-                                if (onClose) onClose()
-                            }}
                         >
-                            <CharacterCard data={item} />
-                        </div>
+                            <button
+                                type="button"
+                                className="h-full w-full text-left rounded-xl focus-visible:outline-2 focus-visible:outline-primary"
+                                onClick={() => {
+                                    setAvatarSelected(item);
+                                    setSkillIDSelected(null)
+                                    if (onClose) onClose()
+                                }}
+                            >
+                                <CharacterCard data={item} priority={index < 3} />
+                            </button>
+                        </li>
                     ))}
                 </ul>
             </div>

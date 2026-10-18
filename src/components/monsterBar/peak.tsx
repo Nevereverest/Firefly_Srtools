@@ -1,11 +1,10 @@
 "use client";
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import SelectCustomText from "../select/customSelectText";
 import { getLocaleName, replaceByParam } from "@/helper";
 import useLocaleStore from "@/stores/localeStore";
 import useUserDataStore from "@/stores/userDataStore";
 import { useTranslations } from "next-intl";
-import { MonsterStore } from "@/types";
 import useDetailDataStore from "@/stores/detailDataStore";
 import useGlobalStore from "@/stores/globalStore";
 import { useShallow } from "zustand/react/shallow";
@@ -28,11 +27,10 @@ export default function PeakBar() {
   const { mapPeak } =
     useDetailDataStore(
       useShallow((state) => ({
-        mapMonster: state.mapMonster,
+
         mapPeak: state.mapPeak,
-        damageType: state.damageType,
-        eliteConfig: state.eliteConfig,
-        hardLevelConfig: state.hardLevelConfig,
+
+
       })),
     );
   const transI18n = useTranslations("DataPage");
@@ -52,9 +50,7 @@ export default function PeakBar() {
   }, [peak_config, mapPeak]);
 
   const challengeSelected = useMemo(() => {
-    const challenge = structuredClone(
-      listFloor?.find((peak) => peak?.ID === peak_config.challenge_id),
-    );
+    const challenge = listFloor.find(peak => peak.ID === peak_config.challenge_id);
     if (
       challenge &&
       challenge.ID ===
@@ -72,62 +68,6 @@ export default function PeakBar() {
     };
   }, [peak_config, listFloor, mapPeak, bossConfig]);
 
-  useEffect(() => {
-    if (!challengeSelected.challenge) return;
-    if (
-      peak_config.event_id !== 0 &&
-      peak_config.challenge_id !== 0 &&
-      challengeSelected
-    ) {
-      const newBattleConfig = structuredClone(peak_config);
-      newBattleConfig.cycle_count = 6;
-      newBattleConfig.blessings = [];
-      for (const value of challengeSelected?.challenge?.MazeBuff) {
-        newBattleConfig.blessings.push({
-          id: value.ID,
-          level: 1,
-        });
-      }
-      if (peak_config.buff_id !== 0 && challengeSelected.isBoss) {
-        newBattleConfig.blessings.push({
-          id: peak_config.buff_id,
-          level: 1,
-        });
-      }
-      newBattleConfig.monsters = [];
-      newBattleConfig.stage_id = challengeSelected.challenge.EventList[0].ID;
-
-      if (challengeSelected.challenge.EventList[0].Invasion) {
-        console.log("Adding Invasion Buff", challengeSelected.challenge.EventList[0].Invasion.MazeBuff.ID);
-        newBattleConfig.blessings.push({
-          id: challengeSelected.challenge.EventList[0].Invasion.MazeBuff.ID,
-          level: 1,
-        });
-      }
-      for (const wave of challengeSelected.challenge.EventList[0].MonsterList) {
-        if (!wave) continue;
-        const newWave: MonsterStore[] = [];
-        for (const value of Object.values(wave)) {
-          if (!value) continue;
-          newWave.push({
-            monster_id: value,
-            level: challengeSelected.challenge.EventList[0].Level,
-            amount: 1,
-          });
-        }
-        newBattleConfig.monsters.push(newWave);
-      }
-
-      setPeakConfig(newBattleConfig);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    peak_config.event_id,
-    peak_config.challenge_id,
-    peak_config.buff_id,
-    peak_config.boss_mode,
-    mapPeak,
-  ]);
 
   if (!mapPeak) return null;
 

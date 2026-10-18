@@ -1,6 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
+import MountOnOpen from "../mountOnOpen";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { usePathname, useRouter } from 'next/navigation'
@@ -14,13 +15,15 @@ import { ModalConfig, RelicStore, AvatarProfileStore } from "@/types";
 import { toast } from "react-toastify";
 import useGlobalStore from "@/stores/globalStore";
 import { connectToPS, syncDataToPS } from "@/helper";
-import CopyImport from "../importBar/copy";
+import dynamic from "next/dynamic";
 import useCopyProfileStore from "@/stores/copyProfile";
 import AvatarBar from "../avatarBar";
 import useCurrentDataStore from "@/stores/currentDataStore";
 import useDetailDataStore from "@/stores/detailDataStore";
 import { useShallow } from "zustand/react/shallow";
 import { User, Shield, Sparkles, Zap, Image as ImageIcon, RefreshCw, Plus, Copy, Edit2, Trash2 } from "lucide-react";
+
+const CopyImport = dynamic(() => import("../importBar/copy"), { ssr: false });
 
 export default function ActionBar() {
   const router = useRouter()
@@ -58,12 +61,7 @@ export default function ActionBar() {
       setIsOpenAvatars: state.setIsOpenAvatars,
     }))
   )
-  const { avatars, setAvatar } = useUserDataStore(
-    useShallow((state) => ({
-      avatars: state.avatars,
-      setAvatar: state.setAvatar,
-    }))
-  )
+
   const [profileName, setProfileName] = useState("");
   const [formState, setFormState] = useState("EDIT");
   const [profileEdit, setProfileEdit] = useState(-1);
@@ -71,38 +69,42 @@ export default function ActionBar() {
     useShallow((state) => ({ isConnectPS: state.isConnectPS }))
   )
 
+  const userAvatar = useUserDataStore(state => state.avatars[avatarSelected?.ID ?? ""])
+  const setAvatar = useUserDataStore(state => state.setAvatar)
+
   const profileCurrent = useMemo(() => {
     if (!avatarSelected) return null;
-    const avatar = avatars[avatarSelected.ID];
+    const avatar = userAvatar;
     return avatar?.profileList?.[avatar?.profileSelect] ?? avatar?.profileList?.[0] ?? null;
-  }, [avatarSelected, avatars]);
+  }, [avatarSelected, userAvatar]);
 
   const [profileToDelete, setProfileToDelete] = useState<{ id: number; name: string } | null>(null);
 
   const listProfile = useMemo(() => {
     if (!avatarSelected) return [];
-    const avatar = avatars[avatarSelected.ID];
+    const avatar = userAvatar;
     return avatar?.profileList || [];
-  }, [avatarSelected, avatars]);
+  }, [avatarSelected, userAvatar]);
 
   const handleUpdateProfile = () => {
     if (!profileName.trim()) return;
-    if (formState === "CREATE" && avatarSelected && avatars[avatarSelected.ID]) {
+    if (formState === "CREATE" && avatarSelected && userAvatar) {
       const newProfile: AvatarProfileStore = {
         profile_name: profileName,
         lightcone: null,
         relics: {} as Record<string, RelicStore>
       };
       const newListProfile = [...listProfile, newProfile];
-      setAvatar({ ...avatars[avatarSelected.ID], profileList: newListProfile, profileSelect: newListProfile.length - 1 })
+      setAvatar({ ...userAvatar, profileList: newListProfile, profileSelect: newListProfile.length - 1 })
       toast.success(transI18n("profileCreatedSuccessfully"))
     } else if (formState === "EDIT" && profileCurrent && avatarSelected && profileEdit !== -1) {
       const newListProfile = listProfile.map((p, idx) =>
         idx === profileEdit ? { ...p, profile_name: profileName } : p
       );
-      setAvatar({ ...avatars[avatarSelected.ID], profileList: newListProfile })
+      setAvatar({ ...userAvatar, profileList: newListProfile })
       toast.success(transI18n("profileUpdatedSuccessfully"))
     }
+    setIsOpenCreateProfile(false);
     handleCloseModal("update_profile_modal");
   };
 
@@ -141,10 +143,10 @@ export default function ActionBar() {
   };
 
   const handleProfileSelect = (profileId: number) => {
-    if (!avatarSelected || !avatars[avatarSelected.ID]) return;
-    if (avatars[avatarSelected.ID].profileSelect === profileId) return;
-    setAvatar({ ...avatars[avatarSelected.ID], profileSelect: profileId })
-    const selectedProfile = avatars[avatarSelected.ID].profileList?.[profileId];
+    if (!avatarSelected || !userAvatar) return;
+    if (userAvatar.profileSelect === profileId) return;
+    setAvatar({ ...userAvatar, profileSelect: profileId })
+    const selectedProfile = userAvatar.profileList?.[profileId];
     if (selectedProfile) {
       toast.success(`${transI18n("profileSwitched")}: ${selectedProfile.profile_name}`)
     }
@@ -152,19 +154,19 @@ export default function ActionBar() {
 
   const requestDeleteProfile = (profileId: number, e: React.MouseEvent) => {
     e.stopPropagation()
-    if (!avatarSelected || profileId === 0 || !avatars[avatarSelected.ID]) return;
-    const targetProfile = avatars[avatarSelected.ID].profileList?.[profileId];
+    if (!avatarSelected || profileId === 0 || !userAvatar) return;
+    const targetProfile = userAvatar.profileList?.[profileId];
     if (!targetProfile) return;
     setProfileToDelete({ id: profileId, name: targetProfile.profile_name });
     handleShow("delete_profile_confirm_modal");
   }
 
   const handleConfirmDeleteProfile = () => {
-    if (!avatarSelected || !profileToDelete || !avatars[avatarSelected.ID]) return;
-    const currentSelect = avatars[avatarSelected.ID].profileSelect;
+    if (!avatarSelected || !profileToDelete || !userAvatar) return;
+    const currentSelect = userAvatar.profileSelect;
     const newListProfile = listProfile.filter((_, idx) => idx !== profileToDelete.id);
     const nextSelect = currentSelect >= profileToDelete.id ? Math.max(0, currentSelect - 1) : currentSelect;
-    setAvatar({ ...avatars[avatarSelected.ID], profileList: newListProfile, profileSelect: nextSelect })
+    setAvatar({ ...userAvatar, profileList: newListProfile, profileSelect: nextSelect })
     toast.success(transI18n("profileDeletedSuccessfully"))
     handleCloseModal("delete_profile_confirm_modal");
     setProfileToDelete(null);
@@ -262,7 +264,7 @@ export default function ActionBar() {
     const handleEscKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         for (const item of modalConfigs) {
-          handleCloseModal(item?.id || "")
+          item.onClose()
         }
       }
     };
@@ -510,8 +512,8 @@ export default function ActionBar() {
       </div>
 
         {/* Modals */}
-        {modalConfigs.map(({ id, title, onClose, content }) => (
-          <dialog key={id} id={id} className="modal">
+        {modalConfigs.map(({ id, title, isOpen, onClose, content }) => (
+          <dialog key={id} id={id} className={`modal ${isOpen ? "modal-open" : ""}`}>
             <div className="modal-box w-11/12 max-w-[92vw] sm:max-w-[88vw] max-h-[90vh] flex flex-col bg-base-100 text-base-content border border-base-300 shadow-2xl rounded-2xl p-0 overflow-hidden">
               <div className="sticky top-0 z-20 flex items-center justify-between px-6 py-4 border-b border-base-300 bg-base-100 shrink-0">
                 <h3 className="font-bold text-xl tracking-tight text-primary">
@@ -526,7 +528,7 @@ export default function ActionBar() {
                 </button>
               </div>
               <div className="p-4 sm:p-6 overflow-y-auto flex-1">
-                {content}
+                <MountOnOpen open={isOpen}>{content}</MountOnOpen>
               </div>
             </div>
             <form method="dialog" className="modal-backdrop">

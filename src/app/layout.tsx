@@ -66,6 +66,9 @@ export default async function RootLayout({
 
   return (
     <html lang={locale} suppressHydrationWarning className="h-full w-full overflow-hidden overscroll-none fixed inset-0">
+      <head>
+        <link rel="preconnect" href="https://cdn.punklorde.org" crossOrigin="anonymous" />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased h-full w-full overflow-hidden overscroll-none fixed inset-0 max-w-full`}
         suppressHydrationWarning

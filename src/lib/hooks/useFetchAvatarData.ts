@@ -16,18 +16,13 @@ export const useFetchAvatarData = () => {
       mapAvatar: state.mapAvatar,
     }))
   )
-  const { setAvatars, avatars } = useUserDataStore(
-    useShallow((state) => ({
-      setAvatars: state.setAvatars,
-      avatars: state.avatars,
-    }))
-  )
-  const { avatarSelected, setAvatarSelected } = useCurrentDataStore(
-    useShallow((state) => ({
-      avatarSelected: state.avatarSelected,
-      setAvatarSelected: state.setAvatarSelected,
-    }))
-  )
+  const setAvatars = useUserDataStore(state => state.setAvatars)
+  // Observe missing IDs rather than every avatar edit. Imports can replace the
+  // collection with an older/partial database and still need default entries.
+  const missingAvatarIds = useUserDataStore(useShallow(state =>
+    Object.keys(mapAvatar).filter(id => !state.avatars[id])
+  ))
+  const setAvatarSelected = useCurrentDataStore(state => state.setAvatarSelected)
 
   const query = useQuery({
     queryKey: ['AvatarData'],
@@ -35,24 +30,25 @@ export const useFetchAvatarData = () => {
     staleTime: 1000 * 60 * 5,
   })
   useEffect(() => {
-    if (!mapAvatar || Object.keys(mapAvatar).length === 0) return
-    const listAvatarId = Object.keys(avatars)
-    const listAvatarNotExist = Object.entries(mapAvatar).filter(([avatarId]) => !listAvatarId.includes(avatarId))
-    if (listAvatarNotExist.length === 0) return
-    const avatarStore = converterToAvatarStore(Object.fromEntries(listAvatarNotExist))
-    if (Object.keys(avatarStore).length === 0) return
-    setAvatars({ ...avatars, ...avatarStore })
-  }, [mapAvatar, avatars, setAvatars])
+    if (missingAvatarIds.length === 0) return
+    const currentAvatars = useUserDataStore.getState().avatars
+    const missingAvatars = Object.fromEntries(missingAvatarIds
+      .filter(id => !currentAvatars[id])
+      .map(id => [id, mapAvatar[id]]))
+    if (Object.keys(missingAvatars).length === 0) return
+    const avatarStore = converterToAvatarStore(missingAvatars)
+    setAvatars({ ...currentAvatars, ...avatarStore })
+  }, [mapAvatar, missingAvatarIds, setAvatars])
 
   useEffect(() => {
     if (query.data) {
         setMapAvatar(query.data)
-        if (!avatarSelected) {
-            setAvatarSelected(Object.values(query.data)[0])
+        if (!useCurrentDataStore.getState().avatarSelected) {
+            setAvatarSelected(Object.values(query.data)[0] ?? null)
         }
     }
     if (query.error) toast.error("Failed to load Avatar data")
-  }, [query.data, query.error, setMapAvatar, avatarSelected, setAvatarSelected])
+  }, [query.data, query.error, setMapAvatar, setAvatarSelected])
 
   return query
 }

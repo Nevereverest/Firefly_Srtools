@@ -13,14 +13,70 @@ export function createValidatedJSONStorage<S>(
     return undefined;
   }
 
+  const debounceTimers = new Map<string, ReturnType<typeof setTimeout>>();
+  const pendingValues = new Map<string, StorageValue<S>>();
+
+  const cancelTimer = (name: string) => {
+    const timer = debounceTimers.get(name);
+    if (timer !== undefined) clearTimeout(timer);
+    debounceTimers.delete(name);
+  };
+
+  const removeItem = (name: string) => {
+    cancelTimer(name);
+    pendingValues.delete(name);
+    return storage.removeItem(name);
+  };
+
   const removeInvalidItem = (name: string, reason: string) => {
     console.warn(`Invalid persisted store "${name}" was cleared: ${reason}`);
-    storage.removeItem(name);
+    removeItem(name);
   };
+
+  const flush = (name: string) => {
+    cancelTimer(name);
+    const value = pendingValues.get(name);
+    if (!value) return;
+    const onSaved = () => {
+      // An async storage write must not discard a newer pending value.
+      if (pendingValues.get(name) === value) pendingValues.delete(name);
+    };
+    const onError = (error: unknown) => {
+      console.error(`Failed to persist store "${name}":`, error);
+    };
+    try {
+      const result = storage.setItem(name, JSON.stringify(value));
+      if (result instanceof Promise) void result.then(onSaved, onError);
+      else onSaved();
+    } catch (error) {
+      onError(error);
+    }
+  };
+
+  if (typeof window !== "undefined") {
+    const flushPending = () => {
+      for (const name of pendingValues.keys()) flush(name);
+    };
+    // Mobile browsers may suspend/kill background pages without beforeunload.
+    window.addEventListener("pagehide", flushPending);
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "hidden") flushPending();
+    });
+  }
 
   return {
     getItem: (name) => {
-      const raw = storage.getItem(name);
+      // Rehydration within the debounce window must see the latest edit,
+      // not overwrite it with the older value on disk.
+      const pending = pendingValues.get(name);
+      if (pending) return pending;
+      let raw: ReturnType<StateStorage["getItem"]>;
+      try {
+        raw = storage.getItem(name);
+      } catch (error) {
+        console.warn(`Failed to read store "${name}":`, error);
+        return null;
+      }
 
       if (raw === null) {
         return null;
@@ -33,11 +89,11 @@ export function createValidatedJSONStorage<S>(
       return parseStorageValue(name, raw, stateSchema, removeInvalidItem);
     },
     setItem: (name, value) => {
-      storage.setItem(name, JSON.stringify(value));
+      pendingValues.set(name, value);
+      cancelTimer(name);
+      debounceTimers.set(name, setTimeout(() => flush(name), 250));
     },
-    removeItem: (name) => {
-      storage.removeItem(name);
-    },
+    removeItem,
   };
 }
 

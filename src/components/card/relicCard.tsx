@@ -4,7 +4,7 @@ import useRelicMakerStore from "@/stores/relicMakerStore";
 import useUserDataStore from "@/stores/userDataStore";
 import { useShallow } from "zustand/react/shallow";
 import Image from "next/image";
-import { useMemo } from "react";
+import { useMemo, memo } from "react";
 import { useTranslations } from "next-intl";
 
 interface RelicCardProps {
@@ -42,11 +42,9 @@ export const slotIconMap: Record<string, { icon: string; key: string }> = {
     'OBJECT': { icon: '/relics/OBJECT.png', key: 'OBJECT' },
 };
 
-export default function RelicCard({ slot, avatarId }: RelicCardProps) {
+function RelicCard({ slot, avatarId }: RelicCardProps) {
     const transI18n = useTranslations("DataPage");
-    const { avatars } = useUserDataStore(
-        useShallow((state) => ({ avatars: state.avatars }))
-    )
+    const avatar = useUserDataStore((state) => state.avatars[avatarId]);
     const { selectedRelicSlot } = useRelicMakerStore(
         useShallow((state) => ({ selectedRelicSlot: state.selectedRelicSlot }))
     )
@@ -55,13 +53,12 @@ export default function RelicCard({ slot, avatarId }: RelicCardProps) {
     const slotDisplayName = slotInfo ? (transI18n(slotInfo.key) || slotInfo.key) : slot;
 
     const relicDetail = useMemo(() => {
-        const avatar = avatars[avatarId];
         if (avatar) {
             const profile = avatar.profileList?.[avatar.profileSelect] ?? avatar.profileList?.[0];
             return profile?.relics?.[slot] || null;
         }
         return null;
-    }, [avatars, avatarId, slot]);
+    }, [avatar, slot]);
 
     const isSelected = selectedRelicSlot === slot;
 
@@ -150,3 +147,5 @@ export default function RelicCard({ slot, avatarId }: RelicCardProps) {
         </div>
     )
 }
+
+export default memo(RelicCard);

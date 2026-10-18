@@ -4,9 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "bun run data:prepare && next build",
     "start": "next start",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "data:prepare": "bun script/prepare-data.ts",
+    "test": "bun test tests"
   },
   "dependencies": {
     "@next/bundle-analyzer": "16.1.6",

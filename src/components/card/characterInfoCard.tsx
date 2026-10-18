@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { memo } from 'react';
 import { CharacterInfoCardType } from '@/types';
 import useLocaleStore from '@/stores/localeStore';
 import Image from 'next/image';
@@ -10,7 +10,7 @@ import { getLocaleName } from '@/helper/getName';
 import { useShallow } from 'zustand/react/shallow';
 import { Check } from 'lucide-react';
 
-export default function CharacterInfoCard({ 
+function CharacterInfoCard({
     character, 
     selectedCharacters, 
     onCharacterToggle 
@@ -63,6 +63,7 @@ export default function CharacterInfoCard({
                             height={512}
                             unoptimized
                             crossOrigin="anonymous"
+                            loading="lazy"
                             className="w-full h-full object-contain transition-transform duration-500 ease-out group-hover:scale-108"
                         />
                         {/* Damage & Path Badges */}
@@ -175,3 +176,5 @@ export default function CharacterInfoCard({
         </div>
     );
 };
+
+export default memo(CharacterInfoCard);
