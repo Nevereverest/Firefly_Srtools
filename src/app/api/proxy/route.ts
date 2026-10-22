@@ -1,53 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server'
 import axios from 'axios'
-import net from 'net'
+import {
+  assertPublicUrl,
+  BlockedTargetError,
+  guardedHttpAgent,
+  guardedHttpsAgent,
+} from '@/lib/net/guard'
 
-function isPrivateHost(hostname: string): boolean {
-  if (
-    hostname === 'localhost' ||
-    hostname.startsWith('127.') ||
-    hostname.startsWith('10.') ||
-    hostname.startsWith('192.168.') ||
-    /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(hostname)
-  ) {
-    return true
-  }
+const UPSTREAM_TIMEOUT_MS = 15000
+const MAX_REQUEST_BYTES = 1024 * 1024
+const MAX_RESPONSE_BYTES = 8 * 1024 * 1024
 
-  if (net.isIP(hostname)) {
-    return true
-  }
-
-  return false
+const AGENTS = {
+  httpAgent: guardedHttpAgent,
+  httpsAgent: guardedHttpsAgent,
+  timeout: UPSTREAM_TIMEOUT_MS,
+  maxContentLength: MAX_RESPONSE_BYTES,
+  maxBodyLength: MAX_REQUEST_BYTES,
+  maxRedirects: 0,
 }
 
-export async function GET(req: NextRequest) {
-  try {
-    const { searchParams } = new URL(req.url)
-    const targetUrl = searchParams.get("url")
-    if (!targetUrl) {
-      return NextResponse.json({ error: "Missing url" }, { status: 400 })
-    }
-
-    const response = await fetch(targetUrl)
-
-    if (!response.ok) {
-      return NextResponse.json({ error: "Failed to fetch image" }, { status: 500 })
-    }
-
-    const buffer = await response.arrayBuffer()
-    
-    return new NextResponse(buffer, {
-      headers: {
-        "Content-Type": response.headers.get("content-type") || "image/png",
-        "Cache-Control": "public, max-age=3600",
-        "Access-Control-Allow-Origin": "*", 
-      },
-    })
-  } catch (e: unknown) {
-    return NextResponse.json({ error: (e as Error)?.message }, { status: 500 })
-  }
+function failure(error: unknown, fallbackStatus = 502) {
+  const status = error instanceof BlockedTargetError ? 403 : fallbackStatus
+  return NextResponse.json({ error: (error as Error)?.message || 'Proxy failed' }, { status })
 }
-
 
 export async function POST(request: NextRequest) {
   try {
@@ -60,43 +36,41 @@ export async function POST(request: NextRequest) {
     if (!method) {
       return NextResponse.json({ error: 'Missing method' }, { status: 400 })
     }
-
-    let url = serverUrl.trim()
-    if (!url.startsWith('http://') && !url.startsWith('https://')) {
-      url = `http://${url}`
-    }
-
-    const parsed = new URL(url)
-    if (isPrivateHost(parsed.hostname)) {
+    if (String(method).toUpperCase() !== 'POST') {
       return NextResponse.json(
-        { error: `Connection to private/internal address (${parsed.hostname}) is not allowed` },
-        { status: 403 }
+        { error: `Method ${method} is not allowed through this proxy` },
+        { status: 405 }
       )
     }
 
-    let response
+    const target = await assertPublicUrl(String(serverUrl).trim())
 
-    switch (method.toUpperCase()) {
-      case 'GET':
-        const queryString = new URLSearchParams(payload as Record<string, string>).toString()
-        const fullUrl = queryString ? `${url}?${queryString}` : url
-        response = await axios.get(fullUrl)
-        break
-      case 'POST':
-        response = await axios.post(url, payload)
-        break
-      case 'PUT':
-        response = await axios.put(url, payload)
-        break
-      case 'DELETE':
-        response = await axios.delete(url, { data: payload })
-        break
-      default:
-        return NextResponse.json({ error: `Unsupported method: ${method}` }, { status: 405 })
+    const response = await axios.post(target.toString(), payload, AGENTS)
+    if (response.data === undefined || response.data === null || response.data === '') {
+      return NextResponse.json({ message: '' })
     }
 
     return NextResponse.json(response.data)
   } catch (err: unknown) {
-    return NextResponse.json({ error: (err as Error)?.message || 'Proxy failed' }, { status: 500 })
+    const upstream = (err as { response?: { status?: number; data?: unknown } }).response
+    if (upstream) {
+      if (upstream.status && upstream.status >= 300 && upstream.status < 400) {
+        return NextResponse.json(
+          { error: 'Upstream attempted a redirect that was not followed' },
+          { status: 502 }
+        )
+      }
+
+      const data = upstream.data
+      const message =
+        typeof data === 'string' && data.trim()
+          ? data.trim()
+          : data && typeof data === 'object' && typeof (data as { error?: unknown }).error === 'string'
+            ? (data as { error: string }).error
+            : (err as Error)?.message || 'Proxy failed'
+      return NextResponse.json({ error: message }, { status: 502 })
+    }
+
+    return failure(err)
   }
 }

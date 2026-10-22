@@ -4,6 +4,7 @@ import { FreeSRJson } from "./srtools";
 export enum PSConnectType {
   FireflyGo = "FireflyGo",
   RobinSR = "RobinSR",
+  March7thHoney = "March7thHoney",
   Other = "Other",
 }
 
@@ -26,7 +27,12 @@ export interface PSResponse {
     extra_data?: ExtraData
 }
 
+export enum ConnectErrorCode {
+  PrivateHostUseLocal = "PRIVATE_HOST_USE_LOCAL",
+}
+
 export interface ActionResult {
     success: boolean;
     message: string;
+    code?: ConnectErrorCode;
 }

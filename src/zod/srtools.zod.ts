@@ -10,20 +10,20 @@ export const subAffixSchema = z.object({
 export const relicJsonSchema = z.object({
     level: z.number(),
     relic_id: z.number(),
-    relic_set_id: z.number(),
+    relic_set_id: z.number().nullish().transform((v) => v ?? 0),
     main_affix_id: z.number(),
-    sub_affixes: z.array(subAffixSchema),
-    internal_uid: z.number(),
-    equip_avatar: z.number()
+    sub_affixes: z.array(subAffixSchema).nullish().transform((v) => v ?? []),
+    internal_uid: z.number().nullish().transform((v) => v ?? 0),
+    equip_avatar: z.number().nullish().transform((v) => v ?? 0)
 });
 
 export const lightconeJsonSchema = z.object({
     level: z.number(),
     item_id: z.number(),
-    equip_avatar: z.number(),
+    equip_avatar: z.number().nullish().transform((v) => v ?? 0),
     rank: z.number(),
     promotion: z.number(),
-    internal_uid: z.number()
+    internal_uid: z.number().nullish().transform((v) => v ?? 0)
 });
 
 export const avatarDataSchema = z.object({
@@ -36,10 +36,10 @@ export const avatarDataSchema = z.object({
 export const avatarJsonSchema = z.object({
     owner_uid: z.number().nullish(),
     avatar_id: z.number(),
-    data: avatarDataSchema,
+    data: z.preprocess((v) => v ?? { rank: 0, skills: {} }, avatarDataSchema),
     level: z.number(),
     promotion: z.number(),
-    techniques: z.array(z.number()),
+    techniques: z.array(z.number()).nullish().transform((v) => v ?? []),
     sp_value: z.number(),
     sp_max: z.number(),
     enhanced_id: z.number().nullish()
@@ -64,13 +64,23 @@ export const battleBuffJsonSchema = z.object({
 
 export const battleConfigJsonSchema = z.object({
     battle_type: z.string(),
-    blessings: z.array(battleBuffJsonSchema),
-    custom_stats: z.array(subAffixSchema),
+    blessings: z.array(battleBuffJsonSchema).nullish().transform((v) => v ?? []),
+    custom_stats: z.array(subAffixSchema).nullish().transform((v) => v ?? []),
     cycle_count: z.number(),
     stage_id: z.number(),
-    path_resonance_id: z.number(),
-    monsters: z.array(z.array(monsterJsonSchema))
+    path_resonance_id: z.number().nullish().transform((v) => v ?? 0),
+    monsters: z.array(z.array(monsterJsonSchema)).nullish().transform((v) => v ?? [])
 });
+
+const emptyBattleConfig = {
+    battle_type: "",
+    blessings: [],
+    custom_stats: [],
+    cycle_count: 0,
+    stage_id: 0,
+    path_resonance_id: 0,
+    monsters: []
+};
 
 const loadoutJsonSchema = z.object({
     name: z.string(),
@@ -83,7 +93,7 @@ export const freeSrJsonSchema = z.object({
     lightcones: z.array(lightconeJsonSchema),
     relics: z.array(relicJsonSchema),
     avatars: z.record(z.string(), avatarJsonSchema),
-    battle_config: battleConfigJsonSchema,
+    battle_config: z.preprocess((v) => v ?? { ...emptyBattleConfig }, battleConfigJsonSchema),
     loadout: z.array(loadoutJsonSchema).nullish()
 });
 

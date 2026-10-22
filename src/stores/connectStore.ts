@@ -17,7 +17,29 @@ interface ConnectState {
     setPassword: (newPassword: string) => void;
 }
 
-type ConnectPersistedState = Pick<ConnectState, "connectionType" | "privateType" | "serverUrl" | "username" | "password">;
+
+const PASSWORD_KEY = 'connect-password-session';
+
+export const readSessionPassword = (): string => {
+    if (typeof window === 'undefined') return '';
+    try {
+        return window.sessionStorage.getItem(PASSWORD_KEY) ?? '';
+    } catch {
+        return '';
+    }
+};
+
+const writeSessionPassword = (password: string) => {
+    if (typeof window === 'undefined') return;
+    try {
+        if (password) window.sessionStorage.setItem(PASSWORD_KEY, password);
+        else window.sessionStorage.removeItem(PASSWORD_KEY);
+    } catch {
+        // Private mode or quota exceeded: keep it in memory for this page only.
+    }
+};
+
+type ConnectPersistedState = Pick<ConnectState, "connectionType" | "privateType" | "serverUrl" | "username">;
 
 const useConnectStore = create<ConnectState>()(
     persist<ConnectState, [], [], ConnectPersistedState>(
@@ -26,12 +48,15 @@ const useConnectStore = create<ConnectState>()(
             privateType: "Local",
             serverUrl: "http://localhost:21000",
             username: "",
-            password: "",
+            password: readSessionPassword(),
             setConnectionType: (newConnectionType: string) => set({ connectionType: newConnectionType }),
             setPrivateType: (newPrivateType: string) => set({ privateType: newPrivateType }),
             setServerUrl: (newServerUrl: string) => set({ serverUrl: newServerUrl }),
             setUsername: (newUsername: string) => set({ username: newUsername }),
-            setPassword: (newPassword: string) => set({ password: newPassword }),
+            setPassword: (newPassword: string) => {
+                writeSessionPassword(newPassword);
+                set({ password: newPassword });
+            },
         }),
         {
             name: 'connect-storage',
@@ -41,7 +66,6 @@ const useConnectStore = create<ConnectState>()(
                 privateType: state.privateType,
                 serverUrl: state.serverUrl,
                 username: state.username,
-                password: state.password,
             }),
         }
     )

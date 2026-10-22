@@ -1,9 +1,10 @@
 "use client"
 
 import { connectToPS, syncDataToPS } from "@/helper"
+import { isPrivateUrl } from "@/lib/net/ipRules"
 import useConnectStore from "@/stores/connectStore"
 import useGlobalStore from "@/stores/globalStore"
-import { PSConnectType } from "@/types"
+import { ActionResult, ConnectErrorCode, PSConnectType } from "@/types"
 import { useTranslations } from "next-intl"
 import { useState } from "react"
 import { useShallow } from "zustand/react/shallow"
@@ -44,6 +45,18 @@ export default function ConnectBar() {
         }))
     )
 
+    // "Server" means the request goes through our proxy, which can only reach
+    // public hosts. A LAN address there is a dead end, so warn before the click.
+    const privateThroughProxy =
+        connectionType === PSConnectType.Other &&
+        privateType === "Server" &&
+        isPrivateUrl(serverUrl)
+
+    const describeResult = (result: ActionResult): string =>
+        result.code === ConnectErrorCode.PrivateHostUseLocal
+            ? transI18n("useLocalModeHint")
+            : result.message
+
     return (
         <div className="space-y-4">
             <div className="p-4 sm:p-6 rounded-2xl bg-base-200/60 border border-white/10 space-y-4">
@@ -62,12 +75,13 @@ export default function ConnectBar() {
                     >
                         <option value={PSConnectType.FireflyGo}>FireflyGo</option>
                         <option value={PSConnectType.RobinSR}>RobinSR</option>
+                        <option value={PSConnectType.March7thHoney}>March7thHoney</option>
                         <option value={PSConnectType.Other}>{transI18n("other")}</option>
                     </select>
                 </div>
 
-                {connectionType === PSConnectType.Other && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                {(connectionType === PSConnectType.Other || connectionType === PSConnectType.March7thHoney) && (
+                    <div className={`grid grid-cols-1 ${connectionType === PSConnectType.Other ? "sm:grid-cols-2" : ""} gap-3 pt-2`}>
                         <div className="space-y-1">
                             <label className="block text-xs font-semibold text-base-content/70">
                                 {transI18n("serverUrl")}
@@ -81,19 +95,21 @@ export default function ConnectBar() {
                             />
                         </div>
 
-                        <div className="space-y-1">
-                            <label className="block text-xs font-semibold text-base-content/70">
-                                {transI18n("privateType")}
-                            </label>
-                            <select
-                                className="select select-sm sm:select-md select-bordered w-full rounded-xl bg-base-100 border-base-content/10 focus:border-primary text-xs sm:text-sm"
-                                value={privateType}
-                                onChange={(e) => setPrivateType(e.target.value)}
-                            >
-                                <option value="Local">{transI18n("local")}</option>
-                                <option value="Server">{transI18n("server")}</option>
-                            </select>
-                        </div>
+                        {connectionType === PSConnectType.Other && (
+                            <div className="space-y-1">
+                                <label className="block text-xs font-semibold text-base-content/70">
+                                    {transI18n("privateType")}
+                                </label>
+                                <select
+                                    className="select select-sm sm:select-md select-bordered w-full rounded-xl bg-base-100 border-base-content/10 focus:border-primary text-xs sm:text-sm"
+                                    value={privateType}
+                                    onChange={(e) => setPrivateType(e.target.value)}
+                                >
+                                    <option value="Local">{transI18n("local")}</option>
+                                    <option value="Server">{transI18n("server")}</option>
+                                </select>
+                            </div>
+                        )}
 
                         <div className="space-y-1">
                             <label className="block text-xs font-semibold text-base-content/70">
@@ -120,6 +136,23 @@ export default function ConnectBar() {
                                 onChange={(e) => setPassword(e.target.value)}
                             />
                         </div>
+                    </div>
+                )}
+
+                {/* Local network address with the proxy selected */}
+                {privateThroughProxy && (
+                    <div className="p-3 rounded-xl border bg-amber-500/10 border-amber-500/30 text-amber-400 text-xs flex flex-col sm:flex-row sm:items-center gap-2">
+                        <AlertCircle className="w-4 h-4 shrink-0" />
+                        <span className="flex-1">{transI18n("useLocalModeHint")}</span>
+                        <button
+                            onClick={() => {
+                                setPrivateType("Local")
+                                setMessage({ text: "", type: "" })
+                            }}
+                            className="btn btn-xs rounded-xl font-bold"
+                        >
+                            {transI18n("switchToLocal")}
+                        </button>
                     </div>
                 )}
 
@@ -163,7 +196,7 @@ export default function ConnectBar() {
                                 } else {
                                     setMessage({
                                         type: "error",
-                                        text: response.message,
+                                        text: describeResult(response),
                                     });
                                 }
                             }}
@@ -185,7 +218,7 @@ export default function ConnectBar() {
                                     } else {
                                         setMessage({
                                             type: "error",
-                                            text: `${transI18n("syncFailed")}: ${response.message}`,
+                                            text: `${transI18n("syncFailed")}: ${describeResult(response)}`,
                                         });
                                     }
                                 }}

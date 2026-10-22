@@ -11,7 +11,7 @@ import { getNameChar } from "@/helper/getName";
 import { useEffect, useMemo, useState, useRef } from "react";
 import useModelStore from "@/stores/modelStore";
 import useUserDataStore from "@/stores/userDataStore";
-import { ModalConfig, RelicStore, AvatarProfileStore } from "@/types";
+import { ModalConfig, RelicStore, AvatarProfileStore, ActionResult, ConnectErrorCode } from "@/types";
 import { toast } from "react-toastify";
 import useGlobalStore from "@/stores/globalStore";
 import { connectToPS, syncDataToPS } from "@/helper";
@@ -241,19 +241,24 @@ export default function ActionBar() {
   };
 
   const handleConnectOrSyncPS = async () => {
+    // A local network address cannot go through the proxy; show the hint
+    // instead of the proxy's raw refusal.
+    const describe = (res: ActionResult): string =>
+      res.code === ConnectErrorCode.PrivateHostUseLocal ? transI18n("useLocalModeHint") : res.message
+
     if (isConnectPS) {
       const res = await syncDataToPS()
       if (res.success) {
         toast.success(transI18n("syncSuccess"))
       } else {
-        toast.error(`${transI18n("syncFailed")}: ${res.message}`)
+        toast.error(`${transI18n("syncFailed")}: ${describe(res)}`)
       }
     } else {
       const res = await connectToPS()
       if (res.success) {
         toast.success(transI18n("connectedSuccess"))
       } else {
-        toast.error(`${transI18n("connectedFailed")}: ${res.message}`)
+        toast.error(`${transI18n("connectedFailed")}: ${describe(res)}`)
       }
     }
   }

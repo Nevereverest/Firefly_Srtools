@@ -475,7 +475,7 @@ export default function RelicsInfo() {
               <div className="flex items-center gap-3 p-3 rounded-xl bg-base-200/70 border border-white/10 text-left">
                 <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-base-300/60 border border-amber-500/30 shrink-0">
                   <Image
-                    src={`${process.env.CDN_URL}/spriteoutput/relicfigures/IconRelic_${getRelic(relicSlotToDelete)?.relic_set_id}_${relicSlotToDelete}.png`}
+                    src={`${process.env.CDN_URL}/spriteoutput/relicfigures/iconrelic_${getRelic(relicSlotToDelete)?.relic_set_id}_${relicSlotToDelete}.webp`}
                     alt={transI18n("relic")}
                     unoptimized
                     width={36}

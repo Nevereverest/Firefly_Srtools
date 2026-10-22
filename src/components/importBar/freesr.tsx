@@ -336,7 +336,7 @@ const FreeSRCharacterCard = memo(function FreeSRCharacterCard({
                                 >
                                     <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center bg-base-100/90 border border-amber-500/40 hover:border-amber-400 transition-colors shadow-xs">
                                         <img
-                                            src={`${process.env.CDN_URL}/spriteoutput/relicfigures/IconRelic_${relic.relic_set_id}_${slotKey}.png`}
+                                            src={`${process.env.CDN_URL}/spriteoutput/relicfigures/iconrelic_${relic.relic_set_id}_${slotKey}.webp`}
                                             alt={transI18n("relic")}
                                             loading="lazy"
                                             className="w-5 h-5 sm:w-6 sm:h-6 object-contain"

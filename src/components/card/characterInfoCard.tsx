@@ -127,7 +127,7 @@ function CharacterInfoCard({
                         <div key={index} className="relative group/relic">
                             <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center bg-base-100/90 border border-amber-500/30 hover:border-amber-400 transition-colors shadow-xs">
                                 <Image
-                                    src={`${process.env.CDN_URL}/spriteoutput/relicfigures/IconRelic_${relic.relic_set_id}_${relic.relic_id.toString()[relic.relic_id.toString().length - 1]}.png`}
+                                    src={`${process.env.CDN_URL}/spriteoutput/relicfigures/iconrelic_${relic.relic_set_id}_${relic.relic_id.toString()[relic.relic_id.toString().length - 1]}.webp`}
                                     alt={transI18n("relic")}
                                     unoptimized
                                     width={32}

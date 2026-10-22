@@ -9,6 +9,7 @@ import ParseText from "../parseText"
 import { themeColors } from "@/constant/constant"
 import type { Props as SelectProps } from "react-select"
 import { JSX } from "react"
+import { MENU_MAX_HEIGHT, useMenuPlacement } from "./useMenuPlacement"
 
 const Select = dynamic(
   () => import("react-select").then(m => m.default),
@@ -41,6 +42,7 @@ export default function SelectCustomImage({ customSet, excludeSet, selectedCusto
   )
 
   const c = themeColors[theme] || themeColors.winter
+  const { anchorRef, menuPlacement, updateMenuPlacement } = useMenuPlacement()
 
   const customStyles = {
     option: (p: any, s: any) => ({
@@ -115,21 +117,26 @@ export default function SelectCustomImage({ customSet, excludeSet, selectedCusto
   )
 
   return (
-    <Select
-      options={options.filter(opt => !excludeSet.some(ex => ex.value === opt.value))}
-      value={options.find(opt => {
-        return opt.value === selectedCustomSet
-      }) || null}
-      onChange={(selected: SingleValue<SelectOption>) => {
-        setSelectedCustomSet(selected?.value || '')
-      }}
-      formatOptionLabel={formatOptionLabel}
-      styles={customStyles}
-      placeholder={placeholder}
-      className="my-react-select-container"
-      classNamePrefix="my-react-select"
-      isSearchable
-      isClearable
-    />
+    <div ref={anchorRef}>
+      <Select
+        options={options.filter(opt => !excludeSet.some(ex => ex.value === opt.value))}
+        value={options.find(opt => {
+          return opt.value === selectedCustomSet
+        }) || null}
+        onChange={(selected: SingleValue<SelectOption>) => {
+          setSelectedCustomSet(selected?.value || '')
+        }}
+        formatOptionLabel={formatOptionLabel}
+        styles={customStyles}
+        placeholder={placeholder}
+        className="my-react-select-container"
+        classNamePrefix="my-react-select"
+        menuPlacement={menuPlacement}
+        maxMenuHeight={MENU_MAX_HEIGHT}
+        onMenuOpen={updateMenuPlacement}
+        isSearchable
+        isClearable
+      />
+    </div>
   )
 }

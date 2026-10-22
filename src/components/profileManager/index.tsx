@@ -842,7 +842,7 @@ export default function ProfileManagerModal() {
                                                         <>
                                                             <div className="w-8 h-10 rounded-md overflow-hidden bg-base-300 shrink-0 border border-white/10">
                                                                 <Image
-                                                                    src={`${process.env.CDN_URL}/spriteoutput/lightconemaxfigures/${profile.lightcone.item_id}.png`}
+                                                                    src={`${process.env.CDN_URL}/spriteoutput/lightconemaxfigures/${profile.lightcone.item_id}.webp`}
                                                                     alt={transI18n("lightcone")}
                                                                     width={32}
                                                                     height={40}
@@ -879,7 +879,7 @@ export default function ProfileManagerModal() {
                                                                 title={`${transI18n("relic")} +${r.level}`}
                                                             >
                                                                 <Image
-                                                                    src={`${process.env.CDN_URL}/spriteoutput/relicfigures/IconRelic_${r.relic_set_id}_${r.relic_id.toString().slice(-1)}.png`}
+                                                                    src={`${process.env.CDN_URL}/spriteoutput/relicfigures/iconrelic_${r.relic_set_id}_${r.relic_id.toString().slice(-1)}.webp`}
                                                                     alt={transI18n("relic")}
                                                                     width={24}
                                                                     height={24}

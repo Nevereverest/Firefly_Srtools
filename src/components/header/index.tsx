@@ -19,6 +19,7 @@ import Image from "next/image";
 import { ModalConfig } from "@/types";
 import { ScrollText } from "lucide-react";
 import { useShallow } from "zustand/react/shallow";
+import { createPortal } from "react-dom";
 
 import ModalLoading from "../modalLoading";
 
@@ -50,6 +51,38 @@ const HoyolabImport = dynamic(() => import("../importBar/hoyolab"), {
 const FribbelsImport = dynamic(() => import("../importBar/fribbels"), {
     ssr: false,
     loading: () => <ModalLoading message="Loading Fribbels Importer..." />
+});
+/**
+ * Placeholder while the config.json chunk downloads. Portalled out of the
+ * header's `sticky z-40` stacking context, and fixed so it never takes part in
+ * the layout that would otherwise push the whole page down.
+ */
+function ConfigJsonLoading() {
+    const theme = useLocaleStore((state) => state.theme)
+    if (typeof document === "undefined") return null
+
+    return createPortal(
+        <div
+            data-theme={theme}
+            className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 p-3 sm:p-4"
+        >
+            <div className="w-11/12 max-w-4xl rounded-2xl border border-base-content/10 bg-base-100 shadow-2xl">
+                <ModalLoading type="form" message="Loading config.json..." />
+            </div>
+        </div>,
+        document.body
+    )
+}
+
+const ConfigJsonExport = dynamic(() => import("../configJsonExport"), {
+    ssr: false,
+    // Two constraints, unlike the <dialog> modals above:
+    // 1. it renders straight into <header>, so an in-flow placeholder would
+    //    stretch the header and push the whole page down until the chunk lands;
+    // 2. <header> is `sticky z-40`, so a fixed child stays trapped in that
+    //    stacking context and gets painted over by the quick view button.
+    // Fixed position plus a portal solves both.
+    loading: () => <ConfigJsonLoading />
 });
 
 const themes = [
@@ -86,7 +119,9 @@ export default function Header() {
         setIsOpenExtra,
         isOpenExtra,
         setIsChangelog,
-        isChangelog
+        isChangelog,
+        setIsOpenConfigJson,
+        isOpenConfigJson
     } = useModelStore(
         useShallow((state) => ({
             setIsOpenImport: state.setIsOpenImport,
@@ -99,6 +134,8 @@ export default function Header() {
             isOpenExtra: state.isOpenExtra,
             setIsChangelog: state.setIsChangelog,
             isChangelog: state.isChangelog,
+            setIsOpenConfigJson: state.setIsOpenConfigJson,
+            isOpenConfigJson: state.isOpenConfigJson,
         }))
     )
 
@@ -347,6 +384,7 @@ export default function Header() {
                                     <ul className="p-2 space-y-1">
                                         <li><a className="rounded-md" onClick={handleExportFreeSR}>{transI18n("freeSr")}</a></li>
                                         <li><a className="rounded-md" onClick={handleExportDatabase}>{transI18n("database")}</a></li>
+                                        <li><a className="rounded-md" onClick={() => setIsOpenConfigJson(true)}>{transI18n("configJson")}</a></li>
                                     </ul>
                                 </details>
                             </li>
@@ -460,6 +498,7 @@ export default function Header() {
                                 <ul className="p-2 bg-base-100 rounded-xl shadow-xl border border-base-content/15 space-y-1 w-44 z-50">
                                     <li><a className="rounded-md" onClick={handleExportFreeSR}>{transI18n("freeSr")}</a></li>
                                     <li><a className="rounded-md" onClick={handleExportDatabase}>{transI18n("database")}</a></li>
+                                    <li><a className="rounded-md" onClick={() => setIsOpenConfigJson(true)}>{transI18n("configJson")}</a></li>
                                 </ul>
                             </details>
                         </li>
@@ -656,6 +695,10 @@ export default function Header() {
                     </form>
                 </dialog>
             ))}
+
+            {isOpenConfigJson && (
+                <ConfigJsonExport open={isOpenConfigJson} onClose={() => setIsOpenConfigJson(false)} />
+            )}
         </header>
     )
 }

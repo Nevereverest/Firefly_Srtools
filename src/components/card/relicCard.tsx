@@ -77,7 +77,7 @@ function RelicCard({ slot, avatarId }: RelicCardProps) {
                     >
                         <Image
                             unoptimized
-                            src={`${process.env.CDN_URL}/spriteoutput/relicfigures/IconRelic_${relicDetail.relic_set_id}_${slot}.png`}
+                            src={`${process.env.CDN_URL}/spriteoutput/relicfigures/iconrelic_${relicDetail.relic_set_id}_${slot}.webp`}
                             alt={transI18n("relic")}
                             width={124}
                             height={124}

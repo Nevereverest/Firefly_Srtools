@@ -20,5 +20,4 @@ export const connectPersistedSchema = z.object({
     privateType: z.string(),
     serverUrl: z.string(),
     username: z.string(),
-    password: z.string(),
 });

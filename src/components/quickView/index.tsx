@@ -78,7 +78,7 @@ export default function QuickView() {
             const subAffixMap = subAffix["5"]
             if (!mainAffixMap || !subAffixMap) return
             return {
-                img: `${process.env.CDN_URL}/spriteoutput/relicfigures/IconRelic_${value.relic_set_id}_${key}.png`,
+                img: `${process.env.CDN_URL}/spriteoutput/relicfigures/iconrelic_${value.relic_set_id}_${key}.webp`,
                 mainAffix: {
                     property: mainAffixMap?.[value?.main_affix_id]?.Property,
                     level: value?.level,
@@ -122,7 +122,7 @@ export default function QuickView() {
                     avatarData.level
                 ),
                 name: transI18n("hp"),
-                icon: "spriteoutput/ui/avatar/icon/IconMaxHP.png",
+                icon: "spriteoutput/ui/avatar/icon/iconmaxhp.webp",
                 unit: "",
                 round: 0
             },
@@ -138,7 +138,7 @@ export default function QuickView() {
                     avatarData.level
                 ),
                 name: transI18n("atk"),
-                icon: "spriteoutput/ui/avatar/icon/IconAttack.png",
+                icon: "spriteoutput/ui/avatar/icon/iconattack.webp",
                 unit: "",
                 round: 0
             },
@@ -154,7 +154,7 @@ export default function QuickView() {
                     avatarData.level
                 ),
                 name: transI18n("def"),
-                icon: "spriteoutput/ui/avatar/icon/IconDefence.png",
+                icon: "spriteoutput/ui/avatar/icon/icondefence.webp",
                 unit: "",
                 round: 0
             },
@@ -162,7 +162,7 @@ export default function QuickView() {
                 value: mapAvatar?.[avatarSelected?.ID?.toString()]?.Stats[charPromotion]?.SpeedBase || 0,
                 base: mapAvatar?.[avatarSelected?.ID?.toString()]?.Stats[charPromotion]?.SpeedBase || 0,
                 name: transI18n("speed"),
-                icon: "spriteoutput/ui/avatar/icon/IconSpeed.png",
+                icon: "spriteoutput/ui/avatar/icon/iconspeed.webp",
                 unit: "",
                 round: 1
             },
@@ -170,7 +170,7 @@ export default function QuickView() {
                 value: mapAvatar?.[avatarSelected?.ID?.toString()]?.Stats[charPromotion]?.CriticalChance || 0,
                 base: mapAvatar?.[avatarSelected?.ID?.toString()]?.Stats[charPromotion]?.CriticalChance || 0,
                 name: transI18n("critRate"),
-                icon: "spriteoutput/ui/avatar/icon/IconCriticalChance.png",
+                icon: "spriteoutput/ui/avatar/icon/iconcriticalchance.webp",
                 unit: "%",
                 round: 1
             },
@@ -178,7 +178,7 @@ export default function QuickView() {
                 value: mapAvatar?.[avatarSelected?.ID?.toString()]?.Stats[charPromotion]?.CriticalDamage || 0,
                 base: mapAvatar?.[avatarSelected?.ID?.toString()]?.Stats[charPromotion]?.CriticalDamage || 0,
                 name: transI18n("critDmg"),
-                icon: "spriteoutput/ui/avatar/icon/IconCriticalDamage.png",
+                icon: "spriteoutput/ui/avatar/icon/iconcriticaldamage.webp",
                 unit: "%",
                 round: 1
             },
@@ -186,7 +186,7 @@ export default function QuickView() {
                 value: 0,
                 base: 0,
                 name: transI18n("breakEffect"),
-                icon: "spriteoutput/ui/avatar/icon/IconBreakUp.png",
+                icon: "spriteoutput/ui/avatar/icon/iconbreakup.webp",
                 unit: "%",
                 round: 1
             },
@@ -194,7 +194,7 @@ export default function QuickView() {
                 value: 0,
                 base: 0,
                 name: transI18n("effectRes"),
-                icon: "spriteoutput/ui/avatar/icon/IconStatusResistance.png",
+                icon: "spriteoutput/ui/avatar/icon/iconstatusresistance.webp",
                 unit: "%",
                 round: 1
             },
@@ -202,7 +202,7 @@ export default function QuickView() {
                 value: 0,
                 base: 0,
                 name: transI18n("energyRegenerationRate"),
-                icon: "spriteoutput/ui/avatar/icon/IconEnergyRecovery.png",
+                icon: "spriteoutput/ui/avatar/icon/iconenergyrecovery.webp",
                 unit: "%",
                 round: 1
             },
@@ -210,7 +210,7 @@ export default function QuickView() {
                 value: 0,
                 base: 0,
                 name: transI18n("effectHitRate"),
-                icon: "spriteoutput/ui/avatar/icon/IconStatusProbability.png",
+                icon: "spriteoutput/ui/avatar/icon/iconstatusprobability.webp",
                 unit: "%",
                 round: 1
             },
@@ -218,7 +218,7 @@ export default function QuickView() {
                 value: 0,
                 base: 0,
                 name: transI18n("outgoingHealingBoost"),
-                icon: "spriteoutput/ui/avatar/icon/IconHealRatio.png",
+                icon: "spriteoutput/ui/avatar/icon/iconhealratio.webp",
                 unit: "%",
                 round: 1
             },
@@ -226,7 +226,7 @@ export default function QuickView() {
                 value: 0,
                 base: 0,
                 name: transI18n("physicalDmgBoost"),
-                icon: "spriteoutput/ui/avatar/icon/IconPhysicalAddedRatio.png",
+                icon: "spriteoutput/ui/avatar/icon/iconphysicaladdedratio.webp",
                 unit: "%",
                 round: 1
             },
@@ -234,7 +234,7 @@ export default function QuickView() {
                 value: 0,
                 base: 0,
                 name: transI18n("fireDmgBoost"),
-                icon: "spriteoutput/ui/avatar/icon/IconFireAddedRatio.png",
+                icon: "spriteoutput/ui/avatar/icon/iconfireaddedratio.webp",
                 unit: "%",
                 round: 1
             },
@@ -242,7 +242,7 @@ export default function QuickView() {
                 value: 0,
                 base: 0,
                 name: transI18n("iceDmgBoost"),
-                icon: "spriteoutput/ui/avatar/icon/IconIceAddedRatio.png",
+                icon: "spriteoutput/ui/avatar/icon/iconiceaddedratio.webp",
                 unit: "%",
                 round: 1
             },
@@ -250,7 +250,7 @@ export default function QuickView() {
                 value: 0,
                 base: 0,
                 name: transI18n("thunderDmgBoost"),
-                icon: "spriteoutput/ui/avatar/icon/IconThunderAddedRatio.png",
+                icon: "spriteoutput/ui/avatar/icon/iconthunderaddedratio.webp",
                 unit: "%",
                 round: 1
             },
@@ -258,7 +258,7 @@ export default function QuickView() {
                 value: 0,
                 base: 0,
                 name: transI18n("windDmgBoost"),
-                icon: "spriteoutput/ui/avatar/icon/IconWindAddedRatio.png",
+                icon: "spriteoutput/ui/avatar/icon/iconwindaddedratio.webp",
                 unit: "%",
                 round: 1
             },
@@ -266,7 +266,7 @@ export default function QuickView() {
                 value: 0,
                 base: 0,
                 name: transI18n("quantumDmgBoost"),
-                icon: "spriteoutput/ui/avatar/icon/IconQuantumAddedRatio.png",
+                icon: "spriteoutput/ui/avatar/icon/iconquantumaddedratio.webp",
                 unit: "%",
                 round: 1
             },
@@ -274,7 +274,7 @@ export default function QuickView() {
                 value: 0,
                 base: 0,
                 name: transI18n("imaginaryDmgBoost"),
-                icon: "spriteoutput/ui/avatar/icon/IconImaginaryAddedRatio.png",
+                icon: "spriteoutput/ui/avatar/icon/iconimaginaryaddedratio.webp",
                 unit: "%",
                 round: 1
             },
@@ -282,7 +282,7 @@ export default function QuickView() {
                 value: 0,
                 base: 0,
                 name: transI18n("elation"),
-                icon: "spriteoutput/ui/avatar/icon/IconJoy.png",
+                icon: "spriteoutput/ui/avatar/icon/iconjoy.webp",
                 unit: "%",
                 round: 1
             }

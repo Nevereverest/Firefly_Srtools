@@ -43,7 +43,7 @@ export default function ProfileCard({
                     <div className="h-32 flex items-center justify-center mb-2">
                         <Image
                             unoptimized
-                            src={`${process.env.CDN_URL}/spriteoutput/lightconemaxfigures/${profile.lightcone.item_id}.png`}
+                            src={`${process.env.CDN_URL}/spriteoutput/lightconemaxfigures/${profile.lightcone.item_id}.webp`}
                             alt={transI18n("lightcone")}
                             width={240}
                             height={300}
@@ -71,7 +71,7 @@ export default function ProfileCard({
                             <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-base-200 border border-amber-500/40">
                                 <Image
                                     unoptimized
-                                    src={`${process.env.CDN_URL}/spriteoutput/relicfigures/IconRelic_${relic.relic_set_id}_${relic.relic_id.toString()[relic.relic_id.toString().length - 1]}.png`}
+                                    src={`${process.env.CDN_URL}/spriteoutput/relicfigures/iconrelic_${relic.relic_set_id}_${relic.relic_id.toString()[relic.relic_id.toString().length - 1]}.webp`}
                                     alt={transI18n("relic")}
                                     width={32}
                                     height={32}

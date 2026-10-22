@@ -14,6 +14,8 @@ interface ModelState {
     isOpenExtra: boolean;
     isChangelog: boolean;
     isOpenManageProfiles: boolean;
+    isOpenConfigJson: boolean;
+    setIsOpenConfigJson: (open: boolean) => void;
     setIsOpenManageProfiles: (open: boolean) => void;
     setIsOpenExtra: (newIsOpenExtra: boolean) => void;
     setIsOpenQuickView: (newIsOpenQuickView: boolean) => void;
@@ -41,6 +43,8 @@ const useModelStore = create<ModelState>((set) => ({
     isOpenExtra: false,
     isChangelog: false,
     isOpenManageProfiles: false,
+    isOpenConfigJson: false,
+    setIsOpenConfigJson: (open: boolean) => set({ isOpenConfigJson: open }),
     setIsOpenManageProfiles: (newIsOpenManageProfiles: boolean) => set({ isOpenManageProfiles: newIsOpenManageProfiles }),
     setIsOpenExtra: (newIsOpenExtra: boolean) => set({ isOpenExtra: newIsOpenExtra }),
     setIsOpenQuickView: (newIsOpenQuickView: boolean) => set({ isOpenQuickView: newIsOpenQuickView }),

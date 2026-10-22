@@ -663,7 +663,7 @@ export default function RelicMaker() {
                         ? transI18n(slotInfo.key)
                         : (slotInfo?.key || slotKey);
                     const relicImgUrl = equippedRelic?.relic_set_id
-                        ? `${process.env.CDN_URL}/spriteoutput/relicfigures/IconRelic_${equippedRelic.relic_set_id}_${slotKey}.png`
+                        ? `${process.env.CDN_URL}/spriteoutput/relicfigures/iconrelic_${equippedRelic.relic_set_id}_${slotKey}.webp`
                         : slotInfo?.icon;
 
                     return (

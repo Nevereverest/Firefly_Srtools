@@ -31,145 +31,145 @@ export const listCurrentLanguageApi : Record<string, string> = {
 export const mappingStats = <Record<string, {name: string, icon: string, unit: string, baseStat: string}> > {
     "HPDelta": {
         name:"HP",
-        icon:"spriteoutput/ui/avatar/icon/IconMaxHP.png",
+        icon:"spriteoutput/ui/avatar/icon/iconmaxhp.webp",
         unit: "",
         baseStat: "HP"
     },
     "AttackDelta": {
         name:"ATK",
-        icon:"spriteoutput/ui/avatar/icon/IconAttack.png",
+        icon:"spriteoutput/ui/avatar/icon/iconattack.webp",
         unit: "",
         baseStat: "ATK"
     },
     "HPAddedRatio": {
         name:"HP",
-        icon:"spriteoutput/ui/avatar/icon/IconMaxHP.png",
+        icon:"spriteoutput/ui/avatar/icon/iconmaxhp.webp",
         unit: "%",
         baseStat: "HP"
     },
     "AttackAddedRatio": {
         name:"ATK",
-        icon:"spriteoutput/ui/avatar/icon/IconAttack.png",
+        icon:"spriteoutput/ui/avatar/icon/iconattack.webp",
         unit: "%",
         baseStat: "ATK"
     },
     "DefenceDelta": {
         name:"DEF",
-        icon:"spriteoutput/ui/avatar/icon/IconDefence.png",
+        icon:"spriteoutput/ui/avatar/icon/icondefence.webp",
         unit: "",
         baseStat: "DEF"
     },
     "DefenceAddedRatio": {
         name:"DEF",
-        icon:"spriteoutput/ui/avatar/icon/IconDefence.png",
+        icon:"spriteoutput/ui/avatar/icon/icondefence.webp",
         unit: "%",
         baseStat: "DEF"
     },
     "SpeedAddedRatio": {
         name:"SPD",
-        icon:"spriteoutput/ui/avatar/icon/IconSpeed.png",
+        icon:"spriteoutput/ui/avatar/icon/iconspeed.webp",
         unit: "%",
         baseStat: "SPD"
     },
     "BaseSpeed": {
         name:"SPD",
-        icon:"spriteoutput/ui/avatar/icon/IconSpeed.png",
+        icon:"spriteoutput/ui/avatar/icon/iconspeed.webp",
         unit: "",
         baseStat: "SPD"
     },
     "CriticalChanceBase": {
         name:"CRIT Rate",
-        icon:"spriteoutput/ui/avatar/icon/IconCriticalChance.png",
+        icon:"spriteoutput/ui/avatar/icon/iconcriticalchance.webp",
         unit: "%",
         baseStat: "CRITRate"
     },
     "CriticalDamageBase": {
         name:"CRIT DMG",
-        icon:"spriteoutput/ui/avatar/icon/IconCriticalDamage.png",
+        icon:"spriteoutput/ui/avatar/icon/iconcriticaldamage.webp",
         unit: "%",
         baseStat: "CRITDmg"
     },
     "HealRatioBase": {
         name:"Outgoing Healing Boost",
-        icon:"spriteoutput/ui/avatar/icon/IconHealRatio.png",
+        icon:"spriteoutput/ui/avatar/icon/iconhealratio.webp",
         unit: "%",
         baseStat: "HealBoost"
     },
     "StatusProbabilityBase": {
         name:"Effect Hit Rate",
-        icon:"spriteoutput/ui/avatar/icon/IconStatusProbability.png",
+        icon:"spriteoutput/ui/avatar/icon/iconstatusprobability.webp",
         unit: "%",
         baseStat: "EffectHitRate"
     },
     "StatusResistanceBase": {
         name:"Effect RES",
-        icon:"spriteoutput/ui/avatar/icon/IconStatusResistance.png",
+        icon:"spriteoutput/ui/avatar/icon/iconstatusresistance.webp",
         unit: "%",
         baseStat: "EffectRES"
     },
     "BreakDamageAddedRatioBase": {
         name:"Break Effect",
-        icon:"spriteoutput/ui/avatar/icon/IconBreakUp.png",
+        icon:"spriteoutput/ui/avatar/icon/iconbreakup.webp",
         unit: "%",
         baseStat: "BreakEffect"
     },
     "SpeedDelta": {
         name:"SPD",
-        icon:"spriteoutput/ui/avatar/icon/IconSpeed.png",
+        icon:"spriteoutput/ui/avatar/icon/iconspeed.webp",
         unit: "",
         baseStat: "SPD"
     },
     "PhysicalAddedRatio": {
         name:"Physical DMG Boost",
-        icon:"spriteoutput/ui/avatar/icon/IconPhysicalAddedRatio.png",
+        icon:"spriteoutput/ui/avatar/icon/iconphysicaladdedratio.webp",
         unit: "%",
         baseStat: "PhysicalAdd"
     },
     "FireAddedRatio": {
         name:"Fire DMG Boost",
-        icon:"spriteoutput/ui/avatar/icon/IconFireAddedRatio.png",
+        icon:"spriteoutput/ui/avatar/icon/iconfireaddedratio.webp",
         unit: "%",
         baseStat: "FireAdd"
     },
     "IceAddedRatio": {
         name:"Ice DMG Boost",
-        icon:"spriteoutput/ui/avatar/icon/IconIceAddedRatio.png",
+        icon:"spriteoutput/ui/avatar/icon/iconiceaddedratio.webp",
         unit: "%",
         baseStat: "IceAdd"
     },
     "ThunderAddedRatio": {
         name:"Thunder DMG Boost",
-        icon:"spriteoutput/ui/avatar/icon/IconThunderAddedRatio.png",
+        icon:"spriteoutput/ui/avatar/icon/iconthunderaddedratio.webp",
         unit: "%",
         baseStat: "ThunderAdd"
     },
     "WindAddedRatio": {
         name:"Wind DMG Boost",
-        icon:"spriteoutput/ui/avatar/icon/IconWindAddedRatio.png",
+        icon:"spriteoutput/ui/avatar/icon/iconwindaddedratio.webp",
         unit: "%",
         baseStat: "WindAdd"
     },
     "QuantumAddedRatio": {
         name:"Quantum DMG Boost",
-        icon:"spriteoutput/ui/avatar/icon/IconQuantumAddedRatio.png",
+        icon:"spriteoutput/ui/avatar/icon/iconquantumaddedratio.webp",
         unit: "%",
         baseStat: "QuantumAdd"
     },
     "ImaginaryAddedRatio": {
         name:"Imaginary DMG Boost",
-        icon:"spriteoutput/ui/avatar/icon/IconImaginaryAddedRatio.png",
+        icon:"spriteoutput/ui/avatar/icon/iconimaginaryaddedratio.webp",
         unit: "%",
         baseStat: "ImaginaryAdd"
     },
     "ElationDamageAddedRatioBase": {
         name:"Elation DMG Boost",
-        icon:"spriteoutput/ui/avatar/icon/IconJoy.png",
+        icon:"spriteoutput/ui/avatar/icon/iconjoy.webp",
         unit: "%",
         baseStat: "ElationAdd"
     },
     "SPRatioBase": {
         name:"Energy Regeneration Rate",
-        icon:"spriteoutput/ui/avatar/icon/IconEnergyRecovery.png",
+        icon:"spriteoutput/ui/avatar/icon/iconenergyrecovery.webp",
         unit: "%",
         baseStat: "EnergyRate"
     }

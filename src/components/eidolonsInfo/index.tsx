@@ -245,7 +245,7 @@ export default function EidolonsInfo() {
                                                     ? "drop-shadow-[0_0_12px_rgba(var(--color-primary),0.35)]"
                                                     : "grayscale opacity-40 hover:opacity-70"
                                             }`}
-                                            src={`${process.env.CDN_URL}/ui/ui3d/rank/_dependencies/textures/${avatarSelected?.ID}/${avatarSelected?.ID}_rank_${rank.Rank}.png`}
+                                            src={`${process.env.CDN_URL}/ui/ui3d/rank/_dependencies/textures/${avatarSelected?.ID}/${avatarSelected?.ID}_rank_${rank.Rank}.webp`}
                                             alt={`Rank ${rank.Rank} Image`}
                                             priority
                                             unoptimized

@@ -194,7 +194,7 @@ export default function ShowCaseInfo() {
       const subAffixMap = subAffix["5"]
       if (!mainAffixMap || !subAffixMap) return
       return {
-        img: `${process.env.CDN_URL}/spriteoutput/relicfigures/IconRelic_${value.relic_set_id}_${key}.png`,
+        img: `${process.env.CDN_URL}/spriteoutput/relicfigures/iconrelic_${value.relic_set_id}_${key}.webp`,
         mainAffix: {
           property: mainAffixMap?.[value?.main_affix_id]?.Property,
           level: value?.level,
@@ -251,7 +251,7 @@ export default function ShowCaseInfo() {
           avatarData.level
         ),
         name: "HP",
-        icon: "spriteoutput/ui/avatar/icon/IconMaxHP.png",
+        icon: "spriteoutput/ui/avatar/icon/iconmaxhp.webp",
         unit: "",
         round: 0
       },
@@ -267,7 +267,7 @@ export default function ShowCaseInfo() {
           avatarData.level
         ),
         name: "ATK",
-        icon: "spriteoutput/ui/avatar/icon/IconAttack.png",
+        icon: "spriteoutput/ui/avatar/icon/iconattack.webp",
         unit: "",
         round: 0
       },
@@ -283,7 +283,7 @@ export default function ShowCaseInfo() {
           avatarData.level
         ),
         name: "DEF",
-        icon: "spriteoutput/ui/avatar/icon/IconDefence.png",
+        icon: "spriteoutput/ui/avatar/icon/icondefence.webp",
         unit: "",
         round: 0
       },
@@ -291,7 +291,7 @@ export default function ShowCaseInfo() {
         value: mapAvatar?.[avatarSelected?.ID?.toString()]?.Stats[charPromotion]?.SpeedBase || 0,
         base: mapAvatar?.[avatarSelected?.ID?.toString()]?.Stats[charPromotion]?.SpeedBase || 0,
         name: "SPD",
-        icon: "spriteoutput/ui/avatar/icon/IconSpeed.png",
+        icon: "spriteoutput/ui/avatar/icon/iconspeed.webp",
         unit: "",
         round: 1
       },
@@ -299,7 +299,7 @@ export default function ShowCaseInfo() {
         value: mapAvatar?.[avatarSelected?.ID?.toString()]?.Stats[charPromotion]?.CriticalChance || 0,
         base: mapAvatar?.[avatarSelected?.ID?.toString()]?.Stats[charPromotion]?.CriticalChance || 0,
         name: "CRIT Rate",
-        icon: "spriteoutput/ui/avatar/icon/IconCriticalChance.png",
+        icon: "spriteoutput/ui/avatar/icon/iconcriticalchance.webp",
         unit: "%",
         round: 1
       },
@@ -307,7 +307,7 @@ export default function ShowCaseInfo() {
         value: mapAvatar?.[avatarSelected?.ID?.toString()]?.Stats[charPromotion]?.CriticalDamage || 0,
         base: mapAvatar?.[avatarSelected?.ID?.toString()]?.Stats[charPromotion]?.CriticalDamage || 0,
         name: "CRIT DMG",
-        icon: "spriteoutput/ui/avatar/icon/IconCriticalDamage.png",
+        icon: "spriteoutput/ui/avatar/icon/iconcriticaldamage.webp",
         unit: "%",
         round: 1
       },
@@ -315,7 +315,7 @@ export default function ShowCaseInfo() {
         value: 0,
         base: 0,
         name: "Break Effect",
-        icon: "spriteoutput/ui/avatar/icon/IconBreakUp.png",
+        icon: "spriteoutput/ui/avatar/icon/iconbreakup.webp",
         unit: "%",
         round: 1
       },
@@ -323,7 +323,7 @@ export default function ShowCaseInfo() {
         value: 0,
         base: 0,
         name: "Effect RES",
-        icon: "spriteoutput/ui/avatar/icon/IconStatusResistance.png",
+        icon: "spriteoutput/ui/avatar/icon/iconstatusresistance.webp",
         unit: "%",
         round: 1
       },
@@ -331,7 +331,7 @@ export default function ShowCaseInfo() {
         value: 0,
         base: 0,
         name: "Energy Rate",
-        icon: "spriteoutput/ui/avatar/icon/IconEnergyRecovery.png",
+        icon: "spriteoutput/ui/avatar/icon/iconenergyrecovery.webp",
         unit: "%",
         round: 1
       },
@@ -339,7 +339,7 @@ export default function ShowCaseInfo() {
         value: 0,
         base: 0,
         name: "Effect Hit Rate",
-        icon: "spriteoutput/ui/avatar/icon/IconStatusProbability.png",
+        icon: "spriteoutput/ui/avatar/icon/iconstatusprobability.webp",
         unit: "%",
         round: 1
       },
@@ -347,7 +347,7 @@ export default function ShowCaseInfo() {
         value: 0,
         base: 0,
         name: "Healing Boost",
-        icon: "spriteoutput/ui/avatar/icon/IconHealRatio.png",
+        icon: "spriteoutput/ui/avatar/icon/iconhealratio.webp",
         unit: "%",
         round: 1
       },
@@ -355,7 +355,7 @@ export default function ShowCaseInfo() {
         value: 0,
         base: 0,
         name: "Physical Boost",
-        icon: "spriteoutput/ui/avatar/icon/IconPhysicalAddedRatio.png",
+        icon: "spriteoutput/ui/avatar/icon/iconphysicaladdedratio.webp",
         unit: "%",
         round: 1
       },
@@ -363,7 +363,7 @@ export default function ShowCaseInfo() {
         value: 0,
         base: 0,
         name: "Fire Boost",
-        icon: "spriteoutput/ui/avatar/icon/IconFireAddedRatio.png",
+        icon: "spriteoutput/ui/avatar/icon/iconfireaddedratio.webp",
         unit: "%",
         round: 1
       },
@@ -371,7 +371,7 @@ export default function ShowCaseInfo() {
         value: 0,
         base: 0,
         name: "Ice Boost",
-        icon: "spriteoutput/ui/avatar/icon/IconIceAddedRatio.png",
+        icon: "spriteoutput/ui/avatar/icon/iconiceaddedratio.webp",
         unit: "%",
         round: 1
       },
@@ -379,7 +379,7 @@ export default function ShowCaseInfo() {
         value: 0,
         base: 0,
         name: "Thunder Boost",
-        icon: "spriteoutput/ui/avatar/icon/IconThunderAddedRatio.png",
+        icon: "spriteoutput/ui/avatar/icon/iconthunderaddedratio.webp",
         unit: "%",
         round: 1
       },
@@ -387,7 +387,7 @@ export default function ShowCaseInfo() {
         value: 0,
         base: 0,
         name: "Wind Boost",
-        icon: "spriteoutput/ui/avatar/icon/IconWindAddedRatio.png",
+        icon: "spriteoutput/ui/avatar/icon/iconwindaddedratio.webp",
         unit: "%",
         round: 1
       },
@@ -395,7 +395,7 @@ export default function ShowCaseInfo() {
         value: 0,
         base: 0,
         name: "Quantum Boost",
-        icon: "spriteoutput/ui/avatar/icon/IconQuantumAddedRatio.png",
+        icon: "spriteoutput/ui/avatar/icon/iconquantumaddedratio.webp",
         unit: "%",
         round: 1
       },
@@ -403,7 +403,7 @@ export default function ShowCaseInfo() {
         value: 0,
         base: 0,
         name: "Imaginary Boost",
-        icon: "spriteoutput/ui/avatar/icon/IconImaginaryAddedRatio.png",
+        icon: "spriteoutput/ui/avatar/icon/iconimaginaryaddedratio.webp",
         unit: "%",
         round: 1
       },
@@ -411,7 +411,7 @@ export default function ShowCaseInfo() {
         value: 0,
         base: 0,
         name: "Elation Boost",
-        icon: "spriteoutput/ui/avatar/icon/IconJoy.png",
+        icon: "spriteoutput/ui/avatar/icon/iconjoy.webp",
         unit: "%",
         round: 1
       }
@@ -1178,7 +1178,7 @@ export default function ShowCaseInfo() {
                         <NextImage
                           className="absolute object-contain rounded-xl z-9 w-[95%]"
                           unoptimized
-                          src={`${process.env.CDN_URL}/spriteoutput/lightconemaxfigures/${avatarProfile?.lightcone.item_id}.png`}
+                          src={`${process.env.CDN_URL}/spriteoutput/lightconemaxfigures/${avatarProfile?.lightcone.item_id}.webp`}
                           alt={transI18n("lightcone")}
                           width={904}
                           height={1206}
@@ -1274,7 +1274,7 @@ export default function ShowCaseInfo() {
                             <div className="flex items-center gap-1 rounded bg-black/30 px-1 w-fit py-1">
                               <NextImage
                                 unoptimized
-                                src={`${process.env.CDN_URL}/spriteoutput/ui/avatar/icon/IconMaxHP.png`}
+                                src={`${process.env.CDN_URL}/spriteoutput/ui/avatar/icon/iconmaxhp.webp`}
                                 alt="HP"
                                 width={16}
                                 height={16}
@@ -1286,7 +1286,7 @@ export default function ShowCaseInfo() {
                             </div>
                             <div className="flex items-center gap-1 rounded bg-black/30 px-1 w-fit py-1">
                               <NextImage
-                                src={`${process.env.CDN_URL}/spriteoutput/ui/avatar/icon/IconAttack.png`}
+                                src={`${process.env.CDN_URL}/spriteoutput/ui/avatar/icon/iconattack.webp`}
                                 unoptimized
                                 alt="ATK"
                                 width={16}
@@ -1300,7 +1300,7 @@ export default function ShowCaseInfo() {
                           <div className="flex items-center gap-1 rounded bg-black/30 px-1 w-fit py-1">
                             <NextImage
                               unoptimized
-                              src={`${process.env.CDN_URL}/spriteoutput/ui/avatar/icon/IconDefence.png`}
+                              src={`${process.env.CDN_URL}/spriteoutput/ui/avatar/icon/icondefence.webp`}
                               alt="DEF"
                               width={16}
                               height={16}
