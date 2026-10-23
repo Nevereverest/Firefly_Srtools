@@ -3,8 +3,8 @@
 import { useState, useRef } from "react";
 import CharacterInfoCard from "../card/characterInfoCard";
 import useEnkaStore from "@/stores/enkaStore";
-import { SendDataThroughProxy } from "@/lib/api/api";
-import { CharacterInfoCardType, EnkaResponse } from "@/types";
+import { FetchEnkaProfile } from "@/lib/api/api";
+import { CharacterInfoCardType, EnkaErrorCode, EnkaResponse } from "@/types";
 import useUserDataStore from "@/stores/userDataStore";
 import { converterOneEnkaDataToAvatarStore } from "@/helper";
 import useModelStore from "@/stores/modelStore";
@@ -28,6 +28,17 @@ import {
 } from "lucide-react";
 
 type AvatarEnkaDetailInput = z.infer<typeof avatarEnkaDetailSchema>;
+
+const UID_PATTERN = /^\d{8,10}$/;
+
+const ENKA_ERROR_MESSAGE_KEY: Record<EnkaErrorCode, string> = {
+    INVALID_UID: "invalidUid",
+    NOT_FOUND: "enkaPlayerNotFound",
+    RATE_LIMIT: "enkaRateLimited",
+    NOT_READY: "enkaUnderMaintenance",
+    UPSTREAM: "failedToFetchEnkaData",
+    NETWORK: "failedToFetchEnkaData",
+};
 
 const toCharacterInfoCard = (character: AvatarEnkaDetailInput): CharacterInfoCardType => ({
     key: character.avatarId,
@@ -93,17 +104,29 @@ export default function EnkaImport() {
             setErrorMsg(transI18n("pleaseEnterUid"));
             return;
         }
+        if (!UID_PATTERN.test(cleanUid)) {
+            setEnkaData(null);
+            setSelectedCharacters([]);
+            setErrorMsg(transI18n("invalidUid"));
+            return;
+        }
         setIsLoading(true);
         setErrorMsg("");
 
         try {
-            const data: unknown = await SendDataThroughProxy({
-                data: {
-                    serverUrl: "https://enka.network/api/hsr/uid/" + cleanUid, 
-                    method: "GET"
-                }
-            });
-            const parsed = enkaResponseSchema.safeParse(data);
+            const result = await FetchEnkaProfile(cleanUid);
+
+            if (!result.ok) {
+                // Surface why it failed instead of collapsing everything into one generic toast.
+                const message = transI18n(ENKA_ERROR_MESSAGE_KEY[result.code]);
+                setEnkaData(null);
+                setSelectedCharacters([]);
+                setErrorMsg(result.message ? `${message} (${result.message})` : message);
+                toast.error(message);
+                return;
+            }
+
+            const parsed = enkaResponseSchema.safeParse(result.data);
 
             if (!parsed.success) {
                 setEnkaData(null);
@@ -424,7 +447,14 @@ export default function EnkaImport() {
             )}
 
             {/* Character Grid */}
-            {!isLoading && enkaData && (
+            {!isLoading && enkaData && validCharacters.length === 0 && (
+                <div className="flex items-start gap-2 px-4 py-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-semibold animate-in fade-in duration-200">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <span>{transI18n("displayCharactersPublicly")}</span>
+                </div>
+            )}
+
+            {!isLoading && enkaData && validCharacters.length > 0 && (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
                     {validCharacters.map((character) => (
                         <CharacterInfoCard

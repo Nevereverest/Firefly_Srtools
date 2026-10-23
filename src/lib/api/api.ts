@@ -1,4 +1,4 @@
-import { ASGroupDetail, ChangelogItemType, AvatarDetail, FreeSRJson, LightConeDetail, MOCGroupDetail, MonsterDetail, PeakGroupDetail, PFGroupDetail, PSResponse, RelicSetDetail } from "@/types";
+import { ASGroupDetail, ChangelogItemType, AvatarDetail, EnkaProxyResponse, FreeSRJson, LightConeDetail, MOCGroupDetail, MonsterDetail, PeakGroupDetail, PFGroupDetail, PSResponse, RelicSetDetail } from "@/types";
 import axios from 'axios';
 import { unpackData } from '../data/packedData';
 import { ExtraData, Metadata } from "@/types";
@@ -163,6 +163,28 @@ export async function SendDataToMarch7thHoney(
     data?: FreeSRJson
 ): Promise<PSResponse | string> {
     return postAndNormalize(`${serverUrl}`, { username, password, data });
+}
+
+/**
+ * Reads a HSR showcase from enka.network through our own /api/enka route.
+ *
+ * Enka only answers GET requests and refuses clients without a real User-Agent,
+ * so this cannot go through the POST-only /api/proxy used for private servers.
+ */
+export async function FetchEnkaProfile(uid: string): Promise<EnkaProxyResponse> {
+    try {
+        const response = await axios.get<EnkaProxyResponse>(`/api/enka/${encodeURIComponent(uid)}`, {
+            timeout: 30000,
+            validateStatus: () => true,
+        });
+        const body = response.data;
+        if (body && typeof body === "object" && typeof body.ok === "boolean") {
+            return body;
+        }
+        return { ok: false, code: "UPSTREAM", message: "Unexpected response from /api/enka" };
+    } catch (error: unknown) {
+        return { ok: false, code: "NETWORK", message: (error as Error)?.message || "Network error" };
+    }
 }
 
 export async function SendDataThroughProxy({ data }: { data: Record<string, unknown> | unknown }) {

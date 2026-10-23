@@ -95,3 +95,26 @@ export interface EnkaResponse {
     ttl: number
     uid: string
 }
+
+/** Why an enka.network lookup failed, as reported by our own /api/enka route. */
+export type EnkaErrorCode =
+    | "INVALID_UID"
+    | "NOT_FOUND"
+    | "RATE_LIMIT"
+    | "NOT_READY"
+    | "UPSTREAM"
+    | "NETWORK"
+
+export type EnkaProxySuccess = {
+    ok: true
+    ttl: number
+    data: EnkaResponse
+}
+
+export type EnkaProxyFailure = {
+    ok: false
+    code: EnkaErrorCode
+    message: string
+}
+
+export type EnkaProxyResponse = EnkaProxySuccess | EnkaProxyFailure
