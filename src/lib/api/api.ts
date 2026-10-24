@@ -1,4 +1,4 @@
-import { ASGroupDetail, ChangelogItemType, AvatarDetail, EnkaProxyResponse, FreeSRJson, LightConeDetail, MOCGroupDetail, MonsterDetail, PeakGroupDetail, PFGroupDetail, PSResponse, RelicSetDetail } from "@/types";
+import { ASGroupDetail, ChangelogItemType, AvatarDetail, CollapseAvatarData, CollapseConnectionRequest, CollapseConnectionResponse, EnkaProxyResponse, FreeSRJson, LightConeDetail, MOCGroupDetail, MonsterDetail, PeakGroupDetail, PFGroupDetail, PSResponse, RelicSetDetail } from "@/types";
 import axios from 'axios';
 import { unpackData } from '../data/packedData';
 import { ExtraData, Metadata } from "@/types";
@@ -184,6 +184,55 @@ export async function FetchEnkaProfile(uid: string): Promise<EnkaProxyResponse> 
         return { ok: false, code: "UPSTREAM", message: "Unexpected response from /api/enka" };
     } catch (error: unknown) {
         return { ok: false, code: "NETWORK", message: (error as Error)?.message || "Network error" };
+    }
+}
+
+/**
+ * Collapse-RPG answers 200 for "partly applied" and 400 for "nothing applied", and the
+ * real verdict lives in `retcode`. Anything we cannot read is treated as a failure so a
+ * broken body can never be reported as a successful push.
+ */
+export function mapCollapseResponse(body: unknown, httpStatus = 200): PSResponse {
+    if (!body || typeof body !== "object") {
+        return { status: httpStatus >= 400 ? httpStatus : 502, message: "" };
+    }
+
+    const raw = body as CollapseConnectionResponse;
+    const retcode = Number(raw.retcode);
+    const errors = Array.isArray(raw.data?.errors) ? raw.data.errors : [];
+    const message = typeof raw.message === "string" ? raw.message : "";
+    const numbers = [raw.data?.avatars, raw.data?.created, raw.data?.updated, raw.data?.deleted].map(Number);
+    const stats = numbers.every(Number.isFinite)
+        ? { avatars: numbers[0], created: numbers[1], updated: numbers[2], deleted: numbers[3] }
+        : undefined;
+
+    return {
+        status: Number.isFinite(retcode) && retcode === 0 ? 200 : (httpStatus >= 400 ? httpStatus : 400),
+        message,
+        warnings: errors.length > 0 ? errors : undefined,
+        stats,
+    };
+}
+
+/** Pushes avatar builds to Collapse-RPG. Body keys are PascalCase on purpose. */
+export async function SendDataToCollapse(
+    username: string,
+    password: string,
+    serverUrl: string,
+    avatars: CollapseAvatarData[]
+): Promise<PSResponse | string> {
+    try {
+        const response = await axios.post(
+            serverUrl,
+            { Username: username, Password: password, Avatars: avatars } satisfies CollapseConnectionRequest
+        );
+        return mapCollapseResponse(response.data, response.status);
+    } catch (error: unknown) {
+        const axiosError = error as { response?: { status: number; data: unknown }; message?: string };
+        if (axiosError.response) {
+            return mapCollapseResponse(axiosError.response.data, axiosError.response.status);
+        }
+        return axiosError.message || "Unknown error";
     }
 }
 

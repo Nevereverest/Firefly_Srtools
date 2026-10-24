@@ -57,6 +57,16 @@ export default function ConnectBar() {
             ? transI18n("useLocalModeHint")
             : result.message
 
+    // Collapse reports what it actually changed; showing it is the only feedback the
+    // user gets that a push did anything.
+    const describeSuccess = (base: string, result: ActionResult): string => {
+        const { stats, warning } = result
+        const parts = [base]
+        if (stats) parts.push(`${stats.avatars} avatar · ${stats.created} created · ${stats.updated} updated · ${stats.deleted} deleted`)
+        if (warning) parts.push(warning)
+        return parts.join(" — ")
+    }
+
     return (
         <div className="space-y-4">
             <div className="p-4 sm:p-6 rounded-2xl bg-base-200/60 border border-white/10 space-y-4">
@@ -76,11 +86,12 @@ export default function ConnectBar() {
                         <option value={PSConnectType.FireflyGo}>FireflyGo</option>
                         <option value={PSConnectType.RobinSR}>RobinSR</option>
                         <option value={PSConnectType.March7thHoney}>March7thHoney</option>
+                        <option value={PSConnectType.Collapse}>Collapse-RPG</option>
                         <option value={PSConnectType.Other}>{transI18n("other")}</option>
                     </select>
                 </div>
 
-                {(connectionType === PSConnectType.Other || connectionType === PSConnectType.March7thHoney) && (
+                {(connectionType === PSConnectType.Other || connectionType === PSConnectType.March7thHoney || connectionType === PSConnectType.Collapse) && (
                     <div className={`grid grid-cols-1 ${connectionType === PSConnectType.Other ? "sm:grid-cols-2" : ""} gap-3 pt-2`}>
                         <div className="space-y-1">
                             <label className="block text-xs font-semibold text-base-content/70">
@@ -191,7 +202,7 @@ export default function ConnectBar() {
                                 if (response.success) {
                                     setMessage({
                                         type: "success",
-                                        text: transI18n("connectedSuccess"),
+                                        text: describeSuccess(transI18n("connectedSuccess"), response),
                                     });
                                 } else {
                                     setMessage({
@@ -213,7 +224,7 @@ export default function ConnectBar() {
                                     if (response.success) {
                                         setMessage({
                                             type: "success",
-                                            text: transI18n("syncSuccess"),
+                                            text: describeSuccess(transI18n("syncSuccess"), response),
                                         });
                                     } else {
                                         setMessage({

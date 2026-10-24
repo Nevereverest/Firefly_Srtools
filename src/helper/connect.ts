@@ -1,28 +1,18 @@
 "use client"
-import { looksLikeHtml, normalizePsResponse, SendDataThroughProxy, SendDataToMarch7thHoney, SendDataToServer } from "@/lib/api/api"
+import { looksLikeHtml, normalizePsResponse, SendDataThroughProxy, SendDataToCollapse, SendDataToMarch7thHoney, SendDataToServer } from "@/lib/api/api"
 import { isPrivateUrl } from "@/lib/net/ipRules"
 import useConnectStore from "@/stores/connectStore"
 import useUserDataStore from "@/stores/userDataStore"
 import { converterToFreeSRJson } from "./converterToFreeSRJson"
+import { converterToCollapseConnection } from "./converterToCollapse"
+import { buildConnectUrl } from "./connectEndpoint"
 import useGlobalStore from "@/stores/globalStore"
 import { ActionResult, ConnectErrorCode, ExtraData, FreeSRJson, ProxyPayload, PSConnectType, PSResponse } from "@/types"
 
 
-const withScheme = (serverUrl: string): string => {
-    if (!serverUrl.startsWith("http://") && !serverUrl.startsWith("https://")) {
-        return `http://${serverUrl}`
-    }
-    return serverUrl
-}
-
-const getUrlQuery = (connectionType: PSConnectType | string, serverUrl: string): string => {
-    if (connectionType === PSConnectType.FireflyGo) return "http://localhost:21000/sync"
-    if (connectionType === PSConnectType.RobinSR) return "http://localhost:21000/srtools"
-    if (connectionType === PSConnectType.March7thHoney) {
-        return `${withScheme(serverUrl.trim()).replace(/\/+$/, "")}/sr-tools`
-    }
-
-    return withScheme(serverUrl)
+const buildPushPayload = (): FreeSRJson => {
+    const { avatars, battle_type, moc_config, pf_config, as_config, ce_config, peak_config } = useUserDataStore.getState()
+    return converterToFreeSRJson(avatars, battle_type, moc_config, pf_config, as_config, ce_config, peak_config)
 }
 
 const sendData = (
@@ -35,6 +25,13 @@ const sendData = (
 ): Promise<PSResponse | string> => {
     if (connectionType === PSConnectType.March7thHoney) {
         return SendDataToMarch7thHoney(username, password, urlQuery, data)
+    }
+    if (connectionType === PSConnectType.Collapse) {
+        // Collapse has no handshake endpoint: the account is only proven by a real
+        // push, so connecting sends whatever the store holds right now.
+        const payload = data ?? buildPushPayload()
+        const converted = converterToCollapseConnection(payload, username, password)
+        return SendDataToCollapse(username, password, urlQuery, converted.Avatars)
     }
     return SendDataToServer(username, password, urlQuery, data, extraData)
 }
@@ -58,7 +55,7 @@ const requestServer = (
         return sendThroughProxy({ username, password, serverUrl, data })
     }
 
-    return sendData(connectionType, username, password, getUrlQuery(connectionType, serverUrl), data, extraData)
+    return sendData(connectionType, username, password, buildConnectUrl(connectionType, serverUrl), data, extraData)
 }
 
 const handleServerResponse = (
@@ -72,7 +69,10 @@ const handleServerResponse = (
     }
     if (response.status < 200 || response.status >= 300) {
         setIsConnectPS(false)
-        return { success: false, message: response.message || `HTTP ${response.status}` }
+        // Servers that validate atomically send the per-item reasons; without them the
+        // user only sees "nothing was changed" and has no idea what to fix.
+        const reasons = response.warnings?.length ? ` (${response.warnings.join("; ")})` : ""
+        return { success: false, message: `${response.message || `HTTP ${response.status}`}${reasons}` }
     }
    
     if (looksLikeHtml(response.message)) {
@@ -82,7 +82,12 @@ const handleServerResponse = (
 
     setIsConnectPS(true)
     onSuccess(response.extra_data)
-    return { success: true, message: "" }
+    return {
+        success: true,
+        message: "",
+        warning: response.warnings?.length ? response.warnings.join("; ") : undefined,
+        stats: response.stats,
+    }
 }
 
 const needsLocalMode = (connectionType: PSConnectType | string, privateType: string, serverUrl: string): boolean =>
@@ -114,11 +119,10 @@ export const connectToPS = async (): Promise<ActionResult> => {
 export const syncDataToPS = async (): Promise<ActionResult> => {
     const { connectionType, privateType, serverUrl, username, password } = useConnectStore.getState()
     const { extraData, setIsConnectPS, setExtraData, isEnableChangePath, isEnableLua } = useGlobalStore.getState()
-    const { avatars, battle_type, moc_config, pf_config, as_config, ce_config, peak_config } = useUserDataStore.getState()
 
     if (needsLocalMode(connectionType, privateType, serverUrl)) return privateHostResult()
 
-    const data = converterToFreeSRJson(avatars, battle_type, moc_config, pf_config, as_config, ce_config, peak_config)
+    const data = buildPushPayload()
 
     const payloadExtra: PSResponse['extra_data'] = structuredClone(extraData)
     if (payloadExtra) {
