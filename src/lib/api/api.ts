@@ -188,7 +188,7 @@ export async function FetchEnkaProfile(uid: string): Promise<EnkaProxyResponse> 
 }
 
 /** SRToolsService.buildPlans rejects an empty list with exactly this message. */
-const EMPTY_AVATARS_ERROR = "Avatars is empty";
+const EMPTY_AVATARS_ERROR = /avatars is empty/i;
 
 /**
  * Collapse-RPG answers 200 for "partly applied" and 400 for "nothing applied", and the
@@ -241,11 +241,15 @@ export async function SendDataToCollapse(
 }
 
 /**
- * Collapse has no handshake endpoint, but the handler authenticates (401 / -2) before it
- * validates the payload (400 / -3). So a push with no avatars answers "Avatars is empty"
- * only for an account that is really in and online — a connection check that cannot
- * change the save. Anything else (wrong password, offline player, game server down) comes
- * back untouched and is reported as a failure.
+ * Collapse has no handshake endpoint, but the handler answers in a fixed order:
+ * body check (-1) -> game server running (503) -> account/password/online (-2) ->
+ * payload validation (-3). So `-3` can only be reached by a request that already passed
+ * the auth gate, and the empty avatar list is what trips it. buildPlans returns early on
+ * that error and the handler replies 400 before apply() is ever queued, so nothing is
+ * read, written, synced or garbage collected.
+ *
+ * A push is never allowed to reuse this path: -2/-5/network failures stay failures, and
+ * anything we do not recognise fails closed.
  */
 export async function ProbeCollapseConnection(
     username: string,
@@ -259,8 +263,7 @@ export async function ProbeCollapseConnection(
 
     const rejectedForEmptyListOnly =
         response.retcode === -3 &&
-        response.warnings?.length === 1 &&
-        response.warnings[0] === EMPTY_AVATARS_ERROR;
+        (response.warnings ?? []).some((reason) => EMPTY_AVATARS_ERROR.test(reason));
 
     return rejectedForEmptyListOnly ? { status: 200, message: "", retcode: 0 } : response;
 }

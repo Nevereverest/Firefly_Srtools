@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import axios from 'axios';
-import { mapCollapseResponse, SendDataToCollapse } from '../src/lib/api/api.ts';
+import { mapCollapseResponse, SendDataToCollapse, ProbeCollapseConnection } from '../src/lib/api/api.ts';
 
 // Collapse-RPG /query_connection: the HTTP status alone is not the verdict — 200 can
 // mean "partly applied" and retcode carries the real result.
@@ -102,5 +102,62 @@ describe('SendDataToCollapse', () => {
     } finally {
       axios.post = post;
     }
+  });
+});
+
+describe('ProbeCollapseConnection', () => {
+  const withPost = async (impl, run) => {
+    const post = axios.post;
+    let captured;
+    axios.post = async (url, body) => {
+      captured = { url, body };
+      return impl();
+    };
+    try {
+      return { result: await run(), captured };
+    } finally {
+      axios.post = post;
+    }
+  };
+
+  const rejection = (data) => () => {
+    throw { response: { status: 400, data } };
+  };
+
+  it('counts -3 for an empty avatar list as a successful handshake', async () => {
+    const { result, captured } = await withPost(
+      rejection({ retcode: -3, message: 'Invalid avatar data, nothing was changed', data: { avatars: 0, created: 0, updated: 0, deleted: 0, errors: ['Avatars is empty'] } }),
+      () => ProbeCollapseConnection('acc', 'pw', 'http://h/query_connection')
+    );
+
+    assert.equal(result.status, 200);
+    assert.deepEqual(captured.body, { Username: 'acc', Password: 'pw', Avatars: [] }, 'the probe must send no avatar');
+  });
+
+  it('never mistakes a rejection of real data for a good connection', async () => {
+    const { result } = await withPost(
+      rejection({ retcode: -3, message: 'Invalid avatar data, nothing was changed', data: { avatars: 0, created: 0, updated: 0, deleted: 0, errors: ['Avatars[0] (1204): Rank must be 0-6'] } }),
+      () => ProbeCollapseConnection('acc', 'pw', 'http://h')
+    );
+
+    assert.equal(result.status, 400);
+  });
+
+  it('keeps an auth failure as a failure', async () => {
+    const impl = () => {
+      throw { response: { status: 401, data: { retcode: -2, message: 'Wrong username / password, or the player is not online' } } };
+    };
+    const { result } = await withPost(impl, () => ProbeCollapseConnection('acc', 'pw', 'http://h'));
+
+    assert.equal(result.status, 401);
+  });
+
+  it('accepts a server that answers the empty push with 200', async () => {
+    const { result } = await withPost(
+      () => ({ status: 200, data: { retcode: 0, message: 'OK', data: { avatars: 0, created: 0, updated: 0, deleted: 0, errors: [] } } }),
+      () => ProbeCollapseConnection('acc', 'pw', 'http://h')
+    );
+
+    assert.equal(result.status, 200);
   });
 });
