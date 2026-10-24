@@ -37,6 +37,8 @@ export interface PSResponse {
     /** Non-fatal problems the server reported while still applying the rest. */
     warnings?: string[]
     stats?: PushStats
+    /** Collapse's own verdict; the HTTP status alone cannot tell probes from failures. */
+    retcode?: number
 }
 
 export enum ConnectErrorCode {

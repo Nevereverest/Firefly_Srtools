@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { createCollapseServer, createPlayerState } from '../scripts/collapseMockServer.mjs';
 import { buildConnectUrl } from '../src/helper/connectEndpoint.ts';
 import { converterToCollapseConnection } from '../src/helper/converterToCollapse.ts';
-import { SendDataToCollapse } from '../src/lib/api/api.ts';
+import { SendDataToCollapse, ProbeCollapseConnection } from '../src/lib/api/api.ts';
 
 // End to end over real HTTP: the client half is the shipping code (URL builder, converter,
 // axios call, response mapping); the server half is a model of Collapse-RPG's rules.
@@ -79,8 +79,7 @@ describe('collage /query_connection end to end', () => {
 
   after(() => new Promise((resolve) => server.close(resolve)));
 
-  it('answers the CORS preflight the browser sends before the push', async () => {
-    const response = await fetch(endpoint, {
+  it('answers the CORS preflight the browser sends before the push', async () => {    const response = await fetch(endpoint, {
       method: 'OPTIONS',
       headers: { 'Access-Control-Request-Method': 'POST', 'Access-Control-Request-Headers': 'content-type' },
     });
@@ -96,6 +95,7 @@ describe('collage /query_connection end to end', () => {
     const response = await push({});
 
     assert.equal(response.status, 200, JSON.stringify(response));
+    assert.equal(response.message, 'OK');
     assert.deepEqual(response.stats, { avatars: 1, created: 7, updated: 0, deleted: 0 });
     assert.equal(response.warnings, undefined);
 
@@ -222,6 +222,41 @@ describe('collage /query_connection end to end', () => {
 
     assert.equal(response.status, 400);
     assert.ok(response.warnings?.[0]?.includes('MainAffixID 99 does not fit this relic'), JSON.stringify(response.warnings));
+  });
+
+  // Stage 1 of the flow: "Connect" must answer "can I talk to this server with these
+  // credentials" without becoming an accidental push.
+  it('stage 1: proves the connection without touching the save', async () => {
+    const before = JSON.stringify(statsOf());
+
+    const response = await ProbeCollapseConnection('tester', 'secret', endpoint);
+
+    assert.equal(response.status, 200, JSON.stringify(response));
+    assert.equal(JSON.stringify(statsOf()), before, 'a connect check must never change gear');
+  });
+
+  it('stage 1: refuses a probe when the credentials are wrong', async () => {
+    const response = await ProbeCollapseConnection('tester', 'wrong', endpoint);
+
+    assert.equal(response.status, 401);
+    assert.equal(response.message, 'Wrong username / password, or the player is not online');
+  });
+
+  it('stage 1: refuses a probe while the player is offline', async () => {
+    state.online = false;
+    try {
+      const response = await ProbeCollapseConnection('tester', 'secret', endpoint);
+      assert.equal(response.status, 401);
+    } finally {
+      state.online = true;
+    }
+  });
+
+  it('stage 2: a push after a good probe goes through', async () => {
+    assert.equal((await ProbeCollapseConnection('tester', 'secret', endpoint)).status, 200);
+
+    const response = await push({});
+    assert.equal(response.status, 200, 'a push after a good probe cannot fail on auth');
   });
 });
 

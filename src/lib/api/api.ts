@@ -187,6 +187,9 @@ export async function FetchEnkaProfile(uid: string): Promise<EnkaProxyResponse> 
     }
 }
 
+/** SRToolsService.buildPlans rejects an empty list with exactly this message. */
+const EMPTY_AVATARS_ERROR = "Avatars is empty";
+
 /**
  * Collapse-RPG answers 200 for "partly applied" and 400 for "nothing applied", and the
  * real verdict lives in `retcode`. Anything we cannot read is treated as a failure so a
@@ -211,6 +214,7 @@ export function mapCollapseResponse(body: unknown, httpStatus = 200): PSResponse
         message,
         warnings: errors.length > 0 ? errors : undefined,
         stats,
+        retcode: Number.isFinite(retcode) ? retcode : undefined,
     };
 }
 
@@ -234,6 +238,31 @@ export async function SendDataToCollapse(
         }
         return axiosError.message || "Unknown error";
     }
+}
+
+/**
+ * Collapse has no handshake endpoint, but the handler authenticates (401 / -2) before it
+ * validates the payload (400 / -3). So a push with no avatars answers "Avatars is empty"
+ * only for an account that is really in and online — a connection check that cannot
+ * change the save. Anything else (wrong password, offline player, game server down) comes
+ * back untouched and is reported as a failure.
+ */
+export async function ProbeCollapseConnection(
+    username: string,
+    password: string,
+    serverUrl: string
+): Promise<PSResponse | string> {
+    const response = await SendDataToCollapse(username, password, serverUrl, []);
+
+    if (typeof response === "string") return response;
+    if (response.status >= 200 && response.status < 300) return response;
+
+    const rejectedForEmptyListOnly =
+        response.retcode === -3 &&
+        response.warnings?.length === 1 &&
+        response.warnings[0] === EMPTY_AVATARS_ERROR;
+
+    return rejectedForEmptyListOnly ? { status: 200, message: "", retcode: 0 } : response;
 }
 
 export async function SendDataThroughProxy({ data }: { data: Record<string, unknown> | unknown }) {

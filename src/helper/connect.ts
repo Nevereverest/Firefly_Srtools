@@ -1,5 +1,5 @@
 "use client"
-import { looksLikeHtml, normalizePsResponse, SendDataThroughProxy, SendDataToCollapse, SendDataToMarch7thHoney, SendDataToServer } from "@/lib/api/api"
+import { looksLikeHtml, normalizePsResponse, ProbeCollapseConnection, SendDataThroughProxy, SendDataToCollapse, SendDataToMarch7thHoney, SendDataToServer } from "@/lib/api/api"
 import { isPrivateUrl } from "@/lib/net/ipRules"
 import useConnectStore from "@/stores/connectStore"
 import useUserDataStore from "@/stores/userDataStore"
@@ -27,10 +27,11 @@ const sendData = (
         return SendDataToMarch7thHoney(username, password, urlQuery, data)
     }
     if (connectionType === PSConnectType.Collapse) {
-        // Collapse has no handshake endpoint: the account is only proven by a real
-        // push, so connecting sends whatever the store holds right now.
-        const payload = data ?? buildPushPayload()
-        const converted = converterToCollapseConnection(payload, username, password)
+        // Stage 1 vs stage 2: with no data this is a connection check that cannot touch
+        // the save (Collapse has no handshake route, see ProbeCollapseConnection).
+        if (!data) return ProbeCollapseConnection(username, password, urlQuery)
+
+        const converted = converterToCollapseConnection(data, username, password)
         return SendDataToCollapse(username, password, urlQuery, converted.Avatars)
     }
     return SendDataToServer(username, password, urlQuery, data, extraData)
