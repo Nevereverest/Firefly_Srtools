@@ -1,10 +1,5 @@
 import { CollapseAvatarData, CollapseConnectionRequest, CollapseRelicData, FreeSRJson, LightconeJson, RelicJson } from "@/types"
 
-/**
- * Mirrors Collapse-RPG's own limits (GameConstant + SRToolsService) so a push can never
- * be rejected wholesale: buildPlans() fails the entire request with -3 on the first
- * invalid entry, and nothing is applied at all.
- */
 const EQUIPMENT_MAX_RANK = 5
 const RELIC_MAX_LEVEL = 15
 const RELIC_SLOT_MIN = 1
@@ -42,7 +37,6 @@ const groupRelics = (relics: RelicJson[] | undefined): Map<number, Map<number, R
 
         const slot = relicSlot(itemId)
 
-        // The server derives the slot the same way and rejects anything outside 1-6.
         if (slot < RELIC_SLOT_MIN || slot > RELIC_SLOT_MAX) continue
 
         const bySlot = byAvatar.get(owner) ?? new Map<number, RelicJson>()
@@ -64,21 +58,6 @@ const toCollapseRelic = (relic: RelicJson): CollapseRelicData => ({
     })),
 })
 
-
-/**
- * Builds the body Collapse-RPG's `POST /query_connection` expects.
- *
- * The server treats a missing field and an emptied one differently:
- *   absent `Relics`     -> leave the avatar's relics alone
- *   `"Relics": []`      -> strip every relic
- *   absent `EquipmentID`-> leave the light cone alone
- *   `"EquipmentID": 0`  -> unequip
- *   absent `ExRankIDs`  -> leave EX ranks alone
- *   `"ExRankIDs": []`   -> clear every EX rank
- *
- * A sync tool owns the truth, so every field is always sent: after a push the server
- * mirrors exactly what the tool shows, with no stale gear left behind.
- */
 export function converterToCollapseConnection(
     data: FreeSRJson,
     username: string,
@@ -108,7 +87,6 @@ export function converterToCollapseConnection(
             AvatarID: avatarId,
             Rank: toInt(avatar.data?.rank),
             EnhancedID: toInt(avatar.enhanced_id ?? 0),
-            // 0 means "no light cone": the server unequips and skips the rank check.
             EquipmentID: lightcone ? toInt(lightcone.item_id) : 0,
             EquipmentRank: clamp(toInt(lightcone?.rank, 1), 1, EQUIPMENT_MAX_RANK),
             Relics: bySlot

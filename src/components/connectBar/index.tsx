@@ -57,8 +57,6 @@ export default function ConnectBar() {
             ? transI18n("useLocalModeHint")
             : result.message
 
-    // Collapse reports what it actually changed; showing it is the only feedback the
-    // user gets that a push did anything.
     const describeSuccess = (base: string, result: ActionResult): string => {
         const { stats, warning } = result
         const parts = [base]

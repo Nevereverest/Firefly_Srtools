@@ -1,22 +1,5 @@
 import { createServer } from 'node:http';
 
-/**
- * Faithful model of Collapse-RPG's `POST /query_connection`
- * (WebServer/Handler/Config/SRToolsConnectionHandler.java + GameServer/Service/SRToolsService.java).
- *
- * The real server cannot run here (no JDK, no ExcelOutput dump, no MongoDB, and it needs
- * a logged-in game client), so this model exists to exercise the *client* end to end over
- * real HTTP against the exact rules the Java code enforces. Every rule below cites the
- * line it mirrors. It is a test double, not the server.
- *
- * Mirror, in order:
- *   - CORS headers + OPTIONS preflight                     handler:105-116
- *   - body/auth/offline  -> -1, -2                          handler:31-50
- *   - buildPlans validation -> -3 with per-item errors      service:38-192
- *   - apply on state        -> counts + per-avatar errors   service:194-238
- *   - retcode 0 with errors means "Partly applied"          handler:101-102
- */
-
 const RETCODE = { BAD_BODY: -1, AUTH: -2, INVALID: -3 };
 
 const cors = (res) => {
@@ -177,8 +160,6 @@ export function createCollapseServer({ state = createPlayerState(), excel = {} }
     const errors = [];
     const equipmentPool = new Map();
     const relicPool = new Map();
-    let pooledEquipments = 0;
-    let pooledRelics = 0;
     const changedAvatars = new Set();
     const touchedAvatars = new Set();
     let created = 0;
@@ -190,14 +171,12 @@ export function createCollapseServer({ state = createPlayerState(), excel = {} }
       const queue = equipmentPool.get(equipment.itemId) ?? [];
       queue.push(equipment);
       equipmentPool.set(equipment.itemId, queue);
-      pooledEquipments++;
     };
     const poolRelic = (relic) => {
       if (!relic.fromSRTools || relic.protected) return;
       const queue = relicPool.get(relic.itemId) ?? [];
       queue.push(relic);
       relicPool.set(relic.itemId, queue);
-      pooledRelics++;
     };
     const removeEquipment = (equipment) => {
       state.inventory.equipments.delete(equipment.uid);
@@ -208,7 +187,6 @@ export function createCollapseServer({ state = createPlayerState(), excel = {} }
       deleted++;
     };
 
-    // Items worn by nobody, left over from an earlier push (service:279-286)
     for (const equipment of state.inventory.equipments.values()) if (equipment.equipAvatarID === 0) poolEquipment(equipment);
     for (const relic of state.inventory.relics.values()) if (relic.equipAvatarID === 0) poolRelic(relic);
 
@@ -223,7 +201,6 @@ export function createCollapseServer({ state = createPlayerState(), excel = {} }
         if (!current) {
           avatar.equipmentUid = 0;
         } else if (current.itemId === plan.equipment.itemId && current.rank === plan.equipment.rank) {
-          // fresh light cone at max level: nothing to do
         } else if (current.itemId === plan.equipment.itemId && current.fromSRTools) {
           current.rank = plan.equipment.rank;
           touchedAvatars.add(avatar);
@@ -271,7 +248,6 @@ export function createCollapseServer({ state = createPlayerState(), excel = {} }
           const queue = equipmentPool.get(plan.equipment.itemId);
           let equipment = queue?.length ? queue.shift() : null;
           if (equipment) {
-            pooledEquipments--;
             equipment.rank = plan.equipment.rank;
             updated++;
           } else {
@@ -291,7 +267,6 @@ export function createCollapseServer({ state = createPlayerState(), excel = {} }
           const queue = relicPool.get(wanted.ItemID);
           let relic = queue?.length ? queue.shift() : null;
           if (relic) {
-            pooledRelics--;
             updated++;
           } else {
             relic = { uid: state.inventory.nextId++, itemId: wanted.ItemID, level: wanted.Level, mainAffixID: wanted.MainAffixID, subAffixes: wanted.SubAffixes ?? [], equipAvatarID: 0, fromSRTools: true, protected: false };
@@ -325,11 +300,9 @@ export function createCollapseServer({ state = createPlayerState(), excel = {} }
       }
     });
 
-    // Anything made by the tool that nobody wears is garbage (service:485-491)
     for (const queue of equipmentPool.values()) queue.forEach(removeEquipment);
     for (const queue of relicPool.values()) queue.forEach(removeRelic);
 
-    // service:490 — in-place rewrites touch an avatar without marking it changed
     touchedAvatars.forEach((avatar) => changedAvatars.add(avatar));
     return { avatars: changedAvatars.size, created, updated, deleted, errors };
   };

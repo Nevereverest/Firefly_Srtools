@@ -165,12 +165,6 @@ export async function SendDataToMarch7thHoney(
     return postAndNormalize(`${serverUrl}`, { username, password, data });
 }
 
-/**
- * Reads a HSR showcase from enka.network through our own /api/enka route.
- *
- * Enka only answers GET requests and refuses clients without a real User-Agent,
- * so this cannot go through the POST-only /api/proxy used for private servers.
- */
 export async function FetchEnkaProfile(uid: string): Promise<EnkaProxyResponse> {
     try {
         const response = await axios.get<EnkaProxyResponse>(`/api/enka/${encodeURIComponent(uid)}`, {
@@ -187,17 +181,20 @@ export async function FetchEnkaProfile(uid: string): Promise<EnkaProxyResponse> 
     }
 }
 
-/** SRToolsService.buildPlans rejects an empty list with exactly this message. */
-const EMPTY_AVATARS_ERROR = /avatars is empty/i;
+export const COLLAPSE_RETCODE = {
+    BAD_BODY: -1,
+    AUTH: -2,
+    INVALID_PAYLOAD: -3,
+    TIMEOUT: -4,
+    INTERNAL: -5,
+} as const;
 
-/**
- * Collapse-RPG answers 200 for "partly applied" and 400 for "nothing applied", and the
- * real verdict lives in `retcode`. Anything we cannot read is treated as a failure so a
- * broken body can never be reported as a successful push.
- */
 export function mapCollapseResponse(body: unknown, httpStatus = 200): PSResponse {
     if (!body || typeof body !== "object") {
-        return { status: httpStatus >= 400 ? httpStatus : 502, message: "" };
+        const message = httpStatus === 404
+            ? "Endpoint /query_connection not found: check the URL, and that the server runs with --game"
+            : "";
+        return { status: httpStatus >= 400 ? httpStatus : 502, message };
     }
 
     const raw = body as CollapseConnectionResponse;
@@ -218,7 +215,6 @@ export function mapCollapseResponse(body: unknown, httpStatus = 200): PSResponse
     };
 }
 
-/** Pushes avatar builds to Collapse-RPG. Body keys are PascalCase on purpose. */
 export async function SendDataToCollapse(
     username: string,
     password: string,
@@ -240,17 +236,6 @@ export async function SendDataToCollapse(
     }
 }
 
-/**
- * Collapse has no handshake endpoint, but the handler answers in a fixed order:
- * body check (-1) -> game server running (503) -> account/password/online (-2) ->
- * payload validation (-3). So `-3` can only be reached by a request that already passed
- * the auth gate, and the empty avatar list is what trips it. buildPlans returns early on
- * that error and the handler replies 400 before apply() is ever queued, so nothing is
- * read, written, synced or garbage collected.
- *
- * A push is never allowed to reuse this path: -2/-5/network failures stay failures, and
- * anything we do not recognise fails closed.
- */
 export async function ProbeCollapseConnection(
     username: string,
     password: string,
@@ -260,12 +245,9 @@ export async function ProbeCollapseConnection(
 
     if (typeof response === "string") return response;
     if (response.status >= 200 && response.status < 300) return response;
+    if (response.retcode === COLLAPSE_RETCODE.INVALID_PAYLOAD) return { status: 200, message: "", retcode: 0 };
 
-    const rejectedForEmptyListOnly =
-        response.retcode === -3 &&
-        (response.warnings ?? []).some((reason) => EMPTY_AVATARS_ERROR.test(reason));
-
-    return rejectedForEmptyListOnly ? { status: 200, message: "", retcode: 0 } : response;
+    return response;
 }
 
 export async function SendDataThroughProxy({ data }: { data: Record<string, unknown> | unknown }) {

@@ -27,8 +27,6 @@ const sendData = (
         return SendDataToMarch7thHoney(username, password, urlQuery, data)
     }
     if (connectionType === PSConnectType.Collapse) {
-        // Stage 1 vs stage 2: with no data this is a connection check that cannot touch
-        // the save (Collapse has no handshake route, see ProbeCollapseConnection).
         if (!data) return ProbeCollapseConnection(username, password, urlQuery)
 
         const converted = converterToCollapseConnection(data, username, password)
@@ -70,8 +68,6 @@ const handleServerResponse = (
     }
     if (response.status < 200 || response.status >= 300) {
         setIsConnectPS(false)
-        // Servers that validate atomically send the per-item reasons; without them the
-        // user only sees "nothing was changed" and has no idea what to fix.
         const reasons = response.warnings?.length ? ` (${response.warnings.join("; ")})` : ""
         return { success: false, message: `${response.message || `HTTP ${response.status}`}${reasons}` }
     }

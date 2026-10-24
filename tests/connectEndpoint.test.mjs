@@ -2,9 +2,6 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { buildConnectUrl } from '../src/helper/connectEndpoint.ts';
 
-// March7thHoney accepts both the bare host and the full endpoint. Appending
-// /sr-tools unconditionally produced /sr-tools/sr-tools and a 404.
-
 describe('buildConnectUrl', () => {
   it('appends /sr-tools to a bare host', () => {
     assert.equal(

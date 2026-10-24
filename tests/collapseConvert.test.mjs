@@ -2,10 +2,6 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { converterToCollapseConnection } from '../src/helper/converterToCollapse.ts';
 
-// Contract reference: Collapse-RPG SRToolsConnection.java + SRToolsService.buildPlans.
-// The server aborts the whole push (-3, nothing applied) on the first invalid entry, and
-// treats an absent field differently from an emptied one, so every field is always sent.
-
 const sub = (sub_affix_id, count, step) => ({ sub_affix_id, count, step });
 
 const relic = (relic_id, main_affix_id, sub_affixes, level = 15) => ({
@@ -157,7 +153,6 @@ describe('converterToCollapseConnection', () => {
   });
 
   it('keeps one relic per slot, first one wins', () => {
-    // 61151 and 63061 both resolve to slot 1; the server rejects a slot listed twice.
     const body = converterToCollapseConnection(
       freezeSR({ relics: [relic(61151, 1, []), relic(63061, 2, [])] }),
       'u',
@@ -168,7 +163,6 @@ describe('converterToCollapseConnection', () => {
   });
 
   it('orders relics by slot regardless of payload order', () => {
-    // Payload order 63066 (slot 6), 61151 (slot 1), 61153 (slot 3).
     const body = converterToCollapseConnection(
       freezeSR({ relics: [relic(63066, 4, []), relic(61151, 1, []), relic(61153, 4, [])] }),
       'u',

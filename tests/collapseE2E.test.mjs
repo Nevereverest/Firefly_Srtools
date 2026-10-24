@@ -5,11 +5,6 @@ import { buildConnectUrl } from '../src/helper/connectEndpoint.ts';
 import { converterToCollapseConnection } from '../src/helper/converterToCollapse.ts';
 import { SendDataToCollapse, ProbeCollapseConnection } from '../src/lib/api/api.ts';
 
-// End to end over real HTTP: the client half is the shipping code (URL builder, converter,
-// axios call, response mapping); the server half is a model of Collapse-RPG's rules.
-// The real Java server needs a JDK, the ExcelOutput dump, MongoDB and an online game
-// client, none of which exist in this environment, so this is the closest runnable proof.
-
 const SUB = (id, cnt, step) => ({ sub_affix_id: id, count: cnt, step });
 const RELIC = (id, mainAffix, subs) => ({
   level: 15, relic_id: id, relic_set_id: Math.trunc(id / 10) % 1000, main_affix_id: mainAffix,
@@ -117,7 +112,6 @@ describe('collage /query_connection end to end', () => {
     const response = await push({ relics });
 
     assert.equal(response.status, 200);
-    // 61151 rewritten in place, everything else untouched
     assert.deepEqual(response.stats, { avatars: 1, created: 0, updated: 1, deleted: 0 });
     assert.equal(state.inventory.relics.size, 6, 'no duplicate relic may appear');
   });
@@ -125,8 +119,6 @@ describe('collage /query_connection end to end', () => {
   it('strips a slot the tool no longer has, and deletes the orphan', async () => {
     const response = await push({ relics: FULL_RELICS.slice(0, 5) });
 
-    // 61151 still carries the stats the previous test wrote, so it is rewritten in place;
-    // slot 6 is released, pooled and garbage collected at the end of the push.
     assert.deepEqual(response.stats, { avatars: 1, created: 0, updated: 1, deleted: 1 });
     assert.deepEqual(started_avatar()[0].relics.map((relic) => relic.slot), [1, 2, 3, 4, 5]);
   });
@@ -135,7 +127,6 @@ describe('collage /query_connection end to end', () => {
     const response = await push({ relics: [], lightcones: [] });
 
     assert.equal(response.status, 200);
-    // 5 relics + 1 light cone released and garbage collected
     assert.deepEqual(response.stats, { avatars: 1, created: 0, updated: 0, deleted: 6 });
     const [avatar] = started_avatar();
     assert.deepEqual(avatar.relics, []);
@@ -151,7 +142,6 @@ describe('collage /query_connection end to end', () => {
       }),
       'tester', 'secret'
     );
-    // same light cone and relics, now owned by 1310
     moved.Avatars[0].EquipmentID = 0;
     moved.Avatars[0].Relics = [];
     moved.Avatars[1].EquipmentID = 23010;
@@ -224,8 +214,6 @@ describe('collage /query_connection end to end', () => {
     assert.ok(response.warnings?.[0]?.includes('MainAffixID 99 does not fit this relic'), JSON.stringify(response.warnings));
   });
 
-  // Stage 1 of the flow: "Connect" must answer "can I talk to this server with these
-  // credentials" without becoming an accidental push.
   it('stage 1: proves the connection without touching the save', async () => {
     const before = JSON.stringify(statsOf());
 
