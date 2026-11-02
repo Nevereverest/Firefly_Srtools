@@ -37,7 +37,6 @@ export default function ProfileCard({
             }`}
             onClick={() => onProfileToggle(profile)}
         >
-            {/* Light Cone */}
             {profile.lightcone && (
                 <div className="p-2 rounded-xl bg-base-100 border border-base-300 text-center mb-3">
                     <div className="h-32 flex items-center justify-center mb-2">
@@ -63,7 +62,6 @@ export default function ProfileCard({
                 </div>
             )}
 
-            {/* Relics Mini-grid */}
             {Object.keys(profile.relics).length > 0 && (
                 <div className="flex flex-wrap items-center justify-center gap-1.5 p-1.5 rounded-xl bg-base-100 border border-base-300">
                     {Object.values(profile.relics).map((relic, index) => (

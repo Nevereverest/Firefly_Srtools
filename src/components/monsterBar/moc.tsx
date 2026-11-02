@@ -79,7 +79,6 @@ export default function MocBar() {
     return (
         <div className="pt-4 pb-2 relative space-y-4">
 
-            {/* Title Card */}
             <div className="rounded-xl p-4 border border-warning">
                 <div className="mb-4 w-full">
                     <SelectCustomText
@@ -99,7 +98,6 @@ export default function MocBar() {
                         })}
                     />
                 </div>
-                {/* Settings */}
                 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-2">
 
@@ -159,7 +157,6 @@ export default function MocBar() {
                 </div>
                 <div className="label-text font-bold text-success mb-2">{transI18n("stageId")}: {moc_config?.stage_id}</div>
 
-                {/* Turbulence Buff */}
                 <div className="pt-3 border-t border-base-content/10 space-y-2">
                     <div className="flex items-center space-x-2">
                         <input
@@ -193,7 +190,6 @@ export default function MocBar() {
                 </div>
             </div>
 
-            {/* Enemy Waves */}
             {(moc_config?.challenge_id ?? 0) !== 0 && (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {floorSideList.map((side, i) => {

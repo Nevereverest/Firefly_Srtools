@@ -239,3 +239,6 @@ export interface GlobalBuff {
     Extra: Record<string, ExtraEffect>;
     MazeBuffID: number | null;
 }
+
+// Parts of an avatar served separately and merged once loaded.
+export type AvatarHeavyDetail = Pick<AvatarDetail, "Skills" | "SkillTrees" | "Ranks" | "ExRanks" | "Enhanced" | "Memosprite">;

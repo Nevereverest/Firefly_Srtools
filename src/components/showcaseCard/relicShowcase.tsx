@@ -16,7 +16,6 @@ export default function RelicShowcase({
         <div
             className="relative w-full flex flex-row items-center rounded-s-lg border-l-2 p-1 border-yellow-600/60 bg-linear-to-r from-yellow-600/20 to-transparent"
         >
-            {/* Subtle glow overlay */}
             <div className="absolute inset-0 rounded-s-lg pointer-events-none"></div>
 
             <div className="flex relative">
@@ -62,7 +61,7 @@ export default function RelicShowcase({
                 <span className="text-base text-yellow-400 font-semibold drop-shadow-[0_0_4px_rgba(251,191,36,0.5)]">
                     {relic?.mainAffix?.valueAffix + (relic?.mainAffix?.detail?.unit || "")}
                 </span>
-                <span className="bg-black/20 backdrop-blur-sm rounded px-1.5 py-0.5 text-xs border border-white/10">
+                <span className="bg-black/20 rounded px-1.5 py-0.5 text-xs border border-white/10">
                     +{relic?.mainAffix?.level}
                 </span>
             </div>
@@ -74,7 +73,7 @@ export default function RelicShowcase({
                     if (!subAffix) return null
                     return (
                         <div key={index} className="flex flex-col">
-                            <div className="relative flex flex-row items-center bg-black/20 backdrop-blur-sm rounded-md p-1 border border-white/5 min-w-0">
+                            <div className="relative flex flex-row items-center bg-black/20 rounded-md p-1 border border-white/5 min-w-0">
                                 {subAffix?.detail?.icon ? (
                                     <NextImage
                                         src={`${process.env.CDN_URL}/${subAffix?.detail?.icon}` || ""}

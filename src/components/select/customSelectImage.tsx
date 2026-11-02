@@ -13,7 +13,10 @@ import { MENU_MAX_HEIGHT, useMenuPlacement } from "./useMenuPlacement"
 
 const Select = dynamic(
   () => import("react-select").then(m => m.default),
-  { ssr: false }
+  {
+    ssr: false,
+    loading: () => <div className="h-10 w-full rounded-xl bg-base-200/60 border border-base-content/10 animate-pulse" />,
+  }
 ) as <Option, IsMulti extends boolean = false>(
   props: SelectProps<Option, IsMulti>
 ) => JSX.Element

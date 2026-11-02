@@ -131,7 +131,6 @@ export default function SkillsInfo() {
     return (
         <div className="w-full space-y-4">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
-                {/* Left Panel: Skill Tree Visualizer */}
                 <div className="lg:col-span-6 space-y-4">
                     <div className="glass-card rounded-2xl p-4 sm:p-6 border border-base-300 shadow-sm space-y-4">
                         <div className="flex items-center justify-between pb-3 border-b border-base-300">
@@ -149,7 +148,6 @@ export default function SkillsInfo() {
                             </button>
                         </div>
 
-                        {/* Visual Skill Tree Container */}
                         <div className="flex justify-center items-center py-2">
                             {traceButtons && avatarSelected && (
                                 <div className="relative w-full max-w-155 aspect-square select-none">
@@ -212,7 +210,6 @@ export default function SkillsInfo() {
                                                     }}
                                                 />
 
-                                                {/* Skill Type Color Overlays */}
                                                 {btn.size === "special" && (
                                                     <div
                                                         className="absolute inset-0 rounded-full pointer-events-none"
@@ -268,7 +265,6 @@ export default function SkillsInfo() {
                     </div>
                 </div>
 
-                {/* Right Panel: Skill Details */}
                 <div className="lg:col-span-6 space-y-4">
                     <div className="glass-card rounded-2xl p-4 sm:p-6 border border-base-300 shadow-sm space-y-5">
                         <div className="pb-3 border-b border-base-300">
@@ -282,7 +278,6 @@ export default function SkillsInfo() {
 
                         {skillIDSelected && avatarSelected?.SkillTrees && avatarData ? (
                             <div className="space-y-4">
-                                {/* Level Slider */}
                                 {skillInfo?.MaxLevel && skillInfo?.MaxLevel > 1 ? (
                                     <div className="space-y-1.5 pb-2">
                                         <div className="text-sm font-bold text-base-content/80">
@@ -338,7 +333,6 @@ export default function SkillsInfo() {
                                     </div>
                                 ) : null}
 
-                                {/* Point Name & Stat Additions */}
                                 {((skillInfo?.PointName && skillInfo?.PointDesc) ||
                                     (skillInfo?.PointName && skillInfo?.StatusAddList.length > 0)) && (
                                     <div className="space-y-1.5">
@@ -357,7 +351,6 @@ export default function SkillsInfo() {
                                     </div>
                                 )}
 
-                                {/* Skill Description Prose */}
                                 {skillInfo?.PointDesc && (
                                     <div
                                         className="text-xs sm:text-sm text-base-content/85 leading-relaxed"
@@ -370,7 +363,6 @@ export default function SkillsInfo() {
                                     />
                                 )}
 
-                                {/* Level-up Skill Items (Major / Servant Skills) */}
                                 {skillInfo?.LevelUpSkillID && skillInfo?.LevelUpSkillID.length > 0 && dataLevelUpSkill && (
                                     <div className="space-y-6 pt-1">
                                         {dataLevelUpSkill?.data?.map((skill, index) => (

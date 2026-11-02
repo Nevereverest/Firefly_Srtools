@@ -11,7 +11,7 @@ import QueryProviderWrapper from "@/components/queryProvider";
 import ClientDataFetcher from "@/components/clientDataFetcher";
 import AvatarBar from "@/components/avatarBar";
 import ActionBar from "@/components/actionBar";
-import QuickViewBubble from "@/components/quickView/quickViewBubble";
+import QuickViewBubble from "@/components/quickView/lazyQuickViewBubble";
 
 
 const geistSans = Geist({
@@ -81,7 +81,7 @@ export default async function RootLayout({
                   <div className="h-dvh w-full flex flex-col overflow-hidden bg-ambient-mesh selection:bg-primary/20 selection:text-primary">
                     <Header />
                     <main className="grid grid-cols-12 w-full flex-1 min-h-0 overflow-hidden">
-                      <aside className="hidden sm:block sm:col-span-4 md:col-span-4 lg:col-span-3 h-full overflow-hidden border-r border-base-content/10 bg-base-100/30 backdrop-blur-sm">
+                      <aside className="hidden sm:block sm:col-span-4 md:col-span-4 lg:col-span-3 h-full overflow-hidden border-r border-base-content/10 bg-base-100/30">
                         <AvatarBar />
                       </aside>
                       <section className="col-span-12 sm:col-span-8 md:col-span-8 lg:col-span-9 h-full flex flex-col min-w-0 min-h-0 overflow-hidden">

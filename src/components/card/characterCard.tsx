@@ -39,7 +39,6 @@ function CharacterCard({ data, priority = false }: CharacterCardProps) {
     <div
       className="group relative flex flex-col items-center rounded-xl overflow-hidden bg-base-100 border border-base-content/10 shadow-sm hover:shadow-md cursor-pointer select-none h-full"
     >
-      {/* Artwork container with vibrant rarity background */}
       <div
         className={`w-full relative aspect-3/4 flex items-center justify-center overflow-hidden bg-linear-to-b ${
           is5Star
@@ -60,10 +59,9 @@ function CharacterCard({ data, priority = false }: CharacterCardProps) {
           alt={data.ID.toString()}
         />
 
-        {/* Level and Eidolons Badge Overlay */}
         {level && (
           <div className="absolute bottom-1 left-1 flex items-center gap-1 z-10">
-            <span className="bg-black/60 backdrop-blur-xs text-white text-[10px] font-bold font-mono px-1.5 py-0.2 rounded shadow-xs">
+            <span className="bg-black/60 text-white text-[10px] font-bold font-mono px-1.5 py-0.2 rounded shadow-xs">
               {level}
             </span>
             {rank > 0 && (
@@ -79,7 +77,6 @@ function CharacterCard({ data, priority = false }: CharacterCardProps) {
           </div>
         )}
 
-        {/* Damage Type Badge */}
         {damageType?.[data.DamageType]?.Icon && (
           <Image
             width={28}
@@ -91,7 +88,6 @@ function CharacterCard({ data, priority = false }: CharacterCardProps) {
           />
         )}
 
-        {/* Base Type / Path Badge */}
         {baseType?.[data.BaseType]?.Icon && (
           <Image
             width={28}
@@ -107,7 +103,6 @@ function CharacterCard({ data, priority = false }: CharacterCardProps) {
         )}
       </div>
 
-      {/* Name Label - Clear Full Name Display */}
       <div className="w-full py-1.5 px-1 text-center flex items-center justify-center bg-base-100 min-h-11">
         <ParseText
           locale={locale}

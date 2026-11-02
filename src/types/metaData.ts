@@ -9,6 +9,9 @@ export interface Metadata {
     EliteConfig: Record<string, EliteData>;
 }
 
+// Stage is most of the payload and only battle screens use it, so it loads separately.
+export type MetadataCore = Omit<Metadata, "Stage">;
+
 export interface HardLevelData {
     AttackRatio: number
     DefenceRatio: number

@@ -1,32 +1,51 @@
-import { ASGroupDetail, ChangelogItemType, AvatarDetail, CollapseAvatarData, CollapseConnectionRequest, CollapseConnectionResponse, EnkaProxyResponse, FreeSRJson, LightConeDetail, MOCGroupDetail, MonsterDetail, PeakGroupDetail, PFGroupDetail, PSResponse, RelicSetDetail } from "@/types";
+import { ASGroupDetail, ChangelogItemType, AvatarDetail, AvatarHeavyDetail, CollapseAvatarData, CollapseConnectionRequest, CollapseConnectionResponse, EnkaProxyResponse, FreeSRJson, LightConeDetail, MOCGroupDetail, MonsterDetail, PeakGroupDetail, PFGroupDetail, PSResponse, RelicSetDetail } from "@/types";
 import axios from 'axios';
-import { unpackData } from '../data/packedData';
-import { ExtraData, Metadata } from "@/types";
+import { ExtraData, Metadata, MetadataCore } from "@/types";
 
-export async function getMetadataApi(): Promise<Metadata> {
+export async function getMetadataApi(): Promise<MetadataCore> {
     try {
-        const res = await axios.get<Metadata>(`/api/data/metadata?encoding=strings-v1`);
-        return unpackData(res.data);
+        const res = await axios.get<MetadataCore>(`/api/data/metadata_core`);
+        return res.data;
     } catch (error: unknown) {
         console.error('Failed to fetch metadata:', error);
         throw error;
     }
 }
 
+export async function getStageApi(): Promise<Metadata["Stage"]> {
+    try {
+        const res = await axios.get<Metadata["Stage"]>(`/api/data/metadata_stage`);
+        return res.data;
+    } catch (error: unknown) {
+        console.error('Failed to fetch stage:', error);
+        throw error;
+    }
+}
+
 export async function getAvatarListApi(): Promise<Record<string, AvatarDetail>> {
     try {
-        const res = await axios.get<Record<string, AvatarDetail>>(`/api/data/avatar?encoding=strings-v1`);
-        return unpackData(res.data);
+        const res = await axios.get<Record<string, AvatarDetail>>(`/api/data/avatar_index`);
+        return res.data;
     } catch (error) {
         console.error('Failed to fetch Avatars:', error);
         throw error;
     }
 }
 
+export async function getAvatarDetailApi(id: number | string): Promise<AvatarHeavyDetail> {
+    try {
+        const res = await axios.get<AvatarHeavyDetail>(`/api/data/avatar_detail_${id}`);
+        return res.data;
+    } catch (error) {
+        console.error("Failed to fetch avatar detail:", error);
+        throw error;
+    }
+}
+
 export async function getLightconeListApi(): Promise<Record<string, LightConeDetail>> {
     try {
-        const res = await axios.get<Record<string, LightConeDetail>>(`/api/data/lightcone?encoding=strings-v1`);
-        return unpackData(res.data);
+        const res = await axios.get<Record<string, LightConeDetail>>(`/api/data/lightcone`);
+        return res.data;
     } catch (error) {
         console.error('Failed to fetch lightcones:', error);
         throw error;
@@ -35,8 +54,8 @@ export async function getLightconeListApi(): Promise<Record<string, LightConeDet
 
 export async function getRelicSetListApi(): Promise<Record<string, RelicSetDetail>> {
     try {
-        const res = await axios.get<Record<string, RelicSetDetail>>(`/api/data/relic?encoding=strings-v1`);
-        return unpackData(res.data);
+        const res = await axios.get<Record<string, RelicSetDetail>>(`/api/data/relic`);
+        return res.data;
     } catch (error) {
         console.error('Failed to fetch relics:', error);
         throw error;
@@ -45,8 +64,8 @@ export async function getRelicSetListApi(): Promise<Record<string, RelicSetDetai
 
 export async function getMonsterListApi(): Promise<Record<string, MonsterDetail>> {
     try {
-        const res = await axios.get<Record<string, MonsterDetail>>(`/api/data/monster?encoding=strings-v1`);
-        return unpackData(res.data);
+        const res = await axios.get<Record<string, MonsterDetail>>(`/api/data/monster`);
+        return res.data;
     } catch (error) {
         console.error('Failed to fetch monster:', error);
         throw error;
@@ -55,8 +74,8 @@ export async function getMonsterListApi(): Promise<Record<string, MonsterDetail>
 
 export async function getASEventListApi(): Promise<Record<string, ASGroupDetail>> {
     try {
-        const res = await axios.get<Record<string, ASGroupDetail>>(`/api/data/as?encoding=strings-v1`);
-        return unpackData(res.data);
+        const res = await axios.get<Record<string, ASGroupDetail>>(`/api/data/as`);
+        return res.data;
     } catch (error) {
         console.error('Failed to fetch AS:', error);
         throw error;
@@ -65,8 +84,8 @@ export async function getASEventListApi(): Promise<Record<string, ASGroupDetail>
 
 export async function getPFEventListApi(): Promise<Record<string, PFGroupDetail>> {
     try {
-        const res = await axios.get<Record<string, PFGroupDetail>>(`/api/data/pf?encoding=strings-v1`);
-        return unpackData(res.data);
+        const res = await axios.get<Record<string, PFGroupDetail>>(`/api/data/pf`);
+        return res.data;
     } catch (error) {
         console.error('Failed to fetch PF:', error);
         throw error;
@@ -75,8 +94,8 @@ export async function getPFEventListApi(): Promise<Record<string, PFGroupDetail>
 
 export async function getMOCEventListApi(): Promise<Record<string, MOCGroupDetail>> {
     try {
-        const res = await axios.get<Record<string, MOCGroupDetail>>(`/api/data/moc?encoding=strings-v1`);
-        return unpackData(res.data);
+        const res = await axios.get<Record<string, MOCGroupDetail>>(`/api/data/moc`);
+        return res.data;
     } catch (error) {
         console.error('Failed to fetch MOC:', error);
         throw error;
@@ -85,8 +104,8 @@ export async function getMOCEventListApi(): Promise<Record<string, MOCGroupDetai
 
 export async function getPeakEventListApi(): Promise<Record<string, PeakGroupDetail>> {
     try {
-        const res = await axios.get<Record<string, PeakGroupDetail>>(`/api/data/peak?encoding=strings-v1`);
-        return unpackData(res.data);
+        const res = await axios.get<Record<string, PeakGroupDetail>>(`/api/data/peak`);
+        return res.data;
     } catch (error) {
         console.error('Failed to fetch peak:', error);
         throw error;
@@ -96,7 +115,7 @@ export async function getPeakEventListApi(): Promise<Record<string, PeakGroupDet
 export async function getChangelog(): Promise<ChangelogItemType[]> {
     try {
         const res = await axios.get<ChangelogItemType[]>(`/api/data/changelog`);
-        return unpackData(res.data);
+        return res.data;
     } catch (error) {
         console.error('Failed to fetch changelog:', error);
         throw error;
@@ -117,7 +136,6 @@ export function normalizePsResponse(body: unknown, httpStatus = 200): PSResponse
     if (body && typeof body === "object") {
         const raw = body as { status?: unknown; message?: unknown; extra_data?: ExtraData; error?: unknown };
 
-        // Shape used by /api/proxy and by several servers for failures.
         if (typeof raw.error === "string" && raw.error) {
             return { status: 400, message: raw.error };
         }

@@ -182,14 +182,12 @@ export default function CopyImport() {
 
     return (
         <div className="space-y-4">
-            {/* Filters Section */}
             <div className="space-y-2">
                 <div className="text-xs font-bold uppercase tracking-wider text-base-content/60">
                     {transI18n("filter")}
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2 sm:gap-3.5">
-                    {/* Path Filters */}
                     <div className="flex items-center gap-0.5 min-[400px]:gap-1 sm:gap-1.5 flex-wrap">
                         {Object.entries(baseType).filter(([key]) => key !== "").map(([key, value]) => {
                             const isActive = !!listPath[key];
@@ -222,7 +220,6 @@ export default function CopyImport() {
 
                     <div className="h-7 w-px bg-base-300 hidden md:block shrink-0" />
 
-                    {/* Element Filters */}
                     <div className="flex items-center gap-0.5 min-[400px]:gap-1 sm:gap-1.5 flex-wrap">
                         {Object.entries(damageType).filter(([key]) => key !== "").map(([key, value]) => {
                             const isActive = !!listElement[key];
@@ -253,7 +250,6 @@ export default function CopyImport() {
 
                     <div className="h-7 w-px bg-base-300 hidden md:block shrink-0" />
 
-                    {/* Rank Filters */}
                     <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
                         {Object.entries(listRank).map(([key]) => {
                             const isActive = !!listRank[key];
@@ -276,7 +272,6 @@ export default function CopyImport() {
                 </div>
             </div>
 
-            {/* Character Select Dropdown */}
             {listAvatar.length > 0 && (
                 <div className="space-y-1.5">
                     <div className="text-xs font-bold text-base-content/70">{transI18n("characterName")}</div>
@@ -294,7 +289,6 @@ export default function CopyImport() {
                 </div>
             )}
 
-            {/* Selection Action Bar */}
             <div className="bg-base-200 border border-base-300 rounded-2xl p-3.5 flex flex-wrap items-center justify-between gap-3 shadow-xs">
                 <div className="flex items-center gap-2">
                     <span className="text-xs sm:text-sm font-bold text-base-content">
@@ -340,7 +334,6 @@ export default function CopyImport() {
                 </div>
             )}
 
-            {/* Character Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {avatarCopySelected && avatars[avatarCopySelected?.ID.toString()]?.profileList.map((profile, index) => {
                     if (!profile.lightcone?.item_id && Object.keys(profile.relics ?? {}).length == 0) {

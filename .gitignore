@@ -47,4 +47,3 @@ next-env.d.ts
 *.exe
 
 # Generated lossless API wire payloads
-/data/.packed/

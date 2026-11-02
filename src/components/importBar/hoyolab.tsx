@@ -297,7 +297,6 @@ export default function HoyolabImport() {
 
     return (
         <div className="w-full space-y-6">
-            {/* Top Bar: Title & Status */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4">
                 <div>
                     <div className="flex items-center gap-2 mb-1">
@@ -352,7 +351,6 @@ export default function HoyolabImport() {
                 </div>
             </div>
 
-            {/* Tutorial Dropdown */}
             {showTutorial && (
                 <div className="p-4 sm:p-5 rounded-2xl bg-base-200/60 border border-amber-500/30 space-y-4 animate-in fade-in duration-200">
                     <div className="flex items-start gap-3">
@@ -394,9 +392,7 @@ export default function HoyolabImport() {
             {!hoyolabData && (
                 <div className="space-y-3">
                     <div className="rounded-2xl border border-white/10 bg-[#0d0e15] overflow-hidden shadow-lg transition-all focus-within:border-amber-500/50 focus-within:ring-1 focus-within:ring-amber-500/25">
-                        {/* Terminal Window Header Bar */}
                         <div className="flex items-center justify-between px-3.5 py-2.5 bg-[#141622] border-b border-white/5 flex-wrap gap-2">
-                            {/* Left: Window Controls & File Name */}
                             <div className="flex items-center gap-2">
                                 <div className="flex items-center gap-1.5">
                                     <button
@@ -415,7 +411,6 @@ export default function HoyolabImport() {
                                 </div>
                             </div>
 
-                            {/* Right: Stats & Action Buttons */}
                             <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
                                 {jsonStats && (
                                     <>
@@ -490,7 +485,6 @@ export default function HoyolabImport() {
                             </div>
                         </div>
 
-                        {/* Code Editor */}
                         <div className="max-h-72 sm:max-h-96 overflow-auto scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
                             <Editor
                                 value={jsonInput}
@@ -533,7 +527,6 @@ export default function HoyolabImport() {
                 </div>
             )}
 
-            {/* Error Message */}
             {errorMsg && (
                 <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-semibold animate-in fade-in duration-200">
                     <AlertCircle className="w-4 h-4 shrink-0" />
@@ -541,10 +534,8 @@ export default function HoyolabImport() {
                 </div>
             )}
 
-            {/* Loaded Data Summary & Selection Action Bar */}
             {hoyolabData && (
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 py-2.5 px-4 rounded-xl bg-base-200/60 border border-white/10 shadow-xs">
-                    {/* Left: Counter and Controls */}
                     <div className="flex items-center justify-between sm:justify-start gap-3 flex-wrap">
                         <div className="flex items-center gap-2">
                             <Users className="w-4 h-4 text-amber-400" />
@@ -585,7 +576,6 @@ export default function HoyolabImport() {
                         </div>
                     </div>
 
-                    {/* Right: Import CTA */}
                     <button
                         type="button"
                         onClick={handleImport}
@@ -599,7 +589,6 @@ export default function HoyolabImport() {
                 </div>
             )}
 
-            {/* Character Cards Grid */}
             {!isLoading && hoyolabData && (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
                     {availableCharacters.map((character) => (

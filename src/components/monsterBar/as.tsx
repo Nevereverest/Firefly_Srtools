@@ -95,7 +95,6 @@ export default function AsBar() {
     return (
         <div className="pt-4 pb-2 relative space-y-4">
 
-            {/* Title Card */}
             <div className="rounded-xl p-4 border border-warning">
                 <div className="mb-4 w-full">
                     <SelectCustomText
@@ -116,7 +115,6 @@ export default function AsBar() {
                         })}
                     />
                 </div>
-                {/* Settings */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-2">
 
                     <div className="flex items-center gap-2">
@@ -167,7 +165,6 @@ export default function AsBar() {
                         />
                     </div>
                 )}
-                {/* Turbulence Buff */}
                 <div className="pt-3 border-t border-base-content/10 space-y-2">
                     <h2 className="text-xl font-bold text-info">{transI18n("turbulenceBuff")}</h2>
                     {challengeSelected ? (
@@ -189,7 +186,6 @@ export default function AsBar() {
                 </div>
             </div>
 
-            {/* Enemy Waves */}
             {(as_config?.challenge_id ?? 0) !== 0 && (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {floorSideList.map((side, i) => {

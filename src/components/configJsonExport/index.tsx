@@ -10,7 +10,9 @@ import useConfigJsonStore, { MAX_TEAM_SIZE } from '@/stores/configJsonStore'
 import useDetailDataStore from '@/stores/detailDataStore'
 import useLocaleStore from '@/stores/localeStore'
 import useUserDataStore from '@/stores/userDataStore'
+import { toast } from 'react-toastify'
 import { buildConfigJson } from '@/helper/configJsonBuilder'
+import { ensureBattleData } from '@/lib/ensureBattleData'
 import { downloadJson, getNameChar } from '@/helper'
 import type { AvatarDetail, ConfigJsonWarning } from '@/types'
 
@@ -26,17 +28,7 @@ export default function ConfigJsonExport({ open, onClose }: ConfigJsonExportProp
     const { locale, theme } = useLocaleStore(
         useShallow((state) => ({ locale: state.locale, theme: state.theme }))
     )
-    const { avatars, battle_type, moc_config, pf_config, as_config, ce_config, peak_config } = useUserDataStore(
-        useShallow((state) => ({
-            avatars: state.avatars,
-            battle_type: state.battle_type,
-            moc_config: state.moc_config,
-            pf_config: state.pf_config,
-            as_config: state.as_config,
-            ce_config: state.ce_config,
-            peak_config: state.peak_config,
-        }))
-    )
+    const avatars = useUserDataStore((state) => state.avatars)
     const { mapAvatar, baseType, damageType } = useDetailDataStore(
         useShallow((state) => ({
             mapAvatar: state.mapAvatar,
@@ -59,15 +51,11 @@ export default function ConfigJsonExport({ open, onClose }: ConfigJsonExportProp
         )
 
     const [keyword, setKeyword] = useState("")
-    // Kept local instead of reusing the avatar bar filters: this dialog is a
-    // separate surface and should not silently narrow the page behind it.
     const [elementActive, setElementActive] = useState<Record<string, boolean>>({})
     const [pathActive, setPathActive] = useState<Record<string, boolean>>({})
     const [warnings, setWarnings] = useState<ConfigJsonWarning[]>([])
     const [exportedCount, setExportedCount] = useState<number | null>(null)
 
-    // The header only mounts this component while the dialog is open, so the
-    // warning and result state resets on its own between openings.
     useEffect(() => {
         if (!open) return
         const onKeyDown = (event: KeyboardEvent) => {
@@ -77,7 +65,6 @@ export default function ConfigJsonExport({ open, onClose }: ConfigJsonExportProp
         return () => window.removeEventListener("keydown", onKeyDown)
     }, [open, onClose])
 
-    // Keep the page behind the dialog still while it is open.
     useEffect(() => {
         if (!open) return
         const previous = document.body.style.overflow
@@ -89,8 +76,7 @@ export default function ConfigJsonExport({ open, onClose }: ConfigJsonExportProp
 
     const displayName = (avatarId: number) => getNameChar(locale, transI18n, mapAvatar[String(avatarId)])
 
-    // Only characters the user actually saved have a build to export; anything
-    // else would need invented relics, which is exactly what we refuse to do.
+    // Only saved characters have a build to export; none are invented.
     const pickable = useMemo(() => {
         const needle = keyword.trim().toLowerCase()
         const anyElement = Object.values(elementActive).some((value) => value)
@@ -115,28 +101,33 @@ export default function ConfigJsonExport({ open, onClose }: ConfigJsonExportProp
         .map((avatarId) => mapAvatar[String(avatarId)])
         .filter((detail): detail is AvatarDetail => Boolean(detail))
 
-    // The attacker is the only character that gets its element buff written into
-    // the file, so exporting without one silently produces a weaker lineup.
-    // The store clears attacker_id when that character leaves the team.
+    // The attacker gets its element buff in the file; the store clears attacker_id when it leaves the team.
     const attackerMissing = avatar_ids.length > 0 && attacker_id === null
     const canExport = avatar_ids.length > 0 && !attackerMissing
 
-    const handleDownload = () => {
+    const handleDownload = async () => {
         if (!canExport) return
 
+        try {
+            await ensureBattleData(useUserDataStore.getState().battle_type)
+        } catch {
+            toast.error(transI18n("failedToLoadData", { type: "battle" }))
+            return
+        }
+        const latest = useUserDataStore.getState()
         const { config, warnings: nextWarnings } = buildConfigJson({
             avatarIds: avatar_ids,
             attackerId: attacker_id,
             useStepOnRelic: use_step_on_relic,
-            avatars,
+            avatars: latest.avatars,
             mapAvatar,
             avatarName: displayName,
-            battleType: battle_type,
-            mocConfig: moc_config,
-            pfConfig: pf_config,
-            asConfig: as_config,
-            ceConfig: ce_config,
-            peakConfig: peak_config,
+            battleType: latest.battle_type,
+            mocConfig: latest.moc_config,
+            pfConfig: latest.pf_config,
+            asConfig: latest.as_config,
+            ceConfig: latest.ce_config,
+            peakConfig: latest.peak_config,
         })
 
         setWarnings(nextWarnings)
@@ -162,14 +153,9 @@ export default function ConfigJsonExport({ open, onClose }: ConfigJsonExportProp
         setPathActive({})
     }
 
-    // Client-only component (the header loads it with ssr: false), so `document`
-    // is always present by the time this runs.
     if (!open || typeof document === "undefined") return null
 
-    // Portalled to <body>: the header that renders this dialog is a `sticky z-40`
-    // stacking context, so anything higher on the page (the quick view button at
-    // z-9990, for one) would otherwise paint on top of the dialog. The theme is
-    // carried over by hand because it lives on a wrapper <div>, not on <html>.
+    // Portalled to <body> to escape the header's sticky stacking context; the theme is copied by hand.
     return createPortal(
         <div
             data-theme={theme}
@@ -182,7 +168,6 @@ export default function ConfigJsonExport({ open, onClose }: ConfigJsonExportProp
                 className="w-full max-w-4xl max-h-[92dvh] sm:max-h-[88vh] flex flex-col rounded-2xl bg-base-100 text-base-content border border-base-content/10 shadow-2xl overflow-hidden"
                 onClick={(event) => event.stopPropagation()}
             >
-                {/* Header */}
                 <div className="flex items-center justify-between gap-3 px-3 py-2.5 sm:px-6 sm:py-4 border-b border-base-content/10 shrink-0">
                     <h3 className="min-w-0 truncate font-bold text-base sm:text-xl tracking-tight bg-clip-text text-transparent bg-linear-to-r from-primary via-accent to-secondary">
                         {transI18n("configJsonTitle")}
@@ -196,9 +181,7 @@ export default function ConfigJsonExport({ open, onClose }: ConfigJsonExportProp
                     </button>
                 </div>
 
-                {/* Body */}
                 <div className="min-h-0 flex-1 overflow-y-auto px-3 py-3 space-y-4 sm:px-6 sm:py-5 sm:space-y-5">
-                    {/* Team */}
                     <section>
                         <div className="flex items-center justify-between gap-2">
                             <span className="text-[11px] font-bold uppercase tracking-wider text-base-content/75">
@@ -252,7 +235,6 @@ export default function ConfigJsonExport({ open, onClose }: ConfigJsonExportProp
                         </div>
                     </section>
 
-                    {/* Attacker */}
                     <section>
                         <div className="flex flex-wrap items-baseline justify-between gap-2">
                             <span className="text-[11px] font-bold uppercase tracking-wider text-base-content/75">
@@ -303,7 +285,6 @@ export default function ConfigJsonExport({ open, onClose }: ConfigJsonExportProp
                         )}
                     </section>
 
-                    {/* Relic step */}
                     <label className="flex items-start gap-3 rounded-xl border border-base-content/10 bg-base-200/30 p-3 cursor-pointer">
                         <input
                             type="checkbox"
@@ -319,7 +300,6 @@ export default function ConfigJsonExport({ open, onClose }: ConfigJsonExportProp
                         </div>
                     </label>
 
-                    {/* Picker */}
                     <section>
                         <div className="flex items-center gap-2">
                             <span className="text-[11px] font-bold uppercase tracking-wider text-base-content/75">
@@ -464,7 +444,6 @@ export default function ConfigJsonExport({ open, onClose }: ConfigJsonExportProp
                         )}
                     </section>
 
-                    {/* Warnings */}
                     {warnings.length > 0 && (
                         <section className="rounded-xl border border-warning/30 bg-warning/10 p-3">
                             <div className="text-[11px] font-bold uppercase tracking-wider text-warning-content/80">
@@ -485,7 +464,6 @@ export default function ConfigJsonExport({ open, onClose }: ConfigJsonExportProp
                     )}
                 </div>
 
-                {/* Footer */}
                 <div className="flex flex-col-reverse gap-2 border-t border-base-content/10 px-3 py-2.5 shrink-0 sm:flex-row sm:items-center sm:justify-end sm:px-6 sm:py-3">
                     <button className="btn btn-ghost btn-sm w-full sm:w-auto" onClick={onClose}>
                         {transI18n("cancel")}

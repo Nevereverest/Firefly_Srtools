@@ -13,9 +13,12 @@ import {
     converterFreeSRProfileToAvatarStore,
 } from "../src/helper";
 
-const metaData = JSON.parse(zlib.brotliDecompressSync(fs.readFileSync("data/metadata.json.br")).toString("utf8"));
+const readData = (name) => JSON.parse(zlib.brotliDecompressSync(fs.readFileSync(`data/${name}.json.br`)).toString("utf8"));
+const metaData = readData("metadata_core");
 const relicData = JSON.parse(zlib.brotliDecompressSync(fs.readFileSync("data/relic.json.br")).toString("utf8"));
-const avatarData = JSON.parse(zlib.brotliDecompressSync(fs.readFileSync("data/avatar.json.br")).toString("utf8"));
+// Each avatar is its index entry plus its detail, as the client merges them once the detail is loaded.
+const avatarIndex = readData("avatar_index");
+const avatarData = Object.fromEntries(Object.entries(avatarIndex).map(([id, avatar]) => [id, { ...avatar, ...readData(`avatar_detail/${id}`) }]));
 
 describe("Importer Calculations and Formulas", () => {
     it("calculates promotions correctly using existing calcPromotion", () => {

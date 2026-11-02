@@ -136,7 +136,6 @@ export function parseFribbelsData(
     const relics: RelicJson[] = [];
     const relicByFribbelsId = new Map<string, RelicJson>();
 
-    // Pre-index relic sets by normalized name
     const setList = Object.values(mapRelicSet);
     const setByName = new Map<string, RelicSetDetail>();
     for (const set of setList) {
@@ -149,7 +148,6 @@ export function parseFribbelsData(
         }
     }
 
-    // 1. Parse all relics first so they can be looked up by ID for builds & loadouts
     for (const r of rawRelics) {
         if (!r) continue;
         const setNameRaw = (r.set || "").toLowerCase().trim();
@@ -313,7 +311,6 @@ export function parseFribbelsData(
             }
         }
 
-        // Resolve relics for this entry from char.equipped or equippedBy
         const currentRelics = resolveRelics(char.equipped, avatarId, relicByFribbelsId, relics);
 
         if (isFirstEntry) {
@@ -326,7 +323,6 @@ export function parseFribbelsData(
                 relics: currentRelics,
             });
         } else {
-            // Secondary character entry (e.g. "1306b1")
             characterProfiles[avatarId].push({
                 id: `entry_${rawIdStr}`,
                 name: `Build ${bSuffix ? Number(bSuffix) + 1 : characterProfiles[avatarId].length + 1}`,
@@ -337,7 +333,6 @@ export function parseFribbelsData(
             });
         }
 
-        // Resolve additional builds from char.builds
         if (Array.isArray(char.builds)) {
             char.builds.forEach((build, idx) => {
                 if (!build || typeof build !== "object") return;

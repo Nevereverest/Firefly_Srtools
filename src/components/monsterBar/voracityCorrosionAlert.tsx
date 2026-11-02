@@ -22,7 +22,6 @@ export default function VoracityCorrosionAlert({
     invasion?.Desc?.["vi"] ||
     invasion?.Desc?.["en"] ||
     "";
-  // Fix literal \n or \\n from JSON text
   const cleanDesc = rawDesc.replace(/\\n/g, "\n");
 
   return (
@@ -46,7 +45,6 @@ export default function VoracityCorrosionAlert({
         </span>
 
         <div className="flex-1 min-w-0 space-y-1.5">
-          {/* Header line: Title & Voracity HP tag */}
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               <span className="text-[10px] font-bold tracking-widest text-rose-400 uppercase">
@@ -61,7 +59,6 @@ export default function VoracityCorrosionAlert({
             </span>
           </div>
 
-          {/* Description with proper line breaks */}
           <p className="text-xs text-rose-200/90 leading-relaxed whitespace-pre-line">
             {cleanDesc}
           </p>

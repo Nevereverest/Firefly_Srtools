@@ -53,7 +53,6 @@ export default function ChangelogBar() {
             <div className="space-y-3">
                 {changelog.map((change, index) => (
                     <div key={index} className="p-4 sm:p-5 rounded-2xl bg-base-200/60 border border-white/10 shadow-lg space-y-3">
-                        {/* Version Header */}
                         <div className="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-base-content/10">
                             <div className="flex items-center gap-2">
                                 <span className={`px-2.5 py-1 rounded-full text-xs font-mono font-bold flex items-center gap-1.5 border ${getBadgeClass(change.type)}`}>
@@ -71,7 +70,6 @@ export default function ChangelogBar() {
                             </div>
                         </div>
 
-                        {/* Changes List */}
                         <ul className="space-y-2 pt-1 text-xs sm:text-sm text-base-content/85">
                             {change.items.map((item, itemIndex) => (
                                 <li key={itemIndex} className="flex items-start gap-2.5">

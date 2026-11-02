@@ -10,14 +10,12 @@ export default function ModalLoading({ type = "spinner", message }: ModalLoading
   if (type === "grid") {
     return (
       <div className="w-full h-full p-4 space-y-4 animate-pulse">
-        {/* Search & filter skeleton */}
         <div className="h-10 bg-base-200/80 rounded-xl border border-base-content/10" />
         <div className="flex gap-2">
           <div className="h-7 w-24 bg-base-200/80 rounded-lg" />
           <div className="h-7 w-24 bg-base-200/80 rounded-lg" />
           <div className="h-7 w-24 bg-base-200/80 rounded-lg" />
         </div>
-        {/* Cards skeleton grid */}
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-3">
           {Array.from({ length: 14 }).map((_, i) => (
             <div

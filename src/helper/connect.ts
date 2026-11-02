@@ -6,6 +6,7 @@ import useUserDataStore from "@/stores/userDataStore"
 import { converterToFreeSRJson } from "./converterToFreeSRJson"
 import { converterToCollapseConnection } from "./converterToCollapse"
 import { buildConnectUrl } from "./connectEndpoint"
+import { ensureBattleData } from "@/lib/ensureBattleData"
 import useGlobalStore from "@/stores/globalStore"
 import { ActionResult, ConnectErrorCode, ExtraData, FreeSRJson, ProxyPayload, PSConnectType, PSResponse } from "@/types"
 
@@ -57,6 +58,13 @@ const requestServer = (
     return sendData(connectionType, username, password, buildConnectUrl(connectionType, serverUrl), data, extraData)
 }
 
+const MAX_LISTED_WARNINGS = 5
+
+const joinWarnings = (warnings: string[]): string => {
+    const listed = warnings.slice(0, MAX_LISTED_WARNINGS).join("; ")
+    return warnings.length > MAX_LISTED_WARNINGS ? `${listed}; +${warnings.length - MAX_LISTED_WARNINGS} more` : listed
+}
+
 const handleServerResponse = (
     response: PSResponse | string,
     setIsConnectPS: (val: boolean) => void,
@@ -68,7 +76,7 @@ const handleServerResponse = (
     }
     if (response.status < 200 || response.status >= 300) {
         setIsConnectPS(false)
-        const reasons = response.warnings?.length ? ` (${response.warnings.join("; ")})` : ""
+        const reasons = response.warnings?.length ? ` (${joinWarnings(response.warnings)})` : ""
         return { success: false, message: `${response.message || `HTTP ${response.status}`}${reasons}` }
     }
    
@@ -82,7 +90,7 @@ const handleServerResponse = (
     return {
         success: true,
         message: "",
-        warning: response.warnings?.length ? response.warnings.join("; ") : undefined,
+        warning: response.warnings?.length ? joinWarnings(response.warnings) : undefined,
         stats: response.stats,
     }
 }
@@ -119,6 +127,11 @@ export const syncDataToPS = async (): Promise<ActionResult> => {
 
     if (needsLocalMode(connectionType, privateType, serverUrl)) return privateHostResult()
 
+    try {
+        await ensureBattleData(useUserDataStore.getState().battle_type)
+    } catch {
+        return { success: false, message: "Failed to load the battle data, so the battle config could not be checked. Try again." }
+    }
     const data = buildPushPayload()
 
     const payloadExtra: PSResponse['extra_data'] = structuredClone(extraData)

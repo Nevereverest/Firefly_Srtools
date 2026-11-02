@@ -62,37 +62,29 @@ export default function ProfileManagerModal() {
         () => false
     );
 
-    // Search and filters
     const [search, setSearch] = useState("");
     const [elementFilters, setElementFilters] = useState<Record<string, boolean>>({});
     const [pathFilters, setPathFilters] = useState<Record<string, boolean>>({});
     const [rarityFilters, setRarityFilters] = useState<Record<string, boolean>>({});
     const [onlyMultipleProfiles, setOnlyMultipleProfiles] = useState(false);
 
-    // Selected character in modal (defaults to active character)
     const [selectedAvatarId, setSelectedAvatarId] = useState<number>(
         avatarSelected?.ID ?? 1001
     );
 
-    // Mobile navigation state: "avatars" (select character) vs "profiles" (manage selected character's profiles)
     const [mobileView, setMobileView] = useState<"avatars" | "profiles">("profiles");
 
-    // Batch selection of profile indices for the selected character
     const [selectedProfileIndices, setSelectedProfileIndices] = useState<Set<number>>(new Set());
 
-    // Inline edit state
     const [editingIndex, setEditingIndex] = useState<number | null>(null);
     const [editingName, setEditingName] = useState("");
 
-    // Create profile inline form
     const [isCreating, setIsCreating] = useState(false);
     const [newProfileName, setNewProfileName] = useState("");
 
-    // Confirm dialogs
     const [confirmBatchOpen, setConfirmBatchOpen] = useState(false);
     const [confirmDeleteIndex, setConfirmDeleteIndex] = useState<number | null>(null);
 
-    // Toggle filter helpers
     const toggleElementFilter = (el: string) => {
         setElementFilters((prev) => ({ ...prev, [el]: !prev[el] }));
     };
@@ -110,7 +102,6 @@ export default function ProfileManagerModal() {
         setOnlyMultipleProfiles(false);
     };
 
-    // Filter & Sort characters
     const filteredCharacters = useMemo(() => {
         if (!mapAvatar) return [];
         let list = Object.values(mapAvatar);
@@ -119,7 +110,6 @@ export default function ProfileManagerModal() {
         const anyPath = Object.values(pathFilters).some((v) => v);
         const anyRarity = Object.values(rarityFilters).some((v) => v);
 
-        // Text search (by character name or any profile name of character)
         const q = search.trim().toLowerCase();
         if (q) {
             list = list.filter((char) => {
@@ -130,7 +120,6 @@ export default function ProfileManagerModal() {
             });
         }
 
-        // Tag Filters
         list = list.filter((char) => {
             if (anyElement && !elementFilters[char.DamageType]) return false;
             if (anyPath && !pathFilters[char.BaseType]) return false;
@@ -144,7 +133,6 @@ export default function ProfileManagerModal() {
             return true;
         });
 
-        // Sort: Multiple profiles first, then 5★ before 4★, then ID
         list.sort((a, b) => {
             const aCount = avatars[a.ID.toString()]?.profileList?.length ?? 1;
             const bCount = avatars[b.ID.toString()]?.profileList?.length ?? 1;
@@ -157,7 +145,6 @@ export default function ProfileManagerModal() {
         return list;
     }, [mapAvatar, avatars, search, elementFilters, pathFilters, rarityFilters, onlyMultipleProfiles, locale, transI18n]);
 
-    // Active character data
     const activeCharacterMeta = mapAvatar?.[selectedAvatarId.toString()] || filteredCharacters[0];
     const activeUserAvatar = activeCharacterMeta ? avatars[activeCharacterMeta.ID.toString()] : undefined;
     const profileList = activeUserAvatar?.profileList ?? [
@@ -169,21 +156,18 @@ export default function ProfileManagerModal() {
     ];
     const currentSelect = activeUserAvatar?.profileSelect ?? 0;
 
-    // Switch active character in view
     const handleSelectCharacter = (id: number) => {
         setSelectedAvatarId(id);
         setSelectedProfileIndices(new Set());
         setEditingIndex(null);
         setIsCreating(false);
         setMobileView("profiles");
-        // Optionally switch global selected character if needed
         const meta = mapAvatar?.[id.toString()];
         if (meta) {
             setAvatarSelected(meta);
         }
     };
 
-    // Toggle profile selection for batch delete (index 0 is locked)
     const handleToggleProfileSelect = (index: number) => {
         if (index === 0) return;
         const next = new Set(selectedProfileIndices);
@@ -208,7 +192,6 @@ export default function ProfileManagerModal() {
         }
     };
 
-    // Single Delete
     const handleConfirmSingleDelete = () => {
         if (confirmDeleteIndex === null || confirmDeleteIndex === 0 || !activeUserAvatar || !activeCharacterMeta) return;
         const targetName = profileList[confirmDeleteIndex]?.profile_name || "";
@@ -230,7 +213,6 @@ export default function ProfileManagerModal() {
         });
     };
 
-    // Batch Delete
     const handleConfirmBatchDelete = () => {
         if (selectedProfileIndices.size < 2 || !activeUserAvatar || !activeCharacterMeta) return;
 
@@ -256,7 +238,6 @@ export default function ProfileManagerModal() {
         setConfirmBatchOpen(false);
     };
 
-    // Edit Name
     const handleStartEdit = (index: number, currentName: string) => {
         setEditingIndex(index);
         setEditingName(currentName);
@@ -283,7 +264,6 @@ export default function ProfileManagerModal() {
         setEditingIndex(null);
     };
 
-    // Create New Profile
     const handleCreateProfile = () => {
         if (!activeUserAvatar || !activeCharacterMeta) return;
         const cleanName = newProfileName.trim() || `Profile ${profileList.length + 1}`;
@@ -303,7 +283,6 @@ export default function ProfileManagerModal() {
         setIsCreating(false);
     };
 
-    // Switch Active Profile
     const handleSwitchActive = (index: number) => {
         if (!activeUserAvatar || currentSelect === index) return;
         setAvatar({
@@ -313,7 +292,6 @@ export default function ProfileManagerModal() {
         toast.success(`${transI18n("profileSwitched")}: ${profileList[index]?.profile_name}`);
     };
 
-    // Count characters with multiple profiles
     const multipleProfilesCount = useMemo(() => {
         if (!mapAvatar) return 0;
         return Object.values(mapAvatar).filter((c) => (avatars[c.ID.toString()]?.profileList?.length ?? 1) > 1).length;
@@ -321,10 +299,8 @@ export default function ProfileManagerModal() {
 
     return (
         <div className="flex-1 flex flex-col w-full h-full min-h-0 relative overflow-hidden bg-base-100">
-            {/* Top Filter & Search Bar: Full on desktop, hidden on mobile when viewing profiles to maximize vertical space */}
             <div className={`p-2.5 sm:p-4 bg-base-200/50 border-b border-base-300 space-y-2 sm:space-y-3 shrink-0 ${mobileView === "profiles" ? "hidden md:block" : "block"}`}>
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-2.5">
-                    {/* Search Input */}
                     <div className="relative flex-1">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-base-content/50 pointer-events-none" />
                         <input
@@ -345,7 +321,6 @@ export default function ProfileManagerModal() {
                         )}
                     </div>
 
-                    {/* Only Multiple Profiles Filter Toggle */}
                     <button
                         type="button"
                         onClick={() => setOnlyMultipleProfiles(!onlyMultipleProfiles)}
@@ -378,7 +353,6 @@ export default function ProfileManagerModal() {
 
                 {/* Filter Chips (Elements, Paths, Rarity) - wrapped naturally without horizontal scroll */}
                 <div className="flex flex-wrap items-center gap-x-2.5 gap-y-2 shrink-0">
-                    {/* Elements */}
                     <div className="flex items-center gap-1">
                         {Object.entries(damageType || {}).map(([key, val]) => {
                             if (!key || !val?.Icon) return null;
@@ -410,7 +384,6 @@ export default function ProfileManagerModal() {
 
                     <div className="h-4 w-px bg-base-300 shrink-0 hidden sm:block" />
 
-                    {/* Paths */}
                     <div className="flex items-center gap-1">
                         {Object.entries(baseType || {}).map(([key, val]) => {
                             if (!key || !val?.Icon) return null;
@@ -442,7 +415,6 @@ export default function ProfileManagerModal() {
 
                     <div className="h-4 w-px bg-base-300 shrink-0 hidden sm:block" />
 
-                    {/* Rarity */}
                     <div className="flex items-center gap-1">
                         {["5", "4"].map((rarity) => {
                             const isActive = !!rarityFilters[rarity];
@@ -465,9 +437,7 @@ export default function ProfileManagerModal() {
                 </div>
             </div>
 
-            {/* Main Content Area: Master-detail on mobile, 2 Columns on md+ */}
             <div className="flex-1 flex flex-col md:flex-row min-h-0 overflow-hidden">
-                {/* Left Column: Character List */}
                 <div
                     className={`w-full md:w-72 lg:w-80 xl:w-96 border-b md:border-b-0 md:border-r border-base-300 flex flex-col shrink-0 bg-base-100/50 min-h-0 ${
                         mobileView === "avatars" ? "flex flex-1" : "hidden md:flex"
@@ -502,7 +472,6 @@ export default function ProfileManagerModal() {
                                                 : "hover:bg-base-200/80 border border-transparent"
                                         }`}
                                     >
-                                        {/* Avatar Portrait */}
                                         <div
                                             className={`relative w-10 h-10 rounded-xl overflow-hidden shrink-0 border border-white/10 bg-linear-to-b ${
                                                 is5Star
@@ -520,7 +489,6 @@ export default function ProfileManagerModal() {
                                             />
                                         </div>
 
-                                        {/* Name & Type */}
                                         <div className="flex-1 min-w-0">
                                             <div className="text-xs font-bold text-base-content truncate">
                                                 <ParseText
@@ -535,7 +503,6 @@ export default function ProfileManagerModal() {
                                             </div>
                                         </div>
 
-                                        {/* Profiles Count Badge */}
                                         <div className="shrink-0">
                                             <span
                                                 className={`px-2 py-0.5 rounded-full text-[11px] font-bold font-mono border ${
@@ -554,7 +521,6 @@ export default function ProfileManagerModal() {
                     </div>
                 </div>
 
-                {/* Right Column: Selected Character's Profile Management */}
                 <div
                     className={`flex-1 flex flex-col min-w-0 overflow-hidden bg-base-100 ${
                         mobileView === "profiles" ? "flex flex-1" : "hidden md:flex"
@@ -562,10 +528,8 @@ export default function ProfileManagerModal() {
                 >
                     {activeCharacterMeta ? (
                         <>
-                            {/* Clean, Compact Header of Selected Character */}
                             <div className="px-3 sm:px-5 py-2.5 bg-base-200/40 border-b border-base-300 flex items-center justify-between gap-2 shrink-0">
                                 <div className="flex items-center gap-2 min-w-0 flex-1">
-                                    {/* Mobile Back Button to Character List */}
                                     <button
                                         type="button"
                                         onClick={() => setMobileView("avatars")}
@@ -575,7 +539,6 @@ export default function ProfileManagerModal() {
                                         <ChevronLeft className="w-4 h-4 text-primary" />
                                     </button>
 
-                                    {/* Character Avatar */}
                                     <div
                                         className={`relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl overflow-hidden shrink-0 border border-white/10 bg-linear-to-b ${
                                             activeCharacterMeta.Rarity === "CombatPowerAvatarRarityType5"
@@ -593,7 +556,6 @@ export default function ProfileManagerModal() {
                                         />
                                     </div>
 
-                                    {/* Name & Count (Clean, non-wrapping) */}
                                     <div className="min-w-0 flex-1">
                                         <h3 className="text-xs sm:text-sm font-bold text-base-content truncate">
                                             <ParseText
@@ -607,7 +569,6 @@ export default function ProfileManagerModal() {
                                     </div>
                                 </div>
 
-                                {/* Right: + Add Profile */}
                                 <div className="shrink-0 flex items-center gap-1.5">
                                     {!isCreating ? (
                                         <button
@@ -655,7 +616,6 @@ export default function ProfileManagerModal() {
                                 </div>
                             </div>
 
-                            {/* Batch Utility Bar - Single line, non-wrapping, clean hierarchy */}
                             <div className="px-3 sm:px-5 py-1.5 bg-base-200/25 border-b border-base-300 flex items-center justify-between gap-2 shrink-0">
                                 <div className="flex items-center gap-2 text-xs min-w-0">
                                     <button
@@ -675,7 +635,6 @@ export default function ProfileManagerModal() {
                                     )}
                                 </div>
 
-                                {/* Batch Delete Button: Compact, single line, subtle when disabled */}
                                 {profileList.length > 2 && (
                                     <button
                                         type="button"
@@ -699,7 +658,6 @@ export default function ProfileManagerModal() {
                                 )}
                             </div>
 
-                            {/* Profiles List */}
                             <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3">
                                 {profileList.map((profile, index) => {
                                     const isDefault = index === 0;
@@ -718,9 +676,7 @@ export default function ProfileManagerModal() {
                                                     : "bg-base-200/40 border-base-300 hover:border-base-content/20"
                                             }`}
                                         >
-                                            {/* Row 1: Checkbox, Name, Status Badge, Edit / Delete Buttons */}
                                             <div className="flex items-center justify-between gap-3">
-                                                {/* Left: Checkbox + Name */}
                                                 <div className="flex items-center gap-2.5 min-w-0 flex-1">
                                                     {!isDefault ? (
                                                         <button
@@ -744,7 +700,6 @@ export default function ProfileManagerModal() {
                                                         </div>
                                                     )}
 
-                                                    {/* Profile Name or Inline Edit */}
                                                     {isEditing ? (
                                                         <div className="flex items-center gap-1.5 flex-1 min-w-0">
                                                             <input
@@ -834,9 +789,7 @@ export default function ProfileManagerModal() {
                                                 )}
                                             </div>
 
-                                            {/* Row 2: Equipment Summary */}
                                             <div className="grid grid-cols-1 xl:grid-cols-2 gap-2 pt-2 border-t border-base-300/60 text-xs">
-                                                {/* Lightcone */}
                                                 <div className="flex items-center gap-2 p-2 rounded-xl bg-base-100/60 border border-base-300/50 min-w-0">
                                                     {profile.lightcone ? (
                                                         <>
@@ -869,7 +822,6 @@ export default function ProfileManagerModal() {
                                                     )}
                                                 </div>
 
-                                                {/* Relics Mini Grid */}
                                                 <div className="flex items-center gap-1 sm:gap-1.5 p-2 rounded-xl bg-base-100/60 border border-base-300/50 overflow-x-auto min-w-0">
                                                     {Object.keys(profile.relics || {}).length > 0 ? (
                                                         Object.values(profile.relics).map((r, rIdx) => (
@@ -911,10 +863,9 @@ export default function ProfileManagerModal() {
                 </div>
             </div>
 
-            {/* Single Delete Confirmation Modal */}
             {isMounted && confirmDeleteIndex !== null && createPortal(
                 <div
-                    className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs min-h-[100dvh]"
+                    className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/75 min-h-[100dvh]"
                     onClick={() => setConfirmDeleteIndex(null)}
                 >
                     <div
@@ -960,10 +911,9 @@ export default function ProfileManagerModal() {
                 document.body
             )}
 
-            {/* Batch Delete Confirmation Modal */}
             {isMounted && confirmBatchOpen && createPortal(
                 <div
-                    className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs min-h-[100dvh]"
+                    className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/75 min-h-[100dvh]"
                     onClick={() => setConfirmBatchOpen(false)}
                 >
                     <div

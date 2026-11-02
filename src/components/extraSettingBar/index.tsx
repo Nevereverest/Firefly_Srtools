@@ -8,6 +8,7 @@ import SelectCustomImage from "../select/customSelectImage"
 import { useMemo, useState } from "react"
 import useDetailDataStore from "@/stores/detailDataStore"
 import Editor from "react-simple-code-editor"
+import BattleDataFetcher from "@/components/battleDataFetcher"
 import Prism from "prismjs"
 import "prismjs/components/prism-lua"
 import "prismjs/themes/prism-tomorrow.css"
@@ -45,6 +46,10 @@ export default function ExtraSettingBar() {
 
   const pageSize = 30
   const stageList = useMemo(() => Object.values(stage), [stage])
+  const stageLoading = stageList.length === 0
+  const selectedStage = stageList.find((s) => s.ID.toString() === extraData?.theory_craft?.stage_id?.toString())
+  const selectedStageLabel = selectedStage ? `${getLocaleName(locale, selectedStage.Name)} #${selectedStage.ID}` : ""
+  const peakLoading = Object.keys(mapPeak).length === 0
 
   const stageTerm = stageSearchTerm.toLowerCase()
 
@@ -65,7 +70,6 @@ export default function ExtraSettingBar() {
     setStagePage(1)
   }
 
-  // Filter avatars for lineup selector
   const avatarList = useMemo(() => Object.values(mapAvatar), [mapAvatar])
   const filteredAvatars = useMemo(() => {
     if (!lineupSearchTerm.trim()) return avatarList
@@ -80,10 +84,9 @@ export default function ExtraSettingBar() {
 
   return (
     <div className="w-full space-y-4 pb-2">
-      {/* THEORY CRAFT */}
+      <BattleDataFetcher mode="EXTRA" />
       {extraData?.theory_craft && (
-        <section className="relative z-30 rounded-2xl bg-base-200/40 border border-white/10 shadow-xs backdrop-blur-sm transition-all duration-200">
-          {/* Section Header */}
+        <section className="relative z-30 rounded-2xl bg-base-200/40 border border-white/10 shadow-xs transition-all duration-200">
           <div className="flex items-center justify-between p-4 sm:p-5">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 text-primary flex items-center justify-center shrink-0 shadow-inner">
@@ -128,12 +131,9 @@ export default function ExtraSettingBar() {
             </div>
           </div>
 
-          {/* Theorycraft Expanded Content */}
           {extraData?.theory_craft?.mode && (
             <div className="border-t border-white/5 bg-base-300/20 p-4 sm:p-5 space-y-4">
-              {/* Simulation Settings Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* Cycle Count */}
                 <div className="space-y-1.5">
                   <label className="flex items-center gap-2 text-xs font-semibold text-base-content/80">
                     <RefreshCw className="text-info w-3.5 h-3.5" />
@@ -161,7 +161,6 @@ export default function ExtraSettingBar() {
                   </div>
                 </div>
 
-                {/* Stage Selection */}
                 <div className="space-y-1.5 relative">
                   <label className="flex items-center gap-2 text-xs font-semibold text-base-content/80">
                     <RouteIcon className="text-info w-3.5 h-3.5" />
@@ -171,14 +170,14 @@ export default function ExtraSettingBar() {
                     type="button"
                     className="btn btn-sm btn-outline w-full rounded-xl bg-base-100 text-base-content border-white/15 hover:border-primary flex items-center justify-between text-xs font-normal transition-all"
                     onClick={() => setShowSearchStage(pre => !pre)}
+                    disabled={stageLoading}
                   >
-                    <span className="truncate">
-                      {getLocaleName(locale, stageList.find((s) => s.ID.toString() === extraData?.theory_craft?.stage_id?.toString())?.Name) || transI18n("selectStage")}
+                    <span className={`truncate ${stageLoading ? "animate-pulse" : ""}`}>
+                      {stageLoading ? transI18n("loadingData") : selectedStageLabel || transI18n("selectStage")}
                     </span>
                     <Search className="w-3.5 h-3.5 shrink-0 text-base-content/50 ml-2" />
                   </button>
 
-                  {/* Stage Search Popover */}
                   {showSearchStage && (
                     <div
                       onClick={(e) => e.stopPropagation()}
@@ -232,6 +231,7 @@ export default function ExtraSettingBar() {
                                 }}
                               >
                                 <span className="truncate">{getLocaleName(locale, stg.Name)}</span>
+                                <span className="ml-auto shrink-0 pl-2 font-mono text-[10px] text-base-content/40">#{stg.ID}</span>
                                 {isSelected && <Check className="w-3.5 h-3.5 text-primary shrink-0 ml-1.5" />}
                               </div>
                             )
@@ -267,7 +267,6 @@ export default function ExtraSettingBar() {
                 </div>
               </div>
 
-              {/* Custom Lineup */}
               <div className="space-y-3 pt-2 border-t border-white/5">
                 <div className="flex items-center justify-between">
                   <label className="flex items-center gap-2 text-xs font-semibold text-base-content/80">
@@ -297,7 +296,6 @@ export default function ExtraSettingBar() {
                   </button>
                 </div>
 
-                {/* Selected Avatars Strip */}
                 <div className="flex flex-wrap items-center gap-2">
                   {currentLineup.map((avatarId) => {
                     const avatarData = mapAvatar[avatarId]
@@ -337,7 +335,6 @@ export default function ExtraSettingBar() {
                   )}
                 </div>
 
-                {/* Inline Character Selection Pool */}
                 {showSearchLineup && (
                   <div className="space-y-2.5 pt-2">
                     <div className="relative">
@@ -393,8 +390,7 @@ export default function ExtraSettingBar() {
         </section>
       )}
 
-      {/* MULTIPATH CHARACTER */}
-      <section className="relative z-20 rounded-2xl bg-base-200/40 border border-white/10 shadow-xs backdrop-blur-sm transition-all duration-200">
+      <section className="relative z-20 rounded-2xl bg-base-200/40 border border-white/10 shadow-xs transition-all duration-200">
         <div className="flex items-center justify-between p-4 sm:p-5">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-secondary/10 border border-secondary/20 text-secondary flex items-center justify-center shrink-0 shadow-inner">
@@ -431,7 +427,6 @@ export default function ExtraSettingBar() {
         {isEnableChangePath && (
           <div className="border-t border-white/5 bg-base-300/20 p-4 sm:p-5">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Main Character Path */}
               <div className="space-y-1.5">
                 <label className="flex items-center gap-2 text-xs font-semibold text-base-content/80">
                   <User className="text-warning w-3.5 h-3.5" />
@@ -462,7 +457,6 @@ export default function ExtraSettingBar() {
                 />
               </div>
 
-              {/* March 7th Path */}
               <div className="space-y-1.5">
                 <label className="flex items-center gap-2 text-xs font-semibold text-base-content/80">
                   <BowArrow className="text-info w-3.5 h-3.5" />
@@ -497,8 +491,7 @@ export default function ExtraSettingBar() {
         )}
       </section>
 
-      {/* CHALLENGE SETTINGS */}
-      <section className="relative z-10 rounded-2xl bg-base-200/40 border border-white/10 shadow-xs backdrop-blur-sm">
+      <section className="relative z-10 rounded-2xl bg-base-200/40 border border-white/10 shadow-xs">
         <div className="p-4 sm:p-5 border-b border-white/5 flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-error/10 border border-error/20 text-error flex items-center justify-center shrink-0 shadow-inner">
             <Swords className="w-5 h-5" />
@@ -515,7 +508,6 @@ export default function ExtraSettingBar() {
 
         <div className="p-4 sm:p-5">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* Anomaly Arbitration */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
                 <label className="flex items-center gap-2 text-xs font-semibold text-base-content/80">
@@ -541,6 +533,7 @@ export default function ExtraSettingBar() {
                   })
                 }
               >
+                {peakLoading && <option value="" disabled>{transI18n("loadingData")}</option>}
                 {Object.values(mapPeak).filter(event => extraData?.challenge?.challenge_peak_group_id_list?.includes(Number(event.ID))).map(event => (
                   <option key={event.ID} value={event.ID} className="bg-base-100 text-base-content py-2">
                     {getLocaleName(locale, event.Name)} ({event.ID})
@@ -549,7 +542,6 @@ export default function ExtraSettingBar() {
               </select>
             </div>
 
-            {/* Skip Node */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
                 <label className="flex items-center gap-2 text-xs font-semibold text-base-content/80">
@@ -584,8 +576,7 @@ export default function ExtraSettingBar() {
         </div>
       </section>
 
-      {/* EXTRA FEATURES */}
-      <section className="relative z-0 rounded-2xl bg-base-200/40 border border-white/10 shadow-xs backdrop-blur-sm">
+      <section className="relative z-0 rounded-2xl bg-base-200/40 border border-white/10 shadow-xs">
         <div className="p-4 sm:p-5 border-b border-white/5 flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-accent/10 border border-accent/20 text-accent flex items-center justify-center shrink-0 shadow-inner">
             <Eye className="w-5 h-5" />
@@ -601,7 +592,6 @@ export default function ExtraSettingBar() {
         </div>
 
         <div className="p-2 sm:p-3 divide-y divide-white/5">
-          {/* Hide UI Row */}
           {extraData?.setting?.hide_ui !== undefined && (
             <div className="flex items-center justify-between p-3 rounded-xl hover:bg-white/[0.03] transition-colors">
               <div className="flex items-center gap-3">
@@ -644,7 +634,6 @@ export default function ExtraSettingBar() {
             </div>
           )}
 
-          {/* Disable Censorship Row */}
           {extraData?.setting?.censorship !== undefined && (
             <div className="flex items-center justify-between p-3 rounded-xl hover:bg-white/[0.03] transition-colors">
               <div className="flex items-center gap-3">
@@ -684,7 +673,6 @@ export default function ExtraSettingBar() {
             </div>
           )}
 
-          {/* Aha's Big Help / Invasion Percent Slider Row */}
           {extraData?.setting !== undefined && (
             <div className="p-3 rounded-xl hover:bg-white/[0.03] transition-colors space-y-3">
               <div className="flex items-center justify-between">
@@ -773,8 +761,7 @@ export default function ExtraSettingBar() {
         </div>
       </section>
 
-      {/* LUA SCRIPTING */}
-      <section className="relative rounded-2xl bg-base-200/40 border border-white/10 shadow-xs backdrop-blur-sm transition-all duration-200">
+      <section className="relative rounded-2xl bg-base-200/40 border border-white/10 shadow-xs transition-all duration-200">
         <div className="flex items-center justify-between p-4 sm:p-5">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-amber-400/10 border border-amber-400/20 text-amber-400 flex items-center justify-center shrink-0 shadow-inner">
@@ -805,7 +792,6 @@ export default function ExtraSettingBar() {
 
         {isEnableLua && (
           <div className="border-t border-white/5 bg-[#0d0e15] overflow-hidden">
-            {/* Terminal Window Header Bar */}
             <div className="flex items-center justify-between px-4 py-2.5 bg-[#141622] border-b border-white/5">
               <div className="flex items-center gap-2">
                 <div className="flex items-center gap-1.5">
@@ -824,7 +810,6 @@ export default function ExtraSettingBar() {
               </span>
             </div>
 
-            {/* Code Editor */}
             <div className="max-h-80 sm:max-h-96 overflow-auto scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
               <Editor
                 value={extraData?.lua || ""}

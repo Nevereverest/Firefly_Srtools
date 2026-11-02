@@ -3,6 +3,7 @@
 import MountOnOpen from "../mountOnOpen";
 import { downloadJson } from "@/helper";
 import { converterToFreeSRJson } from "@/helper/converterToFreeSRJson";
+import { ensureBattleData } from "@/lib/ensureBattleData";
 import { useChangeTheme } from "@/hooks/useChangeTheme";
 import { listCurrentLanguage, listCurrentLanguageApi } from "@/constant/constant";
 import useLocaleStore from "@/stores/localeStore";
@@ -22,6 +23,7 @@ import { useShallow } from "zustand/react/shallow";
 import { createPortal } from "react-dom";
 
 import ModalLoading from "../modalLoading";
+import { NeedChangelog, NeedLightcone, NeedLightconeAndRelic, NeedRelic } from "../requireData";
 
 const MonsterBar = dynamic(() => import("../monsterBar"), {
     ssr: false,
@@ -52,11 +54,7 @@ const FribbelsImport = dynamic(() => import("../importBar/fribbels"), {
     ssr: false,
     loading: () => <ModalLoading message="Loading Fribbels Importer..." />
 });
-/**
- * Placeholder while the config.json chunk downloads. Portalled out of the
- * header's `sticky z-40` stacking context, and fixed so it never takes part in
- * the layout that would otherwise push the whole page down.
- */
+/** Placeholder while the config.json chunk loads; portalled out of the sticky header. */
 function ConfigJsonLoading() {
     const theme = useLocaleStore((state) => state.theme)
     if (typeof document === "undefined") return null
@@ -76,12 +74,7 @@ function ConfigJsonLoading() {
 
 const ConfigJsonExport = dynamic(() => import("../configJsonExport"), {
     ssr: false,
-    // Two constraints, unlike the <dialog> modals above:
-    // 1. it renders straight into <header>, so an in-flow placeholder would
-    //    stretch the header and push the whole page down until the chunk lands;
-    // 2. <header> is `sticky z-40`, so a fixed child stays trapped in that
-    //    stacking context and gets painted over by the quick view button.
-    // Fixed position plus a portal solves both.
+    // Fixed and portalled: an in-flow placeholder would stretch the sticky header, and a fixed child would stay trapped in its stacking context.
     loading: () => <ConfigJsonLoading />
 });
 
@@ -189,7 +182,6 @@ export default function Header() {
         }
     };
 
-    // Close modal handler
     const handleCloseModal = (modalId: string) => {
         const modal = document.getElementById(modalId) as HTMLDialogElement | null;
         if (modal) {
@@ -222,10 +214,10 @@ export default function Header() {
             },
             content: (
                 <>
-                    {importModal === "enka" && <EnkaImport />}
-                    {importModal === "freesr" && <FreeSRImport />}
-                    {importModal === "hoyolab" && <HoyolabImport />}
-                    {importModal === "fribbels" && <FribbelsImport />}
+                    {importModal === "enka" && <NeedLightcone><EnkaImport /></NeedLightcone>}
+                    {importModal === "freesr" && <NeedLightconeAndRelic><FreeSRImport /></NeedLightconeAndRelic>}
+                    {importModal === "hoyolab" && <NeedRelic><HoyolabImport /></NeedRelic>}
+                    {importModal === "fribbels" && <NeedLightconeAndRelic><FribbelsImport /></NeedLightconeAndRelic>}
                 </>
             )
         },
@@ -257,11 +249,10 @@ export default function Header() {
                 setIsChangelog(false)
                 handleCloseModal("changelog_modal")
             },
-            content: <ChangelogBar />
+            content: <NeedChangelog><ChangelogBar /></NeedChangelog>
         }
     ]
 
-    // Handle ESC key to close modal
     useEffect(() => {
         for (const item of modalConfigs) {
             if (!item?.isOpen) {
@@ -282,6 +273,17 @@ export default function Header() {
         return () => window.removeEventListener('keydown', handleEscKey);
     }, [isOpenImport, isOpenMonster, isOpenConnect, isOpenExtra, isChangelog]);
 
+    useEffect(() => {
+        const closeMenus = (event: MouseEvent) => {
+            const target = event.target as HTMLElement | null
+            document.querySelectorAll<HTMLDetailsElement>(".navbar-center details[open]").forEach((menu) => {
+                if (!menu.contains(target) || target?.closest("details ul a, details ul button")) menu.removeAttribute("open")
+            })
+        }
+        document.addEventListener("click", closeMenus)
+        return () => document.removeEventListener("click", closeMenus)
+    }, [])
+
     const handleImportDatabase = (event: React.ChangeEvent<HTMLInputElement>) => {
 
         const file = event.target.files?.[0];
@@ -301,8 +303,7 @@ export default function Header() {
                 try {
                     const data = JSON.parse(e.target?.result as string);
                     const parsed = micsSchema.parse(data)
-                    // One notification and one persisted write; battle sync also sees
-                    // the complete imported configuration, never seven partial states.
+                    // One write for the whole import.
                     useUserDataStore.setState(parsed)
                     toast.success(transI18n("importDatabaseSuccess"))
                 } catch {
@@ -314,7 +315,13 @@ export default function Header() {
 
     };
 
-    const handleExportFreeSR = () => {
+    const handleExportFreeSR = async () => {
+        try {
+            await ensureBattleData(useUserDataStore.getState().battle_type)
+        } catch {
+            toast.error(transI18n("failedToLoadData", { type: "battle" }))
+            return
+        }
         const { avatars, battle_type, moc_config, pf_config, as_config, ce_config, peak_config } = useUserDataStore.getState()
         downloadJson("freesr-data", converterToFreeSRJson(avatars, battle_type, moc_config, pf_config, as_config, ce_config, peak_config))
     }
@@ -327,7 +334,6 @@ export default function Header() {
         <header className="sticky top-0 z-40 w-full shrink-0 bg-base-100 border-b border-base-300 shadow-xs">
             <div className="navbar max-w-[1920px] mx-auto px-2 sm:px-4 py-1.5 min-h-14">
                 <div className="navbar-start gap-2">
-                    {/* Mobile menu dropdown */}
                     <div className="dropdown">
                         <div tabIndex={0} role="button" className="btn btn-ghost btn-sm lg:hidden rounded-lg hover:bg-base-200 transition-all duration-200">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -424,7 +430,6 @@ export default function Header() {
                         </ul>
                     </div>
 
-                    {/* Brand Logo */}
                     <a className="flex items-center gap-2.5 px-2 group cursor-pointer select-none">
                         <div className="relative">
                             <div className="absolute -inset-1 bg-linear-to-r from-emerald-500/20 to-orange-500/20 rounded-full blur-xs opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -449,7 +454,6 @@ export default function Header() {
                     </a>
                 </div>
 
-                {/* Desktop navigation */}
                 <div className="navbar-center hidden lg:flex">
                     <ul className="menu menu-horizontal gap-1.5 p-0 text-sm font-medium">
                         <li>
@@ -537,9 +541,7 @@ export default function Header() {
                     </ul>
                 </div>
 
-                {/* Right side items */}
                 <div className="navbar-end gap-2 pr-1">
-                    {/* PS Connection Status Badge */}
                     <div data-tip={isConnectPS ? "Connected to PS" : "Not Connected"} className="tooltip tooltip-bottom">
                         <div className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-base-200/60 border border-white/5 shadow-xs">
                             <span className="relative flex h-2 w-2">
@@ -554,7 +556,6 @@ export default function Header() {
                         </div>
                     </div>
 
-                    {/* View Logs Button */}
                     <button
                         data-tip={transI18n("changelog")}
                         title={transI18n("changelog")}
@@ -566,7 +567,6 @@ export default function Header() {
                         <ScrollText className="w-4 h-4" />
                     </button>
 
-                    {/* Language selector */}
                     <div className="dropdown dropdown-end tooltip tooltip-bottom" data-tip={transI18n("language")}>
                         <div
                             tabIndex={0}
@@ -603,7 +603,6 @@ export default function Header() {
                         </ul>
                     </div>
 
-                    {/* Theme selector */}
                     <div className="dropdown dropdown-end tooltip tooltip-bottom" data-tip={transI18n("theme")}>
                         <div tabIndex={0} role="button" className="btn btn-ghost btn-sm rounded-lg hover:bg-base-200/70 transition-all duration-200 px-2" title={transI18n("theme")}>
                             <svg
@@ -658,7 +657,6 @@ export default function Header() {
                 </div>
             </div>
 
-            {/* Modals */}
             {modalConfigs?.map(({ id, title, isOpen, onClose, content }) => (
                 <dialog key={id} id={id} className={`modal ${isOpen ? "modal-open" : ""}`}>
                     <div className={`modal-box ${
@@ -672,7 +670,6 @@ export default function Header() {
                             ? 'w-11/12 max-w-[95vw] sm:max-w-2xl md:max-w-3xl lg:max-w-4xl h-[85vh]'
                             : 'w-11/12 max-w-[92vw] sm:max-w-[88vw] max-h-[90vh]'
                     } max-h-[90vh] my-auto flex flex-col bg-base-100 text-base-content border border-base-content/10 shadow-2xl rounded-2xl p-0 overflow-hidden`}>
-                        {/* Modal Header */}
                         <div className="sticky top-0 z-20 flex items-center justify-between px-4 py-3 sm:px-6 sm:py-4 border-b border-base-content/10 bg-base-100 shrink-0">
                             <h3 className="font-bold text-lg sm:text-xl tracking-tight bg-clip-text text-transparent bg-linear-to-r from-primary via-accent to-secondary">
                                 {title}
@@ -685,7 +682,6 @@ export default function Header() {
                             </button>
                         </div>
 
-                        {/* Modal Body */}
                         <div className="p-4 sm:p-6 overflow-y-auto flex-1">
                             <MountOnOpen open={isOpen}>{content}</MountOnOpen>
                         </div>

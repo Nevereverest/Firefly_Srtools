@@ -103,12 +103,6 @@ export const calcSubAffixRolls = (
     return { count: bestCount, step: bestStep };
 }
 
-// Aliases for backward compatibility & importer naming parity
-export const calculatePromotion = calcPromotion;
-export const calculateSubAffixRolls = calcSubAffixRolls;
-export const getExactSubAffixValue = calcAffixBonus;
-
-
 export const calcBaseStat = (baseStat: number, stepStat: number, roundFixed: number, level: number) => {
     const promotionStat = baseStat + stepStat * (level-1);
     return promotionStat.toFixed(roundFixed);

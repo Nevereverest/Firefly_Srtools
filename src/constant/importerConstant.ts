@@ -1,10 +1,6 @@
-// Stat and slot property mappings for external importers (HoYoLAB & Fribbels)
-// Extracted and verified 1:1 against neonteam production bundle (srtools.neonteam.dev)
+// Stat and slot property mappings for the HoYoLAB and Fribbels importers.
 
-/**
- * HoYoLAB property_type ID to Honkai: Star Rail internal Property string mapping (xr in srtools).
- * Verified 100% identical to srtools production bundle.
- */
+/** HoYoLAB property_type ID to internal Property string. */
 export const hoyolabPropertyTypeMap: Record<number, string> = {
     1: "HPDelta",
     2: "AttackDelta",
@@ -44,40 +40,8 @@ export const hoyolabPropertyTypeMap: Record<number, string> = {
     59: "BreakDamageAddedRatioBase",
 };
 
-/**
- * Fribbels internal stat enum definitions (Xt in srtools).
- */
-export const fribbelsStatEnum = {
-    ATK_P: "ATK%",
-    ATK: "ATK",
-    BE: "Break Effect",
-    CD: "CRIT DMG",
-    CR: "CRIT Rate",
-    DEF_P: "DEF%",
-    DEF: "DEF",
-    EHR: "Effect Hit Rate",
-    ERR: "Energy Regeneration Rate",
-    Fire_DMG: "Fire DMG Boost",
-    HP_P: "HP%",
-    HP: "HP",
-    Ice_DMG: "Ice DMG Boost",
-    Imaginary_DMG: "Imaginary DMG Boost",
-    Lightning_DMG: "Lightning DMG Boost",
-    OHB: "Outgoing Healing Boost",
-    Physical_DMG: "Physical DMG Boost",
-    Quantum_DMG: "Quantum DMG Boost",
-    RES: "Effect RES",
-    SPD: "SPD",
-    Wind_DMG: "Wind DMG Boost",
-} as const;
-
-/**
- * Fribbels stat name to Honkai: Star Rail internal Property string mapping (_r in srtools).
- * Includes both full display names from Fribbels exports and internal short codes (Xt).
- * Verified 100% compatible and identical to srtools production bundle.
- */
+/** Fribbels stat name (display names and short codes) to internal Property string. */
 export const fribbelsStatMap: Record<string, string> = {
-    // Official display stat names in Fribbels HSR optimizer export
     "HP": "HPDelta",
     "ATK": "AttackDelta",
     "DEF": "DefenceDelta",
@@ -100,7 +64,6 @@ export const fribbelsStatMap: Record<string, string> = {
     "DEF%": "DefenceAddedRatio",
     "Break Effect": "BreakDamageAddedRatioBase",
 
-    // Fallback aliases matching raw keys from Fribbels internal enum Xt
     "ATK_P": "AttackAddedRatio",
     "DEF_P": "DefenceAddedRatio",
     "HP_P": "HPAddedRatio",
@@ -120,12 +83,8 @@ export const fribbelsStatMap: Record<string, string> = {
     "Imaginary_DMG": "ImaginaryAddedRatio",
 };
 
-/**
- * Fribbels relic slot / part name mapping to firefly-tools slot type (aq in srtools).
- * Maps {Head, Hands, Body, Feet, PlanarSphere, LinkRope} -> {HEAD, HAND, BODY, FOOT, NECK, OBJECT}.
- */
+/** Fribbels relic slot name to slot type. */
 export const fribbelsPartMap: Record<string, string> = {
-    // Standard NeonTeam mapping (aq in srtools)
     "Head": "HEAD",
     "Hands": "HAND",
     "Body": "BODY",
@@ -133,7 +92,6 @@ export const fribbelsPartMap: Record<string, string> = {
     "PlanarSphere": "NECK",
     "LinkRope": "OBJECT",
 
-    // Case-insensitive and alternate aliases for robust parsing
     "head": "HEAD",
     "hands": "HAND",
     "body": "BODY",

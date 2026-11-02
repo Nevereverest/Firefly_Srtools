@@ -56,7 +56,6 @@ export function isBlockedIPv4(ip: string): boolean {
 
 const firstHextet = (ip: string): number => {
     const clean = ip.split("%")[0].toLowerCase()
-    // A leading "::" means the first 16 bits are zero.
     if (clean.startsWith("::")) return 0
     return Number.parseInt(clean.split(":")[0], 16)
 }
@@ -66,7 +65,6 @@ export function isBlockedIPv6(ip: string): boolean {
 
     if (clean === "::" || clean === "::1") return true
 
-    // IPv4-mapped (::ffff:127.0.0.1) has to be judged as the IPv4 it wraps.
     const mapped = clean.match(/^::ffff:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})$/)
     if (mapped) return isBlockedIPv4(mapped[1])
 

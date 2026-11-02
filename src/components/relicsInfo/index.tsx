@@ -14,6 +14,7 @@ import useCurrentDataStore from "@/stores/currentDataStore";
 import useDetailDataStore from "@/stores/detailDataStore";
 import { getLocaleName } from '@/helper';
 import useLocaleStore from "@/stores/localeStore";
+import { NeedRelic } from "../requireData";
 import { useShallow } from 'zustand/react/shallow';
 import { Trash2, SlidersHorizontal } from "lucide-react";
 import { toast } from "react-toastify";
@@ -220,11 +221,10 @@ export default function RelicsInfo() {
       onClose: () => {
         setIsOpenRelic(false);
       },
-      content: <RelicMaker />
+      content: <NeedRelic><RelicMaker /></NeedRelic>
     }
   ];
 
-  // Handle ESC key to close modal
   useEffect(() => {
     const handleEscKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -249,7 +249,6 @@ export default function RelicsInfo() {
   return (
     <div className="w-full space-y-4">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-        {/* Left Section - Relic Equipment Grid */}
         <div className="lg:col-span-2 space-y-4">
           <div className="glass-card rounded-2xl p-4 sm:p-6 border border-base-content/10 shadow-xs space-y-6">
             <div className="flex items-center justify-between pb-3 border-b border-base-content/10">
@@ -271,7 +270,6 @@ export default function RelicsInfo() {
               </button>
             </div>
 
-            {/* 6-Slot Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
               {["1", "2", "3", "4", "5", "6"].map((item, index) => (
                 <div
@@ -287,7 +285,6 @@ export default function RelicsInfo() {
                     avatarId={avatarSelected?.ID.toString() || ""}
                   />
 
-                  {/* Micro Actions */}
                   <div className="absolute top-1.5 right-1.5 flex gap-1 z-20">
                     <button
                       type="button"
@@ -319,7 +316,6 @@ export default function RelicsInfo() {
               ))}
             </div>
 
-            {/* Bottom Actions Bar */}
             <div className="grid grid-cols-2 gap-3 pt-2">
               <button
                 type="button"
@@ -349,7 +345,6 @@ export default function RelicsInfo() {
           </div>
         </div>
 
-        {/* Right Section - Set Effects Showcase */}
         <div className="space-y-4">
           <div className="glass-card rounded-2xl p-4 sm:p-6 border border-base-content/10 shadow-xs space-y-4">
             <div className="pb-3 border-b border-base-content/10">
@@ -419,7 +414,6 @@ export default function RelicsInfo() {
         </div>
       </div>
 
-      {/* Modals */}
       {modalConfigs.map(({ id, title, isOpen, onClose, content }) => (
         <dialog key={id} id={id} className={`modal ${isOpen ? "modal-open" : ""}`} open={isOpen}>
           <div className="modal-box w-11/12 max-w-[94vw] xl:max-w-340 max-h-[90vh] my-auto flex flex-col bg-base-100 text-base-content border border-base-content/10 shadow-2xl rounded-2xl p-0 overflow-hidden">
@@ -444,19 +438,15 @@ export default function RelicsInfo() {
         </dialog>
       ))}
 
-      {/* Delete Relic Confirmation Modal */}
       <dialog id="delete_relic_confirm_modal" className={`modal modal-bottom sm:modal-middle ${relicSlotToDelete ? "modal-open" : ""}`} open={Boolean(relicSlotToDelete)}>
         <div className="modal-box max-w-md bg-base-100/95 border border-white/10 shadow-2xl rounded-2xl p-6 overflow-hidden relative">
-          {/* Ambient Glow */}
           <div className="pointer-events-none absolute -top-12 left-1/2 -translate-x-1/2 w-32 h-32 bg-rose-500/15 rounded-full" />
 
           <div className="relative z-10 text-center space-y-4">
-            {/* Rose Icon Badge */}
             <div className="w-12 h-12 rounded-2xl bg-rose-500/15 text-rose-400 border border-rose-500/30 flex items-center justify-center mx-auto shadow-[0_0_20px_rgba(244,63,94,0.2)]">
               <Trash2 className="w-6 h-6 stroke-[1.75]" />
             </div>
 
-            {/* Title & Description */}
             <div className="space-y-1.5">
               <h3 className="font-black text-lg text-base-content tracking-tight">
                 {transI18n("deleteRelic")}
@@ -470,7 +460,6 @@ export default function RelicsInfo() {
               </p>
             </div>
 
-            {/* Relic Preview Card (if relic exists) */}
             {relicSlotToDelete && getRelic(relicSlotToDelete) && (
               <div className="flex items-center gap-3 p-3 rounded-xl bg-base-200/70 border border-white/10 text-left">
                 <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-base-300/60 border border-amber-500/30 shrink-0">
@@ -494,7 +483,6 @@ export default function RelicsInfo() {
               </div>
             )}
 
-            {/* Action Buttons */}
             <div className="flex items-center gap-3 pt-2">
               <button
                 type="button"

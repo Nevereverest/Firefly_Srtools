@@ -4,12 +4,12 @@ import axios from 'axios';
 import {
   getMetadataApi, getAvatarListApi, getLightconeListApi, getRelicSetListApi,
   getMonsterListApi, getASEventListApi, getPFEventListApi, getMOCEventListApi,
-  getPeakEventListApi, getChangelog,
+  getPeakEventListApi, getChangelog, getStageApi,
 } from '../src/lib/api/api.ts';
 
 const fetchers = [getMetadataApi, getAvatarListApi, getLightconeListApi, getRelicSetListApi,
   getMonsterListApi, getASEventListApi, getPFEventListApi, getMOCEventListApi,
-  getPeakEventListApi, getChangelog];
+  getPeakEventListApi, getChangelog, getStageApi];
 
 describe('required data API contracts', () => {
   it('propagates network errors so query success cannot unlock an incomplete app', async () => {
@@ -32,12 +32,5 @@ describe('required data API contracts', () => {
     } finally { axios.get = get; }
   });
 
-  it('decodes packed responses before callers can mark a query successful', async () => {
-    const get = axios.get;
-    axios.get = async () => ({ data: { format: 'srtools-strings-v1', strings: ['full multilingual text'], data: { name: '\0' + '0' } } });
-    try {
-      assert.deepEqual(await getAvatarListApi(), { name: 'full multilingual text' });
-    } finally { axios.get = get; }
-  });
 
 });

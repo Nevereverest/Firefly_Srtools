@@ -1,4 +1,4 @@
-import { AvatarEnkaDetail, AvatarProfileStore, AvatarStore, AvatarDetail, FreeSRJson, RelicStore, LightconeJson, RelicJson } from "@/types";
+import { AvatarEnkaDetail, AvatarProfileStore, AvatarStore, AvatarDetail, RelicStore, LightconeJson, RelicJson } from "@/types";
 import { FribbelsProfileItem } from "./converterFribbels";
 import { FreeSRProfileItem } from "./converterFreeSR";
 
@@ -69,39 +69,6 @@ export function converterOneEnkaDataToAvatarStore(data: AvatarEnkaDetail, count:
     return profile
 }
 
-
-export function converterOneFreeSRDataToAvatarStore(data: FreeSRJson, count: number , avatar_id: number): AvatarProfileStore | null  {
-    const lightcone = (data.lightcones ?? []).find((lightcone) => lightcone.equip_avatar === avatar_id)
-    const relics = (data.relics ?? []).filter((relic) => relic.equip_avatar === avatar_id)
-    if (!lightcone && (!relics || relics.length === 0)) return null
-    const relicsMap = {} as Record<string, RelicStore>
-
-    relics.forEach((relic) => {
-        relicsMap[relic.relic_id.toString()[relic.relic_id.toString().length - 1]] = {
-            level: relic.level,
-            relic_id: relic.relic_id,
-            relic_set_id: relic.relic_set_id,
-            main_affix_id: relic.main_affix_id,
-            sub_affixes: (relic.sub_affixes ?? []).map((subAffix) => ({
-                sub_affix_id: subAffix.sub_affix_id,
-                count: subAffix.count,
-                step: subAffix.step ?? 0
-            }))
-        }
-    })
-
-    const profile: AvatarProfileStore = {
-        profile_name: `FreeSR Profile ${count}`,
-        lightcone: (lightcone && lightcone.item_id) ? {
-            level: lightcone?.level ?? 0,
-            item_id: lightcone?.item_id ?? 0,
-            rank: lightcone?.rank ?? 0,
-            promotion: lightcone?.promotion ?? 0,
-        } : null,
-        relics: relicsMap
-    }
-    return profile
-}
 
 export function converterImportedDataToAvatarStore(
     profilePrefix: string,

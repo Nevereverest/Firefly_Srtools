@@ -95,7 +95,6 @@ export default function EidolonsInfo() {
     return (
         <div className="w-full">
             <div className="bg-base-100 rounded-2xl p-4 sm:p-6 border border-base-300 shadow-sm space-y-6">
-                {/* Header */}
                 <div className="flex items-center justify-between pb-3 border-b border-base-300">
                     <h2 className="text-lg sm:text-xl font-bold flex items-center gap-2.5">
                         <div className="w-1.5 h-5 bg-linear-to-b from-primary to-accent rounded-full"></div>
@@ -127,7 +126,6 @@ export default function EidolonsInfo() {
                                     key={key}
                                     className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6 py-1"
                                 >
-                                    {/* Organic Floating Shard (No artificial rectangle wrapper) */}
                                     <div
                                         onClick={() => handleToggleExRank(exRankId)}
                                         className="cursor-pointer select-none transition-transform duration-300 hover:scale-105 active:scale-95 shrink-0 self-center sm:self-start"
@@ -222,7 +220,6 @@ export default function EidolonsInfo() {
                     </div>
                 )}
 
-                {/* 6 Eidolons Organic Grid */}
                 {charRank && avatars[avatarSelected?.ID || ""] && (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
                         {Object.entries(charRank || {}).map(([key, rank]) => {
@@ -233,7 +230,6 @@ export default function EidolonsInfo() {
                                     key={key}
                                     className="flex flex-col items-center text-center space-y-3 p-2"
                                 >
-                                    {/* 1. Organic Floating Eidolon Shard (No artificial rectangle wrapper) */}
                                     <div
                                         onClick={() => handleToggleRank(rankNum)}
                                         className="cursor-pointer select-none transition-transform duration-200 hover:scale-105 active:scale-95"
@@ -254,7 +250,6 @@ export default function EidolonsInfo() {
                                         />
                                     </div>
 
-                                    {/* 2. Eidolon Name & Rank */}
                                     <div
                                         onClick={() => handleToggleRank(rankNum)}
                                         className="flex items-center justify-center gap-1.5 cursor-pointer group select-none"
@@ -271,7 +266,6 @@ export default function EidolonsInfo() {
                                         />
                                     </div>
 
-                                    {/* 3. Description & Extra Effects (Direct readable text, fully selectable & copyable) */}
                                     <div className="w-full text-left text-xs sm:text-sm text-base-content/85 leading-relaxed space-y-2 select-text pt-1 border-t border-base-300/60">
                                         <div
                                             dangerouslySetInnerHTML={{

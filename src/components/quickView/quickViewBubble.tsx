@@ -9,6 +9,7 @@ import useCurrentDataStore from "@/stores/currentDataStore";
 import useLocaleStore from "@/stores/localeStore";
 import { getLocaleName } from "@/helper";
 import QuickView from "./index";
+import { NeedAvatarDetail, NeedLightconeAndRelic } from "../requireData";
 import { useShallow } from "zustand/react/shallow";
 
 export default function QuickViewBubble() {
@@ -32,7 +33,6 @@ export default function QuickViewBubble() {
   const isDraggingRef = useRef(false);
   const dragStartPosRef = useRef({ x: 0, y: 0 });
 
-  // Close on ESC key
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape" && isOpenQuickView) {
@@ -43,7 +43,6 @@ export default function QuickViewBubble() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpenQuickView, setIsOpenQuickView]);
 
-  // Handle window resize to keep button within bounds
   useEffect(() => {
     const handleResize = () => {
       controls.start((current) => {
@@ -89,11 +88,9 @@ export default function QuickViewBubble() {
     const currentX = info.point.x;
     const currentY = info.point.y;
 
-    // Edge snapping: snap to left edge or right edge (relative to initial bottom-right resting position)
     const isLeft = currentX < window.innerWidth / 2;
     const targetX = isLeft ? -(window.innerWidth - padding * 2 - btnSize) : 0;
 
-    // Clamp Y relative to resting bottom-right position
     const restingTop = window.innerHeight - 112 - btnSize;
     const targetTop = Math.max(72, Math.min(window.innerHeight - btnSize - 60, currentY - btnSize / 2));
     const targetY = targetTop - restingTop;
@@ -104,7 +101,6 @@ export default function QuickViewBubble() {
       transition: { type: "spring", stiffness: 450, damping: 30 },
     });
 
-    // Reset dragging flag after a short delay so click isn't triggered
     setTimeout(() => {
       isDraggingRef.current = false;
     }, 150);
@@ -118,7 +114,6 @@ export default function QuickViewBubble() {
 
   return (
     <>
-      {/* Draggable Circular AssistiveTouch Floating Button - Positioned in bottom-right by default, always on top (z-[9990]) */}
       <motion.div
         drag
         dragMomentum={false}
@@ -132,15 +127,13 @@ export default function QuickViewBubble() {
         <button
           type="button"
           onClick={handleBubbleClick}
-          className="group relative flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-base-100/85 dark:bg-base-200/90 backdrop-blur-xl border border-primary/40 shadow-[0_8px_32px_rgba(0,0,0,0.35)] hover:border-primary hover:shadow-[0_0_24px_rgba(var(--color-primary),0.45)] hover:scale-105 active:scale-95 transition-transform duration-200 cursor-pointer"
+          className="group relative flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-base-100/85 dark:bg-base-200/90 border border-primary/40 shadow-[0_8px_32px_rgba(0,0,0,0.35)] hover:border-primary hover:shadow-[0_0_24px_rgba(var(--color-primary),0.45)] hover:scale-105 active:scale-95 transition-transform duration-200 cursor-pointer"
           title={`${transI18n("quickView")} (${charName})`}
         >
-          {/* Center Gradient Icon Badge */}
           <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-linear-to-br from-primary via-accent to-secondary flex items-center justify-center text-primary-content shadow-sm group-hover:rotate-12 transition-transform duration-300">
             <Layers className="w-5 h-5 sm:w-5.5 sm:h-5.5 stroke-[2.2]" />
           </div>
 
-          {/* Subtle Pulse Indicator on edge */}
           <span className="absolute top-0.5 right-0.5 flex h-2.5 w-2.5 pointer-events-none">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
             <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary" />
@@ -148,7 +141,6 @@ export default function QuickViewBubble() {
         </button>
       </motion.div>
 
-      {/* Global Quick View Modal - Elevated to z-[9995] to appear on top of standard DaisyUI modals */}
       {isOpenQuickView && (
         <dialog
           id="global_quick_view_modal"
@@ -156,7 +148,6 @@ export default function QuickViewBubble() {
           open
         >
           <div className="modal-box w-11/12 max-w-4xl max-h-[90vh] flex flex-col bg-base-100 text-base-content border border-base-content/10 shadow-2xl rounded-2xl p-0 overflow-hidden">
-            {/* Modal Header */}
             <div className="sticky top-0 z-20 flex items-center justify-between px-5 sm:px-6 py-3.5 border-b border-base-content/10 bg-base-100 shrink-0">
               <div className="flex items-center gap-2.5">
                 <div className="w-1.5 h-5 bg-linear-to-b from-primary to-accent rounded-full" />
@@ -176,13 +167,11 @@ export default function QuickViewBubble() {
               </button>
             </div>
 
-            {/* Modal Body */}
             <div className="p-4 sm:p-6 overflow-y-auto flex-1">
-              <QuickView />
+              <NeedLightconeAndRelic><NeedAvatarDetail><QuickView /></NeedAvatarDetail></NeedLightconeAndRelic>
             </div>
           </div>
 
-          {/* Backdrop */}
           <div
             className="modal-backdrop bg-black/60 cursor-pointer"
             onClick={() => setIsOpenQuickView(false)}

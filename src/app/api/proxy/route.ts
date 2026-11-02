@@ -27,7 +27,15 @@ function failure(error: unknown, fallbackStatus = 502) {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
+    let body: Record<string, unknown>
+    try {
+      body = await request.json()
+    } catch {
+      return NextResponse.json({ error: 'Request body must be JSON' }, { status: 400 })
+    }
+    if (!body || typeof body !== 'object' || Array.isArray(body)) {
+      return NextResponse.json({ error: 'Request body must be a JSON object' }, { status: 400 })
+    }
     const { serverUrl, method, ...payload } = body
 
     if (!serverUrl) {

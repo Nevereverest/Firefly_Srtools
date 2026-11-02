@@ -370,7 +370,6 @@ export default function CeBar() {
                                     </div>
                                 ))}
 
-                                {/* Add Member Button + Search */}
                                 <div
                                     className="relative flex items-start justify-center w-full h-full"
                                     onClick={(e) => e.stopPropagation()}
@@ -495,7 +494,6 @@ export default function CeBar() {
                     </div>
                 ))}
 
-                {/* Add New Wave Button */}
                 <button
                     onClick={() => {
                         const newCeConfig = structuredClone(ce_config)

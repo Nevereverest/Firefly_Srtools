@@ -1,11 +1,14 @@
 "use client";
 
 import SkillsInfo from "@/components/skillsInfo";
+import { NeedAvatarDetail } from "@/components/requireData";
 
 export default function SkillsInfoPage() {
   return (
     <div className="w-full">
-      <SkillsInfo></SkillsInfo>
+      <NeedAvatarDetail variant="page">
+        <SkillsInfo></SkillsInfo>
+      </NeedAvatarDetail>
     </div>
   );
 }

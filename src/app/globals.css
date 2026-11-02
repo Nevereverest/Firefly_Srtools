@@ -134,3 +134,33 @@ html, body {
 }
 
 
+
+/* Entrance animations. The codebase uses `animate-in fade-in zoom-in-95 duration-*`
+   (tailwindcss-animate naming) but no plugin defines them, so define the few used. */
+@keyframes enter {
+  from {
+    opacity: var(--enter-opacity, 1);
+    transform: scale(var(--enter-scale, 1));
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@utility animate-in {
+  /* `backwards`, not `both`: once finished the element must carry no transform at
+     all, because a transformed ancestor becomes the containing block of every
+     fixed-position modal inside it and clips them. */
+  animation: enter var(--tw-duration, 150ms) ease-out backwards;
+}
+@utility fade-in {
+  --enter-opacity: 0;
+}
+@utility zoom-in-95 {
+  --enter-scale: 0.95;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-in {
+    animation: none;
+  }
+}

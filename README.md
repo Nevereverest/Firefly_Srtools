@@ -64,17 +64,19 @@ bun run start
 
 ## Data transport
 
-`bun run build` prepares lossless API payloads in `data/.packed/` before building
-Next.js. Repeated long strings are transmitted once and restored on the client
-before queries resolve. No datasets, locales, numeric fields, or PNG URLs are
-removed. The original `data/` files and unqualified `/api/data/:name` responses
-remain compatible; `?encoding=strings-v1` opts into the smaller payload.
+`/api/data/:name` serves the brotli files in `data/` as they are; nothing is split or
+packed here. `data/` is a copy of `full/brotli/` from srtools-converter (see its README), which
+already writes the views the first screen needs: `metadata_core` and `metadata_stage` (the
+battle-only `Stage` records), `avatar_index` (the avatar list without skills, eidolons or full
+skill trees) and one `avatar_detail/<id>` per avatar. A file in a subfolder is served as
+`<folder>_<file>`, so `avatar_detail/1001.json.br` is `/api/data/avatar_detail_1001`.
 
-Generated files are reused only when both the source and encoder/build script
-hashes match. The server also verifies source hashes and falls back to original
-responses when generated data is missing/stale. Data responses revalidate using
-content ETags instead of timestamp cache-busting. In development the original
-files are served and changes are checked per dataset.
+To update the data: run the converter, then copy `convert/full/brotli/` over `data/`
+(keep `changelog.json`) and delete `avatar.json.br` and `metadata.json.br`: the whole documents
+are only the source of the views, and the client never requests them.
+
+Data responses revalidate using content ETags instead of timestamp cache-busting.
+In development the original files are served and changes are checked per dataset.
 
 Run `bun run test` for lightweight data/battle/persistence regression tests.
 

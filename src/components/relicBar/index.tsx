@@ -93,7 +93,6 @@ export default function RelicMaker() {
         return avatar.profileList?.[avatar.profileSelect] ?? avatar.profileList?.[0] ?? null;
     }, [avatar]);
 
-    // Switch dialog states
     const [switchDialogType, setSwitchDialogType] = useState<"hasRelic" | "emptySlot" | null>(null);
     const [pendingTargetSlot, setPendingTargetSlot] = useState<string | null>(null);
     const [previewMainStat, setPreviewMainStat] = useState<string>("");
@@ -217,8 +216,7 @@ export default function RelicMaker() {
         const hasTargetRelic = Boolean(currentProfile?.relics?.[newSlot]);
         const hasCurrentRelic = Boolean(currentProfile?.relics?.[selectedRelicSlot]) || isCurrentRelicChanged();
 
-        // Case 1: Target slot is empty, and current slot has a relic configuration
-        // Prompt to copy configuration to the empty slot!
+        // Target slot is empty: offer to copy this configuration.
         if (!hasTargetRelic && hasCurrentRelic) {
             setPendingTargetSlot(newSlot);
             setSwitchDialogType("emptySlot");
@@ -229,30 +227,25 @@ export default function RelicMaker() {
             return;
         }
 
-        // Case 2: Target slot already has a relic, and current slot has unsaved changes
-        // Prompt to save/discard before switching
+        // Target has a relic and unsaved changes: offer to save or discard.
         if (isCurrentRelicChanged()) {
             setPendingTargetSlot(newSlot);
             setSwitchDialogType("hasRelic");
             return;
         }
 
-        // Case 3: No unsaved changes (and target has relic or both empty) -> switch directly
         doSwitchSlot(newSlot);
     };
 
-    // Target slot main affixes for Case 2
     const targetSlotMainAffixes = useMemo(() => {
         if (!pendingTargetSlot) return {};
         return mainAffix["5" + pendingTargetSlot] || {};
     }, [mainAffix, pendingTargetSlot]);
 
-    // Target main stat property
     const targetMainProperty = useMemo(() => {
         return targetSlotMainAffixes[previewMainStat]?.Property || "";
     }, [targetSlotMainAffixes, previewMainStat]);
 
-    // Check if any source substat conflicts with target main property
     const conflictingSubStatIndex = useMemo(() => {
         if (!targetMainProperty) return -1;
         return listSelectedSubStats.findIndex(
@@ -260,7 +253,6 @@ export default function RelicMaker() {
         );
     }, [targetMainProperty, listSelectedSubStats]);
 
-    // Replacement options for the conflicting substat
     const replacementOptions = useMemo(() => {
         if (conflictingSubStatIndex === -1) return {};
         const options: Record<string, SubAffixData> = {};
@@ -288,7 +280,6 @@ export default function RelicMaker() {
         return !repId || !replacementOptions[repId];
     }, [conflictingSubStatIndex, conflictReplacementMap, targetMainProperty, replacementOptions]);
 
-    // Resolved preview substats for Case 2
     const previewResolvedSubStats = useMemo(() => {
         return listSelectedSubStats.map((item, idx) => {
             if (idx === conflictingSubStatIndex) {
@@ -721,15 +712,12 @@ export default function RelicMaker() {
 
     return (
         <div className="space-y-2 sm:space-y-3">
-            {/* On mobile / tablet (< lg:), Slot Switcher is shown at the top */}
             <div className="lg:hidden">
                 {renderSlotSwitcher()}
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 sm:gap-3 lg:gap-4">
-                {/* Left Panel: Main Stat & Set Configuration */}
                 <div className="lg:col-span-5 xl:col-span-4 space-y-2 sm:space-y-2.5">
-                    {/* Main Settings Card */}
                     <div className="p-2.5 sm:p-3.5 rounded-xl bg-base-200/50 border border-base-content/10 shadow-xs space-y-2 sm:space-y-2.5">
                         <div className="pb-1 sm:pb-1.5 border-b border-base-content/10">
                             <h2 className="text-sm font-bold text-primary flex items-center gap-1.5">
@@ -739,7 +727,6 @@ export default function RelicMaker() {
                         </div>
 
                         <div className="space-y-2 sm:space-y-2.5">
-                            {/* Main Stat Picker */}
                             <div>
                                 <label className="block text-[11px] font-bold uppercase tracking-wider text-base-content/75 mb-0.5 sm:mb-1">
                                     {transI18n("mainStat")}
@@ -757,7 +744,6 @@ export default function RelicMaker() {
                                 />
                             </div>
 
-                            {/* Relic Set Picker */}
                             <div>
                                 <label className="block text-[11px] font-bold uppercase tracking-wider text-base-content/75 mb-0.5 sm:mb-1">
                                     {transI18n("set")}
@@ -797,7 +783,6 @@ export default function RelicMaker() {
                                 )}
                             </div>
 
-                            {/* Effect Bonus & Level */}
                             <div className="space-y-1.5 sm:space-y-2 pt-0.5">
                                 <div className="flex items-center justify-between text-xs font-semibold">
                                     <span className="text-base-content/75">{transI18n("effectBonus")}:</span>
@@ -820,7 +805,6 @@ export default function RelicMaker() {
                                 </div>
                             </div>
 
-                            {/* Error Message */}
                             <AnimatePresence>
                                 {error && (
                                     <motion.p
@@ -835,7 +819,6 @@ export default function RelicMaker() {
                                 )}
                             </AnimatePresence>
 
-                            {/* Save Actions: Delete (if equipped) + Save & Save and Close */}
                             <div className="flex flex-col sm:flex-row gap-1.5 sm:gap-2 mt-1 pt-1 border-t border-base-content/10">
                                 {currentProfile?.relics?.[selectedRelicSlot] && (
                                     <button
@@ -869,14 +852,11 @@ export default function RelicMaker() {
                     </div>
                 </div>
 
-                {/* Right Panel: Slot Switcher (on lg+) + Sub Stats Configurator */}
                 <div className="lg:col-span-7 xl:col-span-8 space-y-1.5 sm:space-y-2">
-                    {/* On desktop (lg:), Slot Switcher is shown at the top of the right column */}
                     <div className="hidden lg:block">
                         {renderSlotSwitcher()}
                     </div>
 
-                    {/* Header with Total Rolls & Randomizers */}
                     <div className="px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl bg-base-200/50 border border-base-content/10 flex flex-wrap items-center justify-between gap-1.5 sm:gap-2 shadow-xs">
                         <div className="flex items-center gap-2">
                             <span className="text-sm font-extrabold uppercase tracking-wider text-base-content/85">{transI18n("totalRoll")}:</span>
@@ -903,7 +883,6 @@ export default function RelicMaker() {
                         </div>
                     </div>
 
-                    {/* 4 Sub-Stat Slots in 2x2 Grid on md+ screens, 1 column on smaller (mobile) */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-1.5 sm:gap-2 md:gap-2.5">
                         {listSelectedSubStats.map((v, index) => (
                             <div key={index} className="p-2 sm:p-2.5 md:p-3 rounded-xl bg-base-200/40 border border-base-content/10 space-y-1.5 sm:space-y-2.5 shadow-xs">
@@ -926,7 +905,6 @@ export default function RelicMaker() {
                                         />
                                     </div>
 
-                                    {/* Stat Value Readout */}
                                     <div className="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg bg-base-100 border border-base-content/10 text-right min-w-20 sm:min-w-22 shadow-xs shrink-0">
                                         <span className="text-sm sm:text-base font-mono font-black text-primary block leading-tight">
                                             +{calcAffixBonus(subAffixOptions[v.affixId], v.stepCount, v.rollCount)}{mappingStats?.[subAffixOptions[v.affixId]?.Property]?.unit || ""}
@@ -937,9 +915,7 @@ export default function RelicMaker() {
                                     </div>
                                 </div>
 
-                                {/* Up / Down Steppers */}
                                 <div className="grid grid-cols-2 gap-1.5 sm:gap-2 pt-0.5">
-                                    {/* Up Rolls */}
                                     <div className="space-y-1 sm:space-y-1.5">
                                         <div className="flex items-center gap-1 text-xs font-bold text-success leading-none">
                                             <ChevronUp className="w-3.5 h-3.5" />
@@ -959,7 +935,6 @@ export default function RelicMaker() {
                                         </div>
                                     </div>
 
-                                    {/* Down Rolls */}
                                     <div className="space-y-1 sm:space-y-1.5">
                                         <div className="flex items-center gap-1 text-xs font-bold text-error leading-none">
                                             <ChevronDown className="w-3.5 h-3.5" />
@@ -980,7 +955,6 @@ export default function RelicMaker() {
                                     </div>
                                 </div>
 
-                                {/* Reset & Rollback actions */}
                                 <div className="flex items-center justify-end gap-1.5 sm:gap-2 pt-1 border-t border-base-content/10">
                                     <button
                                         type="button"
@@ -1003,7 +977,6 @@ export default function RelicMaker() {
                 </div>
             </div>
 
-            {/* Modal Switch Dialogs */}
             <AnimatePresence>
                 {switchDialogType === "emptySlot" && pendingTargetSlot && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/70">
@@ -1013,7 +986,6 @@ export default function RelicMaker() {
                             exit={{ opacity: 0, scale: 0.95, y: 10 }}
                             className="relative w-full max-w-lg bg-base-100 border border-base-content/15 rounded-2xl p-4 sm:p-5 shadow-2xl space-y-3.5 max-h-[85vh] overflow-y-auto"
                         >
-                            {/* Header */}
                             <div className="flex items-center justify-between pb-3 border-b border-base-content/10">
                                 <div className="flex items-center gap-2.5">
                                     <div className="p-2 rounded-xl bg-primary/10 text-primary">
@@ -1041,7 +1013,6 @@ export default function RelicMaker() {
                                 </button>
                             </div>
 
-                            {/* Target Slot Main Stat Picker */}
                             <div className="p-3 rounded-xl bg-base-200/60 border border-base-content/10 space-y-2">
                                 <label className="text-xs font-bold text-base-content flex items-center justify-between">
                                     <span>{transI18n("selectTargetMainStat")}</span>
@@ -1085,7 +1056,6 @@ export default function RelicMaker() {
                                 </div>
                             </div>
 
-                            {/* Substats Preview & Conflict Resolver */}
                             <div className="space-y-2">
                                 <div className="flex items-center justify-between text-xs font-bold text-base-content/80">
                                     <span>{transI18n("subStatsPreview")}</span>
@@ -1220,14 +1190,12 @@ export default function RelicMaker() {
                                 </div>
                             </div>
 
-                            {/* Error Message if any */}
                             {switchError && (
                                 <div className="p-2 rounded-lg bg-error/10 border border-error/20 text-error text-xs font-bold text-center">
                                     {switchError}
                                 </div>
                             )}
 
-                            {/* Action Buttons */}
                             <div className="flex flex-col gap-2 pt-2 border-t border-base-content/10">
                                 <button
                                     type="button"

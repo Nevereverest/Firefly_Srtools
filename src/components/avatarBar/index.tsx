@@ -76,7 +76,6 @@ export default function AvatarBar({ onClose }: { onClose?: () => void }) {
 
     return (
         <div className="flex flex-col h-full gap-2 p-2">
-            {/* Compact Search Bar */}
             <label className="input input-sm input-bordered flex items-center gap-2 bg-base-200/90 border-base-300 rounded-xl w-full h-8.5 px-3 shadow-xs focus-within:border-primary/60 transition-colors">
                 <Search className="w-4 h-4 text-base-content/70 shrink-0" />
                 <input
@@ -97,9 +96,7 @@ export default function AvatarBar({ onClose }: { onClose?: () => void }) {
                 )}
             </label>
 
-            {/* Compact Filter Section */}
             <div className="p-1 rounded-xl bg-base-200/80 border border-base-content/15 space-y-1 shadow-xs">
-                {/* Element Filters - 7 Elements on 1 Row (gap-0.5) */}
                 <div className="grid grid-cols-7 gap-0.5">
                     {Object.entries(damageType).filter(([key]) => key !== "").map(([key, value]) => {
                         const isActive = !!mapAvatarElementActive[key];
@@ -130,7 +127,6 @@ export default function AvatarBar({ onClose }: { onClose?: () => void }) {
                     })}
                 </div>
 
-                {/* Path Filters - 9 Paths on 1 Row (gap-0.5) */}
                 <div className="grid grid-cols-9 gap-0.5">
                     {Object.entries(baseType).filter(([key]) => key !== "").map(([key, value]) => {
                         const isActive = !!mapAvatarPathActive[key];
@@ -164,7 +160,6 @@ export default function AvatarBar({ onClose }: { onClose?: () => void }) {
                 </div>
             </div>
 
-            {/* Character Count & Grid List */}
             <div className="flex items-center justify-between text-xs font-semibold text-base-content/80 px-1 py-0.5">
                 <span className="flex items-center gap-1.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>

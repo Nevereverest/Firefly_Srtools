@@ -35,7 +35,6 @@ const writeSessionPassword = (password: string) => {
         if (password) window.sessionStorage.setItem(PASSWORD_KEY, password);
         else window.sessionStorage.removeItem(PASSWORD_KEY);
     } catch {
-        // Private mode or quota exceeded: keep it in memory for this page only.
     }
 };
 

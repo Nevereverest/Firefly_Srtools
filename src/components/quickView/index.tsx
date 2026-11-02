@@ -407,7 +407,6 @@ export default function QuickView() {
 
     return (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 pt-1">
-            {/* Stats Overview Column - Clean Minimal Grid, No Box-in-Box */}
             <div className="lg:col-span-6 space-y-6">
                 <div className="space-y-3">
                     <div className="flex items-center justify-between pb-2 border-b border-base-content/10">
@@ -451,7 +450,6 @@ export default function QuickView() {
                     </div>
                 </div>
 
-                {/* Set Effects - Flat Minimalist Row */}
                 {relicEffects.length > 0 && (
                     <div className="space-y-2 pt-2">
                         <div className="flex items-center gap-2 pb-1 border-b border-base-content/10">
@@ -486,7 +484,6 @@ export default function QuickView() {
                 )}
             </div>
 
-            {/* Relic Equipment Cards Column */}
             <div className="lg:col-span-6 space-y-2">
                 {relicStats?.map((relic, index) => {
                     if (!relic || !avatarSelected) return null

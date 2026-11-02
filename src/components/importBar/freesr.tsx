@@ -115,7 +115,6 @@ const FreeSRCharacterCard = memo(function FreeSRCharacterCard({
             }`}
         >
             <div>
-                {/* Top Selection Checkmark Badge */}
                 <button
                     type="button"
                     onClick={(e) => {
@@ -138,7 +137,6 @@ const FreeSRCharacterCard = memo(function FreeSRCharacterCard({
                     ) : null}
                 </button>
 
-                {/* Character Portrait Area */}
                 <div
                     onClick={() => onToggleAllProfiles(character.avatar_id)}
                     className={`relative mb-2.5 aspect-4/5 rounded-xl overflow-hidden bg-linear-to-b ${
@@ -162,11 +160,10 @@ const FreeSRCharacterCard = memo(function FreeSRCharacterCard({
                                     }
                                 }}
                             />
-                            {/* Damage & Path Badges */}
                             <div className="absolute top-2 left-2 flex items-center gap-1.5 z-10">
                                 {damageType?.[avatar.DamageType]?.Icon && (
                                     <div
-                                        className="p-1 rounded-lg bg-black/65 backdrop-blur-md border border-white/15 shadow-sm"
+                                        className="p-1 rounded-lg bg-black/65 border border-white/15 shadow-sm"
                                         title={avatar.DamageType}
                                     >
                                         <img
@@ -180,7 +177,7 @@ const FreeSRCharacterCard = memo(function FreeSRCharacterCard({
                                 )}
                                 {baseType?.[avatar.BaseType]?.Icon && (
                                     <div
-                                        className="p-1 rounded-lg bg-black/65 backdrop-blur-md border border-white/15 shadow-sm"
+                                        className="p-1 rounded-lg bg-black/65 border border-white/15 shadow-sm"
                                         title={avatar.BaseType}
                                     >
                                         <img
@@ -194,9 +191,8 @@ const FreeSRCharacterCard = memo(function FreeSRCharacterCard({
                                 )}
                             </div>
 
-                            {/* Level & Eidolon Badges */}
                             <div className="absolute bottom-2 left-2 flex items-center gap-1 z-10">
-                                <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-md bg-black/70 text-white backdrop-blur-md border border-white/10">
+                                <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-md bg-black/70 text-white border border-white/10">
                                     Lv.{character.level}
                                 </span>
                                 <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-md bg-amber-500/85 text-black shadow-xs">
@@ -204,10 +200,9 @@ const FreeSRCharacterCard = memo(function FreeSRCharacterCard({
                                 </span>
                             </div>
 
-                            {/* Multi-Builds Badge on Portrait */}
                             {profiles.length > 1 && (
                                 <div className="absolute bottom-2 right-2 z-10">
-                                    <span className={`px-1.5 py-0.5 text-[10px] font-mono font-bold rounded-md flex items-center gap-1 backdrop-blur-md border ${
+                                    <span className={`px-1.5 py-0.5 text-[10px] font-mono font-bold rounded-md flex items-center gap-1 border ${
                                         selectedProfileIds.length > 0
                                             ? "bg-cyan-600/90 text-white shadow-md border-cyan-400/30"
                                             : "bg-black/60 text-base-content/50 border-white/10"
@@ -221,7 +216,6 @@ const FreeSRCharacterCard = memo(function FreeSRCharacterCard({
                     )}
                 </div>
 
-                {/* Character Name */}
                 <div className="text-center mb-2">
                     <ParseText
                         className="text-sm font-bold line-clamp-1 tracking-tight"
@@ -230,7 +224,6 @@ const FreeSRCharacterCard = memo(function FreeSRCharacterCard({
                     />
                 </div>
 
-                {/* Builds Switcher / Status Bar */}
                 <div className="mb-2.5">
                     {profiles.length > 1 ? (
                         <div className="flex flex-col gap-1 p-1 rounded-xl bg-base-300/40 border border-white/5 max-h-36 overflow-y-auto">
@@ -313,9 +306,7 @@ const FreeSRCharacterCard = memo(function FreeSRCharacterCard({
                 </div>
             </div>
 
-            {/* Equipment: 6-Slot Relic Bar & Light Cone */}
             <div className="space-y-2 pt-1 border-t border-white/5">
-                {/* 6-Slot Relics Grid */}
                 <div className="grid grid-cols-6 gap-1 p-1 rounded-xl bg-base-300/30 border border-white/5">
                     {(["1", "2", "3", "4", "5", "6"] as const).map((slotKey) => {
                         const relic = relicsBySlot[slotKey];
@@ -369,7 +360,6 @@ const FreeSRCharacterCard = memo(function FreeSRCharacterCard({
                     })}
                 </div>
 
-                {/* Light Cone Preview */}
                 <div className="h-12 px-2 py-1.5 rounded-xl bg-base-300/30 border border-white/5 flex items-center gap-2">
                     {activeLc && activeProfile.lightcone ? (
                         <>
@@ -413,10 +403,10 @@ const FreeSRCharacterCard = memo(function FreeSRCharacterCard({
 });
 
 export default function FreeSRImport() {
-    const { avatars, setAvatar } = useUserDataStore(
+    const { avatars, setAvatars } = useUserDataStore(
         useShallow((state) => ({
             avatars: state.avatars,
-            setAvatar: state.setAvatar,
+            setAvatars: state.setAvatars,
         }))
     );
     const { mapAvatar } = useDetailDataStore(
@@ -685,6 +675,7 @@ export default function FreeSRImport() {
         setErrorMsg("");
         const profilesMap = parseFreeSRProfiles(parsed.data);
         const listAvatars = { ...avatars };
+        const updatedAvatars: typeof avatars = {};
         let totalProfilesImported = 0;
 
         avatarIdsToImport.forEach((avatarId) => {
@@ -708,7 +699,9 @@ export default function FreeSRImport() {
                         }
                     });
 
-                    const newAvatar = {
+                    // The skills map already names the enhanced form's skills, so the form, techniques and energy come from the file too.
+                    const spMax = charRaw.sp_max > 0 ? charRaw.sp_max : currentAvatar.sp_max;
+                    updatedAvatars[avatarId.toString()] = {
                         ...currentAvatar,
                         level: charRaw.level,
                         promotion: charRaw.promotion,
@@ -719,13 +712,17 @@ export default function FreeSRImport() {
                                 ? charRaw.data.ex_rank_id_list
                                 : undefined,
                         },
+                        techniques: charRaw.techniques,
+                        enhanced: charRaw.enhanced_id ? String(charRaw.enhanced_id) : "",
+                        sp_max: spMax,
+                        sp_value: Math.min(spMax, Math.max(0, charRaw.sp_value)),
                         profileList: newProfileList,
                         profileSelect: addedAny ? newProfileList.length - 1 : currentAvatar.profileSelect,
                     };
-                    setAvatar(newAvatar);
                 }
             }
         });
+        if (Object.keys(updatedAvatars).length > 0) setAvatars({ ...avatars, ...updatedAvatars });
 
         setIsOpenImport(false);
         toast.success(
@@ -735,7 +732,6 @@ export default function FreeSRImport() {
 
     return (
         <div className="w-full space-y-6">
-            {/* Top Bar: Title & Upload Trigger */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4">
                 <div>
                     <div className="flex items-center gap-2 mb-1">
@@ -749,7 +745,6 @@ export default function FreeSRImport() {
                     </h2>
                 </div>
 
-                {/* File Dropzone / Active File Badge */}
                 <input
                     type="file"
                     ref={fileInputRef}
@@ -813,7 +808,6 @@ export default function FreeSRImport() {
                 )}
             </div>
 
-            {/* Error Message */}
             {errorMsg && (
                 <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-semibold animate-in fade-in duration-200">
                     <AlertCircle className="w-4 h-4 shrink-0" />
@@ -821,10 +815,8 @@ export default function FreeSRImport() {
                 </div>
             )}
 
-            {/* Floating Selection & Actions Bar */}
             {parsedFreeSRData && (
                 <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 py-2.5 px-4 rounded-xl bg-base-200/60 border border-white/10 shadow-xs">
-                    {/* Left: Counters */}
                     <div className="flex items-center gap-3 flex-wrap">
                         <div className="flex items-center gap-2">
                             <Users className="w-4 h-4 text-cyan-400" />
@@ -849,7 +841,6 @@ export default function FreeSRImport() {
                         </div>
                     </div>
 
-                    {/* Middle: Quick Batch Filter / Selection Buttons */}
                     <div className="flex items-center gap-1.5 flex-wrap">
                         <button
                             type="button"
@@ -879,7 +870,6 @@ export default function FreeSRImport() {
                         </button>
                     </div>
 
-                    {/* Right: Import CTA */}
                     <button
                         type="button"
                         onClick={handleImport}
@@ -895,7 +885,6 @@ export default function FreeSRImport() {
                 </div>
             )}
 
-            {/* Loading Shimmer State */}
             {isLoading && (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4 py-4">
                     {[1, 2, 3, 4, 5, 6].map((i) => (
@@ -908,7 +897,6 @@ export default function FreeSRImport() {
                 </div>
             )}
 
-            {/* Empty State */}
             {!isLoading && !parsedFreeSRData && (
                 <div
                     onClick={() => fileInputRef.current?.click()}
@@ -933,7 +921,6 @@ export default function FreeSRImport() {
                             </p>
                         </div>
 
-                        {/* Step hints */}
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3 pt-3 text-left border-t border-white/5">
                             <div className="p-3 rounded-xl bg-base-300/30">
                                 <span className="text-[10px] font-bold text-cyan-400 block mb-0.5">{transI18n("step1")}</span>
@@ -952,7 +939,6 @@ export default function FreeSRImport() {
                 </div>
             )}
 
-            {/* Character Grid */}
             {!isLoading && parsedFreeSRData && (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
                     {availableCharacters.map((character) => (

@@ -573,7 +573,6 @@ export default function ShowCaseInfo() {
     const exRankCount = avatarData.data?.ex_rank_id_list?.length ?? 0;
     const eidolonRank = `E${avatarData.data?.rank ?? 0}${exRankCount > 0 ? `+EX${exRankCount}` : ""}`;
 
-    // Light cone info
     let lcText = "None";
     if (avatarProfile?.lightcone && mapLightCone?.[avatarProfile.lightcone.item_id]) {
       const lcData = mapLightCone[avatarProfile.lightcone.item_id];
@@ -583,7 +582,6 @@ export default function ShowCaseInfo() {
       lcText = `${lcName} (${lcRank}, ${lcLevel})`;
     }
 
-    // Stats summary
     const statsList: string[] = [];
     if (characterStats) {
       const mainStatKeys = ["HP", "ATK", "DEF", "SPD", "CRITRate", "CRITDmg", "BreakEffect", "EnergyRate", "EffectHitRate", "EffectRES"];
@@ -598,7 +596,6 @@ export default function ShowCaseInfo() {
       }
     }
 
-    // Relic sets
     const relicSetList: string[] = [];
     if (relicEffects && relicEffects.length > 0) {
       for (const effect of relicEffects) {
@@ -610,7 +607,6 @@ export default function ShowCaseInfo() {
       }
     }
 
-    // Individual Relics (Slots 1-6)
     const relicSlotNames = [
       transI18n("HEAD"),
       transI18n("HAND"),
@@ -655,7 +651,6 @@ export default function ShowCaseInfo() {
       });
   }, [avatarSelected, avatarData, avatarProfile, mapLightCone, locale, transI18n, characterStats, relicEffects, mapRelicSet, relicStats]);
 
-  // Prewarm image cache in background when card renders to ensure 0ms latency on click
   useEffect(() => {
     if (!cardRef.current) return;
     const timer = setTimeout(() => {
@@ -699,7 +694,6 @@ export default function ShowCaseInfo() {
       },
     });
 
-    // Offload PNG compression to Web Worker via OffscreenCanvas
     const blob = await canvasToBlobWorker(canvas);
     if (blob) {
       cardBlobCacheRef.current = { cacheKey, blob };
@@ -715,7 +709,6 @@ export default function ShowCaseInfo() {
     if (isSaving || isCopyingImage) return;
 
     setIsSaving(true);
-    // Yield to let React re-render and paint the loading spinner immediately
     await new Promise((resolve) => setTimeout(resolve, 30));
 
     try {
@@ -747,7 +740,6 @@ export default function ShowCaseInfo() {
     if (isCopyingImage || isSaving) return;
 
     setIsCopyingImage(true);
-    // Yield to let React re-render and paint the loading spinner immediately
     await new Promise((resolve) => setTimeout(resolve, 30));
 
     try {
@@ -771,7 +763,6 @@ export default function ShowCaseInfo() {
   return (
     <div className="w-full space-y-4">
       <div className="bg-base-100 rounded-2xl p-4 sm:p-6 border border-base-300 shadow-sm space-y-6">
-        {/* Header */}
         <div className="flex items-center justify-between pb-3 border-b border-base-content/10 flex-wrap gap-3">
           <h2 className="text-lg sm:text-xl font-bold flex items-center gap-2.5">
             <div className="w-1.5 h-5 bg-linear-to-b from-primary to-accent rounded-full"></div>
@@ -1153,7 +1144,6 @@ export default function ShowCaseInfo() {
                     <div className="flex flex-row items-center justify-center mb-2">
 
                       <div className="relative w-36 h-48">
-                        {/* Background SVG Border (offset top-left) */}
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           className="absolute w-full h-full z-10"
@@ -1174,7 +1164,6 @@ export default function ShowCaseInfo() {
                           />
                         </svg>
 
-                        {/* Card Image */}
                         <NextImage
                           className="absolute object-contain rounded-xl z-9 w-[95%]"
                           unoptimized
@@ -1189,7 +1178,6 @@ export default function ShowCaseInfo() {
                           }}
                         />
 
-                        {/* Top SVG Border (offset bottom-right) */}
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           className="absolute w-full h-full z-8"
@@ -1217,7 +1205,6 @@ export default function ShowCaseInfo() {
                           />
                         </svg>
 
-                        {/* Stars */}
                         <div
                           className="absolute text-yellow-500 font-bold z-10"
                           style={{

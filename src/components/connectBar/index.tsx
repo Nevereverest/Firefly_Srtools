@@ -45,8 +45,7 @@ export default function ConnectBar() {
         }))
     )
 
-    // "Server" means the request goes through our proxy, which can only reach
-    // public hosts. A LAN address there is a dead end, so warn before the click.
+    // Through the proxy a LAN address is a dead end, so warn before the click.
     const privateThroughProxy =
         connectionType === PSConnectType.Other &&
         privateType === "Server" &&
@@ -68,7 +67,6 @@ export default function ConnectBar() {
     return (
         <div className="space-y-4">
             <div className="p-4 sm:p-6 rounded-2xl bg-base-200/60 border border-white/10 space-y-4">
-                {/* Connection Type Selection */}
                 <div className="space-y-1.5">
                     <label className="block text-xs font-bold uppercase tracking-wider text-base-content/70">
                         {transI18n("connectionType")}
@@ -148,7 +146,6 @@ export default function ConnectBar() {
                     </div>
                 )}
 
-                {/* Local network address with the proxy selected */}
                 {privateThroughProxy && (
                     <div className="p-3 rounded-xl border bg-amber-500/10 border-amber-500/30 text-amber-400 text-xs flex flex-col sm:flex-row sm:items-center gap-2">
                         <AlertCircle className="w-4 h-4 shrink-0" />
@@ -165,7 +162,6 @@ export default function ConnectBar() {
                     </div>
                 )}
 
-                {/* Status Message Notification */}
                 {message.text && (
                     <div className={`p-3 rounded-xl border text-xs flex items-center gap-2 ${
                         message.type === 'success'
@@ -179,7 +175,6 @@ export default function ConnectBar() {
                     </div>
                 )}
 
-                {/* Footer Controls */}
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-base-content/10">
                     <div className="flex items-center gap-2">
                         <span className="text-xs text-base-content/60">{transI18n("status")}:</span>

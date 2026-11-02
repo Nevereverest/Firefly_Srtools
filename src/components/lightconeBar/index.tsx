@@ -86,9 +86,7 @@ export default function LightconeBar() {
 
     return (
         <div className="space-y-4">
-            {/* Search & Filters */}
             <div className="p-3 rounded-2xl bg-base-200 border border-base-300 space-y-2.5">
-                {/* Search Bar */}
                 <label className="input input-sm input-bordered flex items-center gap-2 bg-base-100 border-base-300 rounded-lg w-full h-8 px-2.5 shadow-xs">
                     <Search className="w-4 h-4 text-base-content/60 shrink-0" />
                     <input
@@ -109,9 +107,7 @@ export default function LightconeBar() {
                     )}
                 </label>
 
-                {/* Filter Chips */}
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                    {/* Path Filter Chips */}
                     <div className="flex flex-wrap items-center gap-1">
                         {Object.entries(baseType).filter(([key]) => key !== "").map(([key, value]) => {
                             const isActive = !!mapLightconePathActive[key];
@@ -144,7 +140,6 @@ export default function LightconeBar() {
                         })}
                     </div>
 
-                    {/* Rarity Filter Chips */}
                     <div className="flex items-center gap-1.5">
                         {Object.keys(mapLightconeRankActive).map((key) => {
                             const isActive = !!mapLightconeRankActive[key];
@@ -169,7 +164,6 @@ export default function LightconeBar() {
                 </div>
             </div>
 
-            {/* Results Grid - Compact multi-column layout */}
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-8 gap-2.5 sm:gap-3 pr-1">
                 {listLightcone.map((item) => (
                     <div

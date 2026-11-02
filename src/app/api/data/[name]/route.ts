@@ -5,8 +5,7 @@ export async function GET(
   { params }: { params: Promise<{ name: string }> }
 ) {
   const { name } = await params;
-  const packed = new URL(req.url).searchParams.get("encoding") === "strings-v1";
-  const item = getDataCache(name, packed);
+  const item = getDataCache(name);
   if (!item) return new Response("Not found", { status: 404 });
 
   const headers: Record<string, string> = {

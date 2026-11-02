@@ -4,7 +4,6 @@ import { guardedHttpAgent, guardedHttpsAgent } from '@/lib/net/guard'
 import type { EnkaErrorCode } from '@/types'
 
 const ENKA_ORIGIN = 'https://enka.network'
-// HSR UIDs are 9 digits; a slightly wider window keeps older/newer accounts working.
 const UID_PATTERN = /^\d{8,10}$/
 const UPSTREAM_TIMEOUT_MS = 15000
 const MAX_RESPONSE_BYTES = 4 * 1024 * 1024

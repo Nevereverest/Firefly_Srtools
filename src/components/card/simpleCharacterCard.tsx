@@ -47,7 +47,7 @@ const SimpleAvatarCardComponent = ({ data, isSelected, onClick, showRemoveHover 
           alt="Avatar"
         />
         {damageType?.[data.DamageType]?.Icon && (
-          <div className="absolute top-0.5 left-0.5 w-4 h-4 sm:w-5 sm:h-5 bg-black/60 backdrop-blur-xs rounded-full flex items-center justify-center p-0.5 border border-white/10">
+          <div className="absolute top-0.5 left-0.5 w-4 h-4 sm:w-5 sm:h-5 bg-black/60 rounded-full flex items-center justify-center p-0.5 border border-white/10">
             <Image
               width={20}
               height={20}
@@ -60,7 +60,7 @@ const SimpleAvatarCardComponent = ({ data, isSelected, onClick, showRemoveHover 
           </div>
         )}
         {baseType?.[data.BaseType]?.Icon && (
-          <div className="absolute top-0.5 right-0.5 w-4 h-4 sm:w-5 sm:h-5 bg-black/60 backdrop-blur-xs rounded-full flex items-center justify-center p-0.5 border border-white/10">
+          <div className="absolute top-0.5 right-0.5 w-4 h-4 sm:w-5 sm:h-5 bg-black/60 rounded-full flex items-center justify-center p-0.5 border border-white/10">
             <Image
               width={20}
               height={20}
@@ -74,7 +74,7 @@ const SimpleAvatarCardComponent = ({ data, isSelected, onClick, showRemoveHover 
         )}
 
         {showRemoveHover && (
-          <div className="absolute inset-0 bg-error/90 backdrop-blur-xs rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="absolute inset-0 bg-error/90 rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
             <X className="h-6 w-6 text-white" />
           </div>
         )}

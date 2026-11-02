@@ -27,10 +27,7 @@ export default function PeakBar() {
   const { mapPeak } =
     useDetailDataStore(
       useShallow((state) => ({
-
         mapPeak: state.mapPeak,
-
-
       })),
     );
   const transI18n = useTranslations("DataPage");
@@ -73,7 +70,6 @@ export default function PeakBar() {
 
   return (
     <div className="pt-4 pb-2 relative space-y-4">
-      {/* Title Card */}
       <div className="rounded-xl p-4 border border-warning">
         <div className="mb-4 w-full">
           <SelectCustomText
@@ -98,7 +94,6 @@ export default function PeakBar() {
             }}
           />
         </div>
-        {/* Settings */}
         <div
           className={`grid grid-cols-1 
                     ${eventSelected && eventSelected.BossLevel?.ID === peak_config.challenge_id ? "md:grid-cols-2" : ""}
@@ -180,7 +175,6 @@ export default function PeakBar() {
             </div>
           )}
 
-        {/* Turbulence Buff */}
         <div className="pt-3 border-t border-base-content/10 space-y-2">
           <h2 className="text-xl font-bold text-info">
             {transI18n("turbulenceBuff")}
@@ -212,7 +206,6 @@ export default function PeakBar() {
         </div>
       </div>
 
-      {/* Enemy Waves */}
 
       {(peak_config?.challenge_id ?? 0) !== 0 && (
         <div className="grid grid-cols-1 gap-4">
@@ -221,7 +214,6 @@ export default function PeakBar() {
               {getLocaleName(locale, challengeSelected?.challenge?.Name)}
             </h2>
 
-            {/* Voracity Corrosion Alert Box */}
             {challengeSelected?.challenge?.EventList?.[0]?.Invasion && (
               <VoracityCorrosionAlert
                 invasion={challengeSelected.challenge.EventList[0].Invasion}

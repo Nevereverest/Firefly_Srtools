@@ -20,6 +20,7 @@ import useCopyProfileStore from "@/stores/copyProfile";
 import AvatarBar from "../avatarBar";
 import useCurrentDataStore from "@/stores/currentDataStore";
 import useDetailDataStore from "@/stores/detailDataStore";
+import { NeedLightcone } from "../requireData";
 import { useShallow } from 'zustand/react/shallow';
 import { User, Shield, Sparkles, Zap, Image as ImageIcon, RefreshCw, Plus, Copy, Edit2, Trash2, SlidersHorizontal, Lock } from "lucide-react";
 
@@ -34,9 +35,28 @@ const ProfileManagerModal = dynamic(() => import("../profileManager"), {
   loading: () => <ModalLoading message="Loading Profile Manager..." />
 });
 
+const PAGE_PATHS = ["", "relics-info", "eidolons-info", "skills-info", "showcase-card"]
+
 export default function ActionBar() {
   const router = useRouter()
   const pathname = usePathname()
+
+  // Prefetch the other pages once this one has settled.
+  useEffect(() => {
+    if ((navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData) return
+    let idle: number | undefined
+    const run = () => {
+      const prefetch = () => PAGE_PATHS.forEach(path => router.prefetch(`/${path}`))
+      if ("requestIdleCallback" in window) idle = window.requestIdleCallback(prefetch, { timeout: 5000 })
+      else prefetch()
+    }
+    if (document.readyState === "complete") run()
+    else window.addEventListener("load", run, { once: true })
+    return () => {
+      window.removeEventListener("load", run)
+      if (idle !== undefined) window.cancelIdleCallback(idle)
+    }
+  }, [router])
   const { avatarSelected } = useCurrentDataStore(
     useShallow((state) => ({ avatarSelected: state.avatarSelected }))
   )
@@ -137,7 +157,6 @@ export default function ActionBar() {
     }
   };
 
-  // Close modal handler
   const handleCloseModal = (modalId: string) => {
     const modal = document.getElementById(modalId) as HTMLDialogElement | null;
     if (modal) {
@@ -241,8 +260,7 @@ export default function ActionBar() {
   };
 
   const handleConnectOrSyncPS = async () => {
-    // A local network address cannot go through the proxy; show the hint
-    // instead of the proxy's raw refusal.
+    // A LAN address cannot go through the proxy; show the hint instead.
     const describe = (res: ActionResult): string =>
       res.code === ConnectErrorCode.PrivateHostUseLocal ? transI18n("useLocalModeHint") : res.message
 
@@ -308,7 +326,7 @@ export default function ActionBar() {
         setIsOpenCopy(false)
         handleCloseModal("copy_profile_modal")
       },
-      content: <CopyImport />
+      content: <NeedLightcone><CopyImport /></NeedLightcone>
     },
     {
       id: "avatars_modal",
@@ -328,11 +346,10 @@ export default function ActionBar() {
         setIsOpenManageProfiles(false)
         handleCloseModal("manage_profiles_modal")
       },
-      content: <ProfileManagerModal />
+      content: <NeedLightcone><ProfileManagerModal /></NeedLightcone>
     }
   ]
 
-  // Handle ESC key to close modal
   useEffect(() => {
     for (const item of modalConfigs) {
       if (!item?.isOpen) {
@@ -351,7 +368,6 @@ export default function ActionBar() {
     return () => window.removeEventListener('keydown', handleEscKey);
   }, [isOpenCopy, isOpenCreateProfile, isOpenAvatars, isOpenManageProfiles]);
 
-  // Close dropdowns on outside click or Escape
   useEffect(() => {
     if (!isProfileDropdownOpen && !isActionsDropdownOpen) return;
 
@@ -382,7 +398,6 @@ export default function ActionBar() {
     };
   }, [isProfileDropdownOpen, isActionsDropdownOpen]);
 
-  // Close dropdowns on route or avatar switch during render
   const [prevRouteKey, setPrevRouteKey] = useState(() => `${pathname}_${avatarSelected?.ID}`);
   const currentRouteKey = `${pathname}_${avatarSelected?.ID}`;
   if (prevRouteKey !== currentRouteKey) {
@@ -403,9 +418,7 @@ export default function ActionBar() {
 
   return (
     <div className="w-full bg-transparent px-3 sm:px-4 pt-2.5 sm:pt-3 pb-1 space-y-2">
-      {/* Top Row: Character Identity + Profile Selector + Connect PS */}
       <div className="flex flex-wrap items-center justify-between gap-2.5">
-        {/* Character Identity */}
         {avatarSelected && (
           <div className="flex items-center gap-2 h-8.5 px-3 rounded-xl bg-base-200/80 border border-base-content/10 text-xs sm:text-sm font-semibold shadow-xs">
             <Image
@@ -427,7 +440,6 @@ export default function ActionBar() {
           </div>
         )}
 
-        {/* Profile Selector & Quick Actions */}
         <div className="flex items-center h-8.5 rounded-xl bg-base-200/80 border border-base-content/10 p-0.5 shadow-xs">
           <div ref={profileDropdownRef} className="relative h-full flex items-center">
             <button
@@ -448,7 +460,6 @@ export default function ActionBar() {
               <div
                 className="absolute top-full left-0 z-50 p-2.5 shadow-2xl bg-base-100 rounded-2xl w-72 sm:w-80 mt-2 border border-base-300 max-h-96 overflow-y-auto overflow-x-hidden flex flex-col flex-nowrap space-y-2 animate-in fade-in zoom-in-95 duration-100"
               >
-                {/* Header with Select All / Clear All when >= 2 custom profiles */}
                 {listProfile.length > 2 && (
                   <div className="flex items-center justify-between px-2 pt-0.5 pb-1 text-[11px] text-base-content/60 border-b border-base-300/60 shrink-0">
                     <span className="font-semibold text-base-content/75">
@@ -468,7 +479,6 @@ export default function ActionBar() {
                   </div>
                 )}
 
-                {/* Profiles list: Strictly vertical, no horizontal wrapping */}
                 <div className="flex flex-col flex-nowrap space-y-1 overflow-y-auto max-h-56 pr-0.5">
                   {listProfile.map((profile, index) => {
                     const isDefault = index === 0;
@@ -484,7 +494,6 @@ export default function ActionBar() {
                             : "hover:bg-base-200 border border-transparent"
                         }`}
                       >
-                        {/* Left: Tick box for custom profiles or Lock for Default */}
                         {isDefault ? (
                           <div
                             className="w-4 h-4 flex items-center justify-center shrink-0 text-base-content/30"
@@ -507,7 +516,6 @@ export default function ActionBar() {
                           </label>
                         )}
 
-                        {/* Clickable Profile Name (Switches active profile & closes dropdown) */}
                         <button
                           type="button"
                           onClick={() => handleProfileSelect(index)}
@@ -528,7 +536,6 @@ export default function ActionBar() {
                           )}
                         </button>
 
-                        {/* Right: Edit & Single Delete Buttons */}
                         {!isDefault && (
                           <div className="flex items-center gap-0.5 shrink-0 opacity-80 group-hover:opacity-100 transition-opacity">
                             <button
@@ -565,7 +572,6 @@ export default function ActionBar() {
                   })}
                 </div>
 
-                {/* Batch Delete Profiles Action - ONLY ENABLED WHEN >= 2 PROFILES ARE SELECTED */}
                 {listProfile.length > 2 && (
                   <div className="pt-1 border-t border-base-300 shrink-0">
                     <button
@@ -597,7 +603,6 @@ export default function ActionBar() {
                   </div>
                 )}
 
-                {/* Quick Navigation & Creation Actions */}
                 <div className="pt-1 border-t border-base-300 space-y-0.5 shrink-0">
                   <button
                     type="button"
@@ -645,7 +650,6 @@ export default function ActionBar() {
             )}
           </div>
 
-          {/* Quick Profile Actions */}
           <div className="flex items-center border-l border-base-content/10 pl-1 pr-0.5 gap-0.5 h-5">
             <button
               onClick={() => {
@@ -683,7 +687,6 @@ export default function ActionBar() {
           </div>
         </div>
 
-        {/* Desktop Connect PS Button */}
         <div className="hidden sm:flex items-center gap-2 ml-auto tooltip tooltip-bottom" data-tip={isConnectPS ? transI18n("sync") : transI18n("connectPs")}>
           <button
             onClick={handleConnectOrSyncPS}
@@ -699,7 +702,6 @@ export default function ActionBar() {
         </div>
       </div>
 
-      {/* Mobile-Only Action Row (< 640px): [Avatars Button] & [Actions Dropdown] */}
       <div className="grid grid-cols-2 sm:hidden gap-2 w-full pt-1">
         <button
           onClick={() => {
@@ -761,7 +763,6 @@ export default function ActionBar() {
         </div>
       </div>
 
-      {/* Navigation Tabs (>= 640px) - Responsive Wrap (2 rows on medium/smaller tablet/laptop screens, 1 row on wide screens) */}
       <div className="hidden sm:block w-full bg-base-200/80 border border-base-content/10 rounded-xl p-1 shadow-xs">
         <div className="flex flex-wrap gap-1 w-full">
           {navTabs.map((tab) => {
@@ -785,7 +786,6 @@ export default function ActionBar() {
         </div>
       </div>
 
-        {/* Modals */}
         {modalConfigs.map(({ id, title, isOpen, onClose, content }) => {
           const isManageProfiles = id === "manage_profiles_modal";
           return (
@@ -820,7 +820,6 @@ export default function ActionBar() {
           );
         })}
 
-        {/* Delete Profile Confirmation Modal */}
         <dialog id="delete_profile_confirm_modal" className="modal modal-bottom sm:modal-middle">
           <div className="modal-box max-w-md bg-base-100 border border-white/10 shadow-2xl rounded-2xl p-6 overflow-hidden relative">
             <div className="relative z-10 text-center space-y-4">
@@ -865,7 +864,6 @@ export default function ActionBar() {
           </form>
         </dialog>
 
-        {/* Dropdown Batch Delete Confirmation Modal */}
         {confirmDropdownBatchOpen && (
           <dialog open className="modal modal-open modal-bottom sm:modal-middle">
             <div className="modal-box max-w-md bg-base-100 border border-white/10 shadow-2xl rounded-2xl p-6 overflow-hidden relative">

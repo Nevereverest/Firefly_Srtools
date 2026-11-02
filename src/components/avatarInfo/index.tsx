@@ -15,6 +15,7 @@ import Image from 'next/image';
 import useCurrentDataStore from "@/stores/currentDataStore";
 import useDetailDataStore from "@/stores/detailDataStore";
 import { getLocaleName } from "@/helper/getName";
+import { NeedLightcone } from "../requireData";
 import { useShallow } from "zustand/react/shallow";
 
 import ModalLoading from "../modalLoading";
@@ -89,7 +90,6 @@ export default function AvatarInfo() {
         }
     };
 
-    // Close modal handler
     const handleCloseModal = (modalId: string) => {
         setIsOpenLightcone(false);
         const modal = document.getElementById(modalId) as HTMLDialogElement | null;
@@ -102,7 +102,6 @@ export default function AvatarInfo() {
         }
     };
 
-    // Handle ESC key to close modal
     useEffect(() => {
         if (!isOpenLightcone) {
             handleCloseModal("action_detail_modal");
@@ -124,10 +123,8 @@ export default function AvatarInfo() {
         <div className="w-full space-y-4">
             {avatarSelected && userAvatar && (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 w-full items-start">
-                    {/* Left Column: Character Configuration */}
                     <div className="glass-card rounded-2xl p-5 sm:p-6 border border-base-content/10 shadow-xs flex flex-col justify-between">
                         <div>
-                            {/* Card Header */}
                             <div className="flex items-center justify-between pb-4 mb-2 border-b border-base-content/10">
                                 <h2 className="text-base sm:text-lg font-bold flex items-center gap-2.5">
                                     <div className="w-1.5 h-5 bg-linear-to-b from-primary to-accent rounded-full"></div>
@@ -141,7 +138,6 @@ export default function AvatarInfo() {
                             </div>
 
                             <div className="divide-y divide-base-content/10">
-                                {/* Level Control */}
                                 <div className="py-4 space-y-2.5">
                                     <div className="flex items-center justify-between">
                                         <span className="text-sm font-bold text-base-content tracking-tight flex items-center gap-1.5">
@@ -176,7 +172,6 @@ export default function AvatarInfo() {
                                     </div>
                                 </div>
 
-                                {/* Ultimate Energy Control */}
                                 <div className="py-4 space-y-2.5">
                                     <div className="flex items-center justify-between">
                                         <span className="text-sm font-bold text-base-content tracking-tight flex items-center gap-1.5">
@@ -220,7 +215,6 @@ export default function AvatarInfo() {
                                     </div>
                                 </div>
 
-                                {/* Technique Toggle */}
                                 <div className="py-4 flex items-center justify-between gap-4">
                                     <div className="space-y-1">
                                         <span className="text-sm font-bold text-base-content tracking-tight flex items-center gap-1.5">
@@ -242,7 +236,6 @@ export default function AvatarInfo() {
                                     />
                                 </div>
 
-                                {/* Enhancement Selection */}
                                 {avatarSelected?.Enhanced && (
                                     <div className="py-4 space-y-2">
                                         <div className="flex items-center justify-between">
@@ -287,10 +280,8 @@ export default function AvatarInfo() {
                         </div>
                     </div>
 
-                    {/* Right Column: Lightcone Equipment */}
                     <div className="glass-card rounded-2xl p-5 sm:p-6 border border-base-content/10 shadow-xs flex flex-col justify-between">
                         <div>
-                            {/* Card Header */}
                             <div className="flex items-center justify-between pb-4 mb-2 border-b border-base-content/10">
                                 <h2 className="text-base sm:text-lg font-bold flex items-center gap-2.5">
                                     <div className="w-1.5 h-5 bg-linear-to-b from-secondary to-primary rounded-full"></div>
@@ -305,11 +296,12 @@ export default function AvatarInfo() {
                                 )}
                             </div>
 
-                            {lightcone && lightconeDetail ? (
+                            {lightcone && !lightconeDetail && Object.keys(mapLightCone).length === 0 ? (
+                                /* Light cone list is still loading */
+                                <div className="h-40 rounded-xl bg-base-200/60 animate-pulse" />
+                            ) : lightcone && lightconeDetail ? (
                                 <div className="space-y-4">
-                                    {/* Lightcone Hero Block */}
                                     <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center">
-                                        {/* Artwork */}
                                         <div className="sm:col-span-4 aspect-3/4 rounded-xl overflow-hidden bg-base-200/60 flex items-center justify-center border border-base-content/10 shadow-xs">
                                             <Image
                                                 unoptimized
@@ -322,7 +314,6 @@ export default function AvatarInfo() {
                                             />
                                         </div>
 
-                                        {/* Meta & Stats */}
                                         <div className="sm:col-span-8 space-y-3">
                                             <div>
                                                 <h3 className="text-base sm:text-lg font-bold tracking-tight text-base-content">
@@ -342,7 +333,6 @@ export default function AvatarInfo() {
                                                 </div>
                                             </div>
 
-                                            {/* Level Slider */}
                                             <div className="space-y-1.5">
                                                 <div className="flex items-center justify-between text-xs font-semibold">
                                                     <span className="text-base-content/80">{transI18n("level")}</span>
@@ -361,7 +351,6 @@ export default function AvatarInfo() {
                                                 />
                                             </div>
 
-                                            {/* Superimposition Rank (S1-S5) */}
                                             <div className="space-y-1.5">
                                                 <div className="flex items-center justify-between text-xs font-semibold">
                                                     <span className="text-base-content/80">{transI18n("superimpositionRank")}</span>
@@ -388,7 +377,6 @@ export default function AvatarInfo() {
                                         </div>
                                     </div>
 
-                                    {/* Skill Description */}
                                     <div className="p-3.5 rounded-xl bg-base-200/50 border border-base-content/10">
                                         <div
                                             className="text-xs sm:text-sm text-base-content/90 leading-relaxed font-normal"
@@ -401,7 +389,6 @@ export default function AvatarInfo() {
                                         />
                                     </div>
 
-                                    {/* Action Buttons */}
                                     <div className="flex items-center gap-3 pt-2">
                                         <button
                                             onClick={() => {
@@ -461,7 +448,6 @@ export default function AvatarInfo() {
                 </div>
             )}
 
-            {/* Lightcone Selection Modal */}
             <dialog id="action_detail_modal" className="modal">
                 <div className="modal-box w-11/12 max-w-[92vw] sm:max-w-[88vw] max-h-[90vh] flex flex-col bg-base-100 text-base-content border border-white/10 shadow-2xl rounded-2xl p-0 overflow-hidden">
                     <div className="sticky top-0 z-20 flex items-center justify-between px-6 py-4 border-b border-base-content/10 bg-base-100 shrink-0">
@@ -476,7 +462,7 @@ export default function AvatarInfo() {
                         </button>
                     </div>
                     <div className="p-4 sm:p-6 overflow-y-auto flex-1">
-                        <MountOnOpen open={isOpenLightcone}><LightconeBar /></MountOnOpen>
+                        <MountOnOpen open={isOpenLightcone}><NeedLightcone><LightconeBar /></NeedLightcone></MountOnOpen>
                     </div>
                 </div>
                 <form method="dialog" className="modal-backdrop">

@@ -58,7 +58,6 @@ export default function MonsterCard({
     eliteConfig,
   );
 
-  // Exact Voracity contamination logic: only specific monsters configured in StageInvasionConfig are contaminated
   const isContaminated = Boolean(
     invasion &&
       (invasion.MonsterList?.includes(numId) ||
@@ -77,11 +76,9 @@ export default function MonsterCard({
     monster?.Name?.["cn"] ||
     "Enemy";
 
-  // Contaminated Monster Card (With Corrosion)
   if (isContaminated) {
     return (
       <div className="relative flex flex-col w-[calc(50%-6px)] min-w-[136px] max-w-[200px] rounded-xl border border-rose-500/70 shadow-[0_0_12px_rgba(244,63,94,0.25)] bg-gradient-to-b from-[#240c13] via-[#17070b] to-[#100407] overflow-hidden">
-        {/* Top Corrosion Badge Banner */}
         <div className="bg-[#3a121c]/90 border-b border-rose-500/40 py-1 px-1.5 flex items-center justify-center gap-1.5 shadow-xs">
           <span className="w-1.5 h-1.5 rounded-full bg-rose-400 shadow-[0_0_6px_rgba(251,113,133,0.9)] shrink-0 animate-pulse" />
           <span className="text-[11px] font-bold text-rose-200 tracking-tight">
@@ -89,14 +86,11 @@ export default function MonsterCard({
           </span>
         </div>
 
-        {/* Monster Avatar Image */}
         <div className="relative w-full h-18 sm:h-20 flex items-center justify-center p-1.5 bg-rose-950/20">
-          {/* Level Badge */}
           <span className="badge badge-warning badge-xs font-bold absolute top-1.5 left-1.5 z-10 text-[9px] px-1">
             Lv.{level}
           </span>
 
-          {/* Spawn Count Badge */}
           {count && count > 1 && (
             <span className="badge badge-xs bg-indigo-950/90 text-indigo-200 border border-indigo-400/30 absolute top-1.5 right-1.5 font-bold z-10 text-[9px] px-1">
               x{count}
@@ -121,7 +115,6 @@ export default function MonsterCard({
           )}
         </div>
 
-        {/* Monster Name */}
         <div className="px-2 pt-1 text-center min-h-[2.2rem] flex items-center justify-center">
           <span
             className="text-xs sm:text-[13px] font-bold text-white line-clamp-2 leading-tight"
@@ -131,7 +124,6 @@ export default function MonsterCard({
           </span>
         </div>
 
-        {/* Weakness Icons (Directly below name) */}
         <div className="px-1.5 py-0.5 flex items-center justify-center gap-1 min-h-[22px]">
           {monster?.StanceWeakList?.map((icon, iconIndex) => (
             <Image
@@ -146,9 +138,7 @@ export default function MonsterCard({
           ))}
         </div>
 
-        {/* Stats Section */}
         <div className="px-2 pb-2.5 pt-1 flex flex-col space-y-1 text-center">
-          {/* Phase HP List or Single HP */}
           {monsterStats.phaseHps && monsterStats.phaseHps.length > 1 ? (
             <div className="text-xs font-medium text-rose-100/95 leading-tight space-y-0.5">
               {monsterStats.phaseHps.map((php, idx) => (
@@ -163,7 +153,6 @@ export default function MonsterCard({
             </div>
           )}
 
-          {/* Voracity HP */}
           <div className="pt-0.5 border-t border-rose-500/30">
             <div className="text-[10px] font-semibold text-rose-300">
               {transI18n("voracityHp")}
@@ -176,7 +165,6 @@ export default function MonsterCard({
             </div>
           </div>
 
-          {/* Speed & Toughness */}
           <div className="pt-0.5 text-[10px] text-rose-200/75 space-y-0.5">
             <div>
               {transI18n("speed")} {Math.round(monsterStats.spd)}
@@ -190,24 +178,19 @@ export default function MonsterCard({
     );
   }
 
-  // Standard (Non-Contaminated) Monster Card
   return (
     <div className="relative flex flex-col w-[calc(50%-6px)] min-w-[136px] max-w-[200px] bg-base-100 rounded-xl border border-base-300 shadow-sm overflow-hidden">
-      {/* Top Image Box */}
       <div className="relative w-full h-18 sm:h-20 bg-base-200/60 flex items-center justify-center p-1.5">
-        {/* Level Badge */}
         <span className="badge badge-warning badge-xs font-bold absolute top-1.5 left-1.5 z-10 text-[9px] px-1">
           Lv.{level}
         </span>
 
-        {/* Count Badge */}
         {count && count > 1 && (
           <span className="badge badge-xs bg-indigo-950/90 text-indigo-200 border border-indigo-400/30 font-bold absolute top-1.5 right-1.5 z-10 text-[9px] px-1">
             x{count}
           </span>
         )}
 
-        {/* Avatar */}
         {monster?.Image?.IconPath ? (
           <div className="relative w-13 h-13 sm:w-14 sm:h-14 rounded-full border border-base-content/15 shadow-xs overflow-hidden bg-base-100">
             <Image
@@ -226,7 +209,6 @@ export default function MonsterCard({
         )}
       </div>
 
-      {/* Monster Name */}
       <div className="px-2 pt-1 text-center min-h-[2.2rem] flex items-center justify-center">
         <span
           className="text-xs sm:text-[13px] font-bold text-base-content line-clamp-2 leading-tight"
@@ -236,7 +218,6 @@ export default function MonsterCard({
         </span>
       </div>
 
-      {/* Weakness Icons (Directly below name) */}
       <div className="px-1.5 py-0.5 flex items-center justify-center gap-1 min-h-[22px]">
         {monster?.StanceWeakList?.map((icon, iconIndex) => (
           <Image
@@ -251,9 +232,7 @@ export default function MonsterCard({
         ))}
       </div>
 
-      {/* Stats Body */}
       <div className="px-2 pb-2.5 pt-1 flex flex-col space-y-1 text-center">
-        {/* HP */}
         {monsterStats.phaseHps && monsterStats.phaseHps.length > 1 ? (
           <div className="text-xs font-medium text-base-content/90 leading-tight space-y-0.5">
             {monsterStats.phaseHps.map((php, idx) => (
@@ -268,7 +247,6 @@ export default function MonsterCard({
           </div>
         )}
 
-        {/* Speed & Toughness */}
         <div className="pt-0.5 text-[10px] text-base-content/70 space-y-0.5">
           <div>
             {transI18n("speed")} {Math.round(monsterStats.spd)}

@@ -8,3 +8,5 @@ export * from "./useFetchMOCData";
 export * from "./useFetchASData";
 export * from "./useFetchPEAKData";
 export * from "./useFetchChangelog";
+export * from "./useFetchStageData";
+export * from "./useFetchAvatarDetail";

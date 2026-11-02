@@ -4,10 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbo",
-    "build": "bun run data:prepare && next build",
+    "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "data:prepare": "bun script/prepare-data.ts",
     "test": "bun test tests"
   },
   "dependencies": {
@@ -17,7 +16,6 @@
     "fast-average-color": "^9.5.2",
     "framer-motion": "^12.43.0",
     "html2canvas-pro": "^1.6.7",
-    "lru-cache": "^11.5.2",
     "lucide-react": "^0.563.0",
     "next": "16.1.6",
     "next-intl": "^4.14.2",

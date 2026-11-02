@@ -1,4 +1,5 @@
-import { AvatarDetail, BaseTypeData, Metadata } from '@/types'
+import useDetailDataStore from '@/stores/detailDataStore'
+import { AvatarDetail, BaseTypeData, MetadataCore } from '@/types'
 import { create } from 'zustand'
 
 interface CurrentDataState {
@@ -10,7 +11,7 @@ interface CurrentDataState {
     mapAvatarPathActive: Record<string, boolean>;
     mapLightconePathActive: Record<string, boolean>;
     mapLightconeRankActive: Record<string, boolean>;
-    setSettingData: (newMetaData: Metadata) => void;
+    setSettingData: (newMetaData: MetadataCore) => void;
     setAvatarSelected: (avatar: AvatarDetail | null) => void;
     setSkillIDSelected: (skillID: string | null) => void;
     setAvatarSearch: (avatarSearch: string) => void;
@@ -31,14 +32,17 @@ const useCurrentDataStore = create<CurrentDataState>((set) => ({
     mapLightconeRankActive: {"3": false, "4": false, "5": false },
     avatarSearch: "",
     lightconeSearch: "",
-    setSettingData: (newMetaData: Metadata) => set({ 
+    setSettingData: (newMetaData: MetadataCore) => set({ 
         mapAvatarElementActive: Object.fromEntries(Object.keys(newMetaData.DamageType).map(key => [key, false])) as Record<string, boolean>,
         mapAvatarPathActive: Object.fromEntries(Object.keys(newMetaData.BaseType).map(key => [key, false])) as Record<string, boolean>,
         mapLightconePathActive: Object.fromEntries(Object.keys(newMetaData.BaseType).map(key => [key, false])) as Record<string, boolean>,
     }),
     setAvatarSearch: (avatarSearch: string) => set({ avatarSearch }),
     setLightconeSearch: (lightconeSearch: string) => set({ lightconeSearch }),
-    setAvatarSelected: (avatar: AvatarDetail | null) => set({ avatarSelected: avatar }),
+    // Resolve to the list entry so a copy taken before the detail loaded is never selected.
+    setAvatarSelected: (avatar: AvatarDetail | null) => set({
+        avatarSelected: avatar ? useDetailDataStore.getState().mapAvatar[String(avatar.ID)] ?? avatar : null,
+    }),
     setSkillIDSelected: (skillID: string | null) => set({ skillIDSelected: skillID }),
     setMapAvatarElementActive: (mapAvatarElementActive: Record<string, boolean>) => set({ mapAvatarElementActive }),
     setMapAvatarPathActive: (mapAvatarPathActive: Record<string, boolean>) => set({ mapAvatarPathActive }),

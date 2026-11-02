@@ -167,7 +167,6 @@ export function fillTheoryCraftHP(config: CEConfigStore, extra?: ExtraData): Ext
   let changed = false;
 
   config.monsters.forEach((wave, waveIndex) => {
-    // The server protocol numbers waves from 1, while arrays start from 0.
     const waveKey = String(waveIndex + 1);
     const values = [...(hp[waveKey] ?? [])];
     if (!hp[waveKey]) changed = true;

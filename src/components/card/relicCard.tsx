@@ -84,7 +84,6 @@ function RelicCard({ slot, avatarId }: RelicCardProps) {
                             className="w-14 h-14 sm:w-16 sm:h-16 object-contain drop-shadow-md"
                         />
 
-                        {/* Level Badge */}
                         <div className="absolute -bottom-2 bg-base-100 border border-base-content/15 shadow-md rounded-full px-2 py-0.5">
                             <span className="text-xs font-mono font-bold text-primary">+{relicDetail.level}</span>
                         </div>
@@ -120,7 +119,6 @@ function RelicCard({ slot, avatarId }: RelicCardProps) {
                             </svg>
                         </div>
 
-                        {/* Level Badge */}
                         <div className="absolute -bottom-2 bg-base-100 border border-base-content/15 shadow-md rounded-full px-2 py-0.5">
                             <span className="text-xs font-mono font-bold text-base-content/40">+0</span>
                         </div>

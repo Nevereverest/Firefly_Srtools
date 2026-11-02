@@ -13,7 +13,6 @@ export default function QuickViewRelic({
     const transI18n = useTranslations("DataPage");
     return (
         <div className="flex items-center gap-3 py-2 px-1 border-b border-base-content/10 last:border-b-0">
-            {/* Relic Figure Icon */}
             <div className="relative shrink-0 flex flex-col items-center">
                 <NextImage
                     src={relic?.img || ""}
@@ -25,7 +24,6 @@ export default function QuickViewRelic({
                 />
             </div>
 
-            {/* Main Affix - Clean Display */}
             <div className="flex w-20 shrink-0 flex-col items-start justify-center">
                 <div className="flex items-center gap-1">
                     {relic?.mainAffix?.detail?.icon ? (
@@ -47,7 +45,6 @@ export default function QuickViewRelic({
                 </span>
             </div>
 
-            {/* Sub Affixes Grid - Clean Flat Typography */}
             <div className="grid flex-1 grid-cols-2 gap-x-3 gap-y-1">
                 {relic?.subAffix?.map((subAffix, index) => {
                     if (!subAffix) return null

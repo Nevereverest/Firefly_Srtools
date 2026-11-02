@@ -229,7 +229,6 @@ export default function EnkaImport() {
 
     return (
         <div className="w-full space-y-6">
-            {/* Top Bar: Title & UID Input */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4">
                 <div>
                     <div className="flex items-center gap-2 mb-1">
@@ -243,7 +242,6 @@ export default function EnkaImport() {
                     </h2>
                 </div>
 
-                {/* UID Search Input Form */}
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full md:w-auto">
                     <div className="relative flex-1 md:w-72">
                         <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-base-content/50 pointer-events-none" />
@@ -291,7 +289,6 @@ export default function EnkaImport() {
                 </div>
             </div>
 
-            {/* Error Message Banner */}
             {errorMsg && (
                 <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-semibold animate-in fade-in duration-200">
                     <AlertCircle className="w-4 h-4 shrink-0" />
@@ -299,7 +296,6 @@ export default function EnkaImport() {
                 </div>
             )}
 
-            {/* Trailblazer Profile HUD Banner (when loaded) */}
             {enkaData && (
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 py-3 px-4 rounded-xl bg-base-200/50 border border-white/10">
                     <div className="flex items-center gap-3">
@@ -340,10 +336,8 @@ export default function EnkaImport() {
                 </div>
             )}
 
-            {/* Floating Selection & Actions Bar */}
             {enkaData && (
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 py-2.5 px-4 rounded-xl bg-base-200/60 border border-white/10 shadow-xs">
-                    {/* Left: Counter and Quick Select */}
                     <div className="flex items-center justify-between sm:justify-start gap-3 flex-wrap">
                         <div className="flex items-center gap-2">
                             <Users className="w-4 h-4 text-cyan-500" />
@@ -377,7 +371,6 @@ export default function EnkaImport() {
                         </div>
                     </div>
 
-                    {/* Right: Import CTA */}
                     <button 
                         type="button"
                         onClick={handleImport}
@@ -391,7 +384,6 @@ export default function EnkaImport() {
                 </div>
             )}
 
-            {/* Loading Shimmer State */}
             {isLoading && (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4 py-4">
                     {[1, 2, 3, 4, 5, 6].map((i) => (
@@ -404,13 +396,11 @@ export default function EnkaImport() {
                 </div>
             )}
 
-            {/* Empty State (when no UID fetched yet) */}
             {!isLoading && !enkaData && (
                 <div 
                     onClick={() => uidInputRef.current?.focus()}
                     className="relative overflow-hidden py-12 sm:py-16 px-4 sm:px-6 rounded-2xl border border-dashed border-white/15 bg-base-200/20 hover:bg-base-200/40 transition-all duration-300 text-center cursor-pointer group select-none"
                 >
-                    {/* Ambient Glow */}
                     <div className="pointer-events-none absolute -top-12 left-1/2 -translate-x-1/2 h-44 w-44 rounded-full bg-emerald-500/15 blur-2xl group-hover:scale-150 group-hover:bg-emerald-500/25 transition-all duration-700" />
 
                     <div className="relative z-10 max-w-md mx-auto space-y-4">
@@ -427,7 +417,6 @@ export default function EnkaImport() {
                             </p>
                         </div>
 
-                        {/* Step hints */}
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3 pt-3 text-left border-t border-white/5">
                             <div className="p-3 rounded-xl bg-base-300/30 group-hover:bg-base-300/50 transition-colors duration-200">
                                 <span className="text-[10px] font-bold text-emerald-400 block mb-0.5">{transI18n("step1")}</span>
@@ -446,7 +435,6 @@ export default function EnkaImport() {
                 </div>
             )}
 
-            {/* Character Grid */}
             {!isLoading && enkaData && validCharacters.length === 0 && (
                 <div className="flex items-start gap-2 px-4 py-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-semibold animate-in fade-in duration-200">
                     <AlertCircle className="w-4 h-4 shrink-0" />

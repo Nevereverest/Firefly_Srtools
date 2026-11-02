@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import CeBar from "./ce";
 import PeakBar from "./peak";
 import { useShallow } from "zustand/react/shallow";
+import { NeedBattleData } from "@/components/requireData";
 
 export default function MonsterBar() {
     const { battle_type, setBattleType } = useUserDataStore(
@@ -30,10 +31,8 @@ export default function MonsterBar() {
 
     return (
         <div className="w-full">
-            {/* Header Navigation */}
             <nav className="border-b border-base-content/10 relative pb-3">
                 <div className="flex items-center justify-center">
-                    {/* Mobile Select */}
                     <div className="block md:hidden w-full">
                         <select
                             className="select select-bordered w-full"
@@ -48,7 +47,6 @@ export default function MonsterBar() {
                         </select>
                     </div>
 
-                    {/* Desktop Tabs */}
                     <div className="hidden md:grid grid-cols-3 lg:grid-cols-6 gap-2 w-full">
                         {navItems.map((item) => {
                             const isSelected = battle_type.toUpperCase() === item.value.toUpperCase()
@@ -99,11 +97,13 @@ export default function MonsterBar() {
                     {transI18n("noEventSelected")}
                 </div>
             )}
-            {battle_type.toUpperCase() === 'MOC' && <MocBar />}
-            {battle_type.toUpperCase() === 'PF' && <PfBar />}
-            {battle_type.toUpperCase() === 'AS' && <AsBar />}
-            {battle_type.toUpperCase() === 'CE' && <CeBar />}
-            {battle_type.toUpperCase() === 'PEAK' && <PeakBar />}
+            <NeedBattleData mode={battle_type}>
+                {battle_type.toUpperCase() === 'MOC' && <MocBar />}
+                {battle_type.toUpperCase() === 'PF' && <PfBar />}
+                {battle_type.toUpperCase() === 'AS' && <AsBar />}
+                {battle_type.toUpperCase() === 'CE' && <CeBar />}
+                {battle_type.toUpperCase() === 'PEAK' && <PeakBar />}
+            </NeedBattleData>
             {battle_type.toUpperCase() === 'SU' && (
                 <div className="container mx-auto px-4 py-8 text-center font-bold text-3xl">
                     {transI18n("comingSoon")}

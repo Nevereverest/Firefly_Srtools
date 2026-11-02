@@ -45,7 +45,6 @@ function CharacterInfoCard({
             }`}
             onClick={() => onCharacterToggle(character)}
         >
-            {/* Selection Checkmark Badge */}
             <div className={`absolute top-2.5 right-2.5 z-20 w-6 h-6 rounded-full flex items-center justify-center transition-all duration-200 ${
                 isSelected 
                     ? 'bg-primary text-primary-content shadow-md scale-100 ring-2 ring-primary/40' 
@@ -54,7 +53,6 @@ function CharacterInfoCard({
                 <Check className={`w-3.5 h-3.5 stroke-[3] ${isSelected ? 'opacity-100' : 'opacity-0'}`} />
             </div>
 
-            {/* Character Portrait Area */}
             <div className="relative mb-3 aspect-4/5 rounded-xl overflow-hidden bg-radial from-base-300/60 to-base-300/20 flex items-center justify-center">
                 {avatar && (
                     <>
@@ -67,10 +65,9 @@ function CharacterInfoCard({
                             loading="lazy"
                             className="w-full h-full object-contain transition-transform duration-500 ease-out group-hover:scale-108"
                         />
-                        {/* Damage & Path Badges */}
                         <div className="absolute top-2 left-2 flex items-center gap-1.5 z-10">
                             {damageType?.[avatar.DamageType]?.Icon && (
-                                <div className="p-1 rounded-lg bg-black/65 backdrop-blur-md border border-white/15 shadow-sm" title={avatar.DamageType}>
+                                <div className="p-1 rounded-lg bg-black/65 border border-white/15 shadow-sm" title={avatar.DamageType}>
                                     <Image
                                         width={20}
                                         height={20}
@@ -82,7 +79,7 @@ function CharacterInfoCard({
                                 </div>
                             )}
                             {baseType?.[avatar.BaseType]?.Icon && (
-                                <div className="p-1 rounded-lg bg-black/65 backdrop-blur-md border border-white/15 shadow-sm" title={avatar.BaseType}>
+                                <div className="p-1 rounded-lg bg-black/65 border border-white/15 shadow-sm" title={avatar.BaseType}>
                                     <Image
                                         width={20}
                                         height={20}
@@ -98,7 +95,6 @@ function CharacterInfoCard({
                 )}
             </div>
 
-            {/* Character Name & Badges */}
             <div className="text-center mb-2.5">
                 <ParseText 
                     className="text-sm sm:text-base font-bold line-clamp-1 tracking-tight"
@@ -120,7 +116,6 @@ function CharacterInfoCard({
                 </div>
             </div>
 
-            {/* Relics Grid (2 rows of 3, no overflow) */}
             {character.relics.length > 0 && (
                 <div className="grid grid-cols-3 gap-1.5 sm:gap-2 justify-items-center py-1.5 px-2.5 rounded-xl bg-base-300/30 w-fit mx-auto mb-2.5">
                     {character.relics.map((relic, index) => (
@@ -143,7 +138,6 @@ function CharacterInfoCard({
                 </div>
             )}
 
-            {/* Light Cone Preview (Seamless strip) */}
             {character.lightcone && character.lightcone.item_id !== 0 && (
                 <div className="pt-2 border-t border-white/10 flex items-center gap-2.5">
                     <div className="h-12 w-9 shrink-0 flex items-center justify-center rounded bg-base-300/40 overflow-hidden">

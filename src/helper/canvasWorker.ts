@@ -79,13 +79,11 @@ export async function canvasToBlobWorker(canvas: HTMLCanvasElement): Promise<Blo
     }
   }
 
-  // Fallback to standard main thread conversion
   return new Promise<Blob | null>((resolve) => {
     canvas.toBlob((blob) => resolve(blob), "image/png");
   });
 }
 
-// In-memory cache for Base64 Data URLs so images are fetched and converted only ONCE.
 const imageCache = new Map<string, string>();
 
 function blobToBase64(blob: Blob): Promise<string> {

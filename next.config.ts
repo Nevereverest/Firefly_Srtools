@@ -14,7 +14,7 @@ const nextConfig: NextConfig = {
   compress: true,
   output: "standalone",
   outputFileTracingIncludes: {
-    "/api/data/[name]": ["./data/**/*", "./data/.packed/**/*"],
+    "/api/data/[name]": ["./data/**/*"],
   },
   images: {
     unoptimized: true,
