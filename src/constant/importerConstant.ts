@@ -1,6 +1,3 @@
-// Stat and slot property mappings for the HoYoLAB and Fribbels importers.
-
-/** HoYoLAB property_type ID to internal Property string. */
 export const hoyolabPropertyTypeMap: Record<number, string> = {
     1: "HPDelta",
     2: "AttackDelta",
@@ -40,7 +37,6 @@ export const hoyolabPropertyTypeMap: Record<number, string> = {
     59: "BreakDamageAddedRatioBase",
 };
 
-/** Fribbels stat name (display names and short codes) to internal Property string. */
 export const fribbelsStatMap: Record<string, string> = {
     "HP": "HPDelta",
     "ATK": "AttackDelta",
@@ -83,7 +79,6 @@ export const fribbelsStatMap: Record<string, string> = {
     "Imaginary_DMG": "ImaginaryAddedRatio",
 };
 
-/** Fribbels relic slot name to slot type. */
 export const fribbelsPartMap: Record<string, string> = {
     "Head": "HEAD",
     "Hands": "HAND",

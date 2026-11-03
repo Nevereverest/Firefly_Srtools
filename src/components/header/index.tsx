@@ -62,7 +62,7 @@ function ConfigJsonLoading() {
     return createPortal(
         <div
             data-theme={theme}
-            className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 p-3 sm:p-4"
+            className="fixed inset-0 z-9999 flex items-center justify-center bg-black/70 p-3 sm:p-4"
         >
             <div className="w-11/12 max-w-4xl rounded-2xl border border-base-content/10 bg-base-100 shadow-2xl">
                 <ModalLoading type="form" message="Loading config.json..." />
@@ -335,7 +335,7 @@ export default function Header() {
             <div className="navbar max-w-[1920px] mx-auto px-2 sm:px-4 py-1.5 min-h-14">
                 <div className="navbar-start gap-2">
                     <div className="dropdown">
-                        <div tabIndex={0} role="button" className="btn btn-ghost btn-sm lg:hidden rounded-lg hover:bg-base-200 transition-all duration-200">
+                        <div tabIndex={0} role="button" aria-label="Menu" className="btn btn-ghost btn-sm lg:hidden rounded-lg hover:bg-base-200 transition-all duration-200">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h8m-8 6h16" />
                             </svg>
@@ -348,10 +348,10 @@ export default function Header() {
                                 <details>
                                     <summary className="px-3 py-2 hover:bg-base-200/70 rounded-lg transition-all duration-200 font-medium w-full">{transI18n("loadData")}</summary>
                                     <ul className="p-2 space-y-1">
-                                        <li><a className="rounded-md" onClick={() => {
+                                        <li><button type="button" className="rounded-md" onClick={() => {
                                             setImportModal("freesr")
                                             setIsOpenImport(true)
-                                        }}>{transI18n("freeSr")}</a></li>
+                                        }}>{transI18n("freeSr")}</button></li>
                                         <li>
                                             <>
                                                 <input
@@ -369,18 +369,18 @@ export default function Header() {
                                                 </button>
                                             </>
                                         </li>
-                                        <li><a className="rounded-md" onClick={() => {
+                                        <li><button type="button" className="rounded-md" onClick={() => {
                                             setImportModal("enka")
                                             setIsOpenImport(true)
-                                        }}>{transI18n("enka")}</a></li>
-                                        <li><a className="rounded-md" onClick={() => {
+                                        }}>{transI18n("enka")}</button></li>
+                                        <li><button type="button" className="rounded-md" onClick={() => {
                                             setImportModal("hoyolab")
                                             setIsOpenImport(true)
-                                        }}>{transI18n("hoyolab")}</a></li>
-                                        <li><a className="rounded-md" onClick={() => {
+                                        }}>{transI18n("hoyolab")}</button></li>
+                                        <li><button type="button" className="rounded-md" onClick={() => {
                                             setImportModal("fribbels")
                                             setIsOpenImport(true)
-                                        }}>{transI18n("fribbels")}</a></li>
+                                        }}>{transI18n("fribbels")}</button></li>
                                     </ul>
                                 </details>
                             </li>
@@ -388,9 +388,9 @@ export default function Header() {
                                 <details>
                                     <summary className="px-3 py-2 hover:bg-base-200/70 rounded-lg transition-all duration-200 font-medium">{transI18n("exportData")}</summary>
                                     <ul className="p-2 space-y-1">
-                                        <li><a className="rounded-md" onClick={handleExportFreeSR}>{transI18n("freeSr")}</a></li>
-                                        <li><a className="rounded-md" onClick={handleExportDatabase}>{transI18n("database")}</a></li>
-                                        <li><a className="rounded-md" onClick={() => setIsOpenConfigJson(true)}>{transI18n("configJson")}</a></li>
+                                        <li><button type="button" className="rounded-md" onClick={handleExportFreeSR}>{transI18n("freeSr")}</button></li>
+                                        <li><button type="button" className="rounded-md" onClick={handleExportDatabase}>{transI18n("database")}</button></li>
+                                        <li><button type="button" className="rounded-md" onClick={() => setIsOpenConfigJson(true)}>{transI18n("configJson")}</button></li>
                                     </ul>
                                 </details>
                             </li>
@@ -435,7 +435,7 @@ export default function Header() {
                             <div className="absolute -inset-1 bg-linear-to-r from-emerald-500/20 to-orange-500/20 rounded-full blur-xs opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                             <Image
                                 unoptimized
-                                src="/ff-srtool.png"
+                                src="/ff-srtool.webp"
                                 alt="Logo"
                                 width={250}
                                 height={250}
@@ -449,7 +449,7 @@ export default function Header() {
                                     SrTools
                                 </span>
                             </h1>
-                            <p className="text-[11px] text-base-content/50 font-medium tracking-wide uppercase">Firefly Shelter</p>
+                            <p className="text-[11px] text-base-content/70 font-medium tracking-wide uppercase">Firefly Shelter</p>
                         </div>
                     </a>
                 </div>
@@ -460,10 +460,10 @@ export default function Header() {
                             <details>
                                 <summary className="px-3 py-1.5 hover:bg-base-200/70 rounded-lg transition-all duration-200">{transI18n("loadData")}</summary>
                                 <ul className="p-2 bg-base-100 rounded-xl shadow-xl border border-base-content/15 space-y-1 w-44 z-50">
-                                    <li><a className="rounded-md" onClick={() => {
+                                    <li><button type="button" className="rounded-md" onClick={() => {
                                         setImportModal("freesr")
                                         setIsOpenImport(true)
-                                    }}>{transI18n("freeSr")}</a></li>
+                                    }}>{transI18n("freeSr")}</button></li>
                                     <li>
                                         <>
                                             <input
@@ -481,18 +481,18 @@ export default function Header() {
                                             </button>
                                         </>
                                     </li>
-                                    <li><a className="rounded-md" onClick={() => {
+                                    <li><button type="button" className="rounded-md" onClick={() => {
                                         setImportModal("enka")
                                         setIsOpenImport(true)
-                                    }}>{transI18n("enka")}</a></li>
-                                    <li><a className="rounded-md" onClick={() => {
+                                    }}>{transI18n("enka")}</button></li>
+                                    <li><button type="button" className="rounded-md" onClick={() => {
                                         setImportModal("hoyolab")
                                         setIsOpenImport(true)
-                                    }}>{transI18n("hoyolab")}</a></li>
-                                    <li><a className="rounded-md" onClick={() => {
+                                    }}>{transI18n("hoyolab")}</button></li>
+                                    <li><button type="button" className="rounded-md" onClick={() => {
                                         setImportModal("fribbels")
                                         setIsOpenImport(true)
-                                    }}>{transI18n("fribbels")}</a></li>
+                                    }}>{transI18n("fribbels")}</button></li>
                                 </ul>
                             </details>
                         </li>
@@ -500,9 +500,9 @@ export default function Header() {
                             <details>
                                 <summary className="px-3 py-1.5 hover:bg-base-200/70 rounded-lg transition-all duration-200">{transI18n("exportData")}</summary>
                                 <ul className="p-2 bg-base-100 rounded-xl shadow-xl border border-base-content/15 space-y-1 w-44 z-50">
-                                    <li><a className="rounded-md" onClick={handleExportFreeSR}>{transI18n("freeSr")}</a></li>
-                                    <li><a className="rounded-md" onClick={handleExportDatabase}>{transI18n("database")}</a></li>
-                                    <li><a className="rounded-md" onClick={() => setIsOpenConfigJson(true)}>{transI18n("configJson")}</a></li>
+                                    <li><button type="button" className="rounded-md" onClick={handleExportFreeSR}>{transI18n("freeSr")}</button></li>
+                                    <li><button type="button" className="rounded-md" onClick={handleExportDatabase}>{transI18n("database")}</button></li>
+                                    <li><button type="button" className="rounded-md" onClick={() => setIsOpenConfigJson(true)}>{transI18n("configJson")}</button></li>
                                 </ul>
                             </details>
                         </li>

@@ -29,7 +29,6 @@ export const metadata: Metadata = {
   description: "SrTools by Firefly Shelter",
   icons: {
     icon: "/ff-srtool.png",
-    shortcut: "/ff-srtool.ico",
     apple: "/ff-srtool.png",
   },
   openGraph: {
@@ -68,6 +67,9 @@ export default async function RootLayout({
     <html lang={locale} suppressHydrationWarning className="h-full w-full overflow-hidden overscroll-none fixed inset-0">
       <head>
         <link rel="preconnect" href="https://cdn.punklorde.org" />
+        {/* Start the two first-screen requests with the HTML instead of after the JS has run. */}
+        <link rel="preload" href="/api/data/metadata_core" as="fetch" crossOrigin="anonymous" />
+        <link rel="preload" href="/api/data/avatar_index" as="fetch" crossOrigin="anonymous" />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased h-full w-full overflow-hidden overscroll-none fixed inset-0 max-w-full`}

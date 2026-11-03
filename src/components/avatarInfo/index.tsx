@@ -153,6 +153,7 @@ export default function AvatarInfo() {
                                         <input
                                             type="range"
                                             min="1"
+                                            aria-label={transI18n("characterLevel")}
                                             max="80"
                                             value={userAvatar?.level}
                                             onChange={(e) => {
@@ -193,6 +194,7 @@ export default function AvatarInfo() {
                                             type="range"
                                             min="0"
                                             max={userAvatar?.sp_max}
+                                            aria-label={transI18n("ultimateEnergy")}
                                             value={userAvatar?.sp_value}
                                             onChange={(e) => {
                                                 if (!userAvatar?.can_change_sp) return
@@ -226,6 +228,7 @@ export default function AvatarInfo() {
                                     <input
                                         type="checkbox"
                                         checked={userAvatar?.techniques.length > 0}
+                                        aria-label={transI18n("useTechnique")}
                                         onChange={(e) => {
                                             if (!avatarSelected || avatarSelected?.MazeBuff?.length == 0) return
                                              const techniques = e.target.checked ? avatarSelected?.MazeBuff : [];
