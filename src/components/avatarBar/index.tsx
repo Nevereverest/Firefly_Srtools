@@ -44,6 +44,9 @@ export default function AvatarBar({ onClose }: { onClose?: () => void }) {
         useShallow((state) => ({ locale: state.locale }))
     )
 
+    // The sidebar is display:none below sm, and an eager image inside it is still downloaded.
+    const sidebarVisible = typeof window !== "undefined" && window.matchMedia("(min-width: 640px)").matches
+
     const listAvatar = useMemo(() => {
         if (!mapAvatar || !locale || !transI18n) return []
 
@@ -186,7 +189,7 @@ export default function AvatarBar({ onClose }: { onClose?: () => void }) {
                                     if (onClose) onClose()
                                 }}
                             >
-                                <CharacterCard data={item} priority={index < 3} />
+                                <CharacterCard data={item} priority={index < 3 && sidebarVisible} />
                             </button>
                         </li>
                     ))}

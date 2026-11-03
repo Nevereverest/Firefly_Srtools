@@ -1,4 +1,4 @@
-import { z } from "zod";
+import * as z from "zod";
 
 const privacySettingInfoSchema = z.object({
     displayCollection: z.boolean().optional(),

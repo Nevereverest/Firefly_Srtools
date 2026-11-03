@@ -1,4 +1,4 @@
-import { z } from "zod";
+import * as z from "zod";
 
 export const relicShowcaseTypeSchema = z.object({
     img: z.string(),

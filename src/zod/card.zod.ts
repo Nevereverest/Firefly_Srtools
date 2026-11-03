@@ -1,4 +1,4 @@
-import { z } from "zod";
+import * as z from "zod";
 import { lightconeStoreSchema, relicStoreSchema } from "./mics.zod";
 
 export const characterInfoCardTypeSchema = z.object({

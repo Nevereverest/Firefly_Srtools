@@ -1,4 +1,4 @@
-import { z } from "zod";
+import * as z from "zod";
 
 export const extraDataSchema = z.object({
     theory_craft: z.object({

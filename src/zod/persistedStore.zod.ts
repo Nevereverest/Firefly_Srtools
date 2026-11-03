@@ -1,4 +1,4 @@
-import { z } from "zod";
+import * as z from "zod";
 import type { ChangelogItemType } from "@/types";
 
 export const changelogItemSchema: z.ZodType<ChangelogItemType> = z.object({

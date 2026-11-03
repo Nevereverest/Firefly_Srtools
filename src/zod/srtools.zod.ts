@@ -1,4 +1,4 @@
-import { z } from "zod";
+import * as z from "zod";
 
 export const subAffixSchema = z.object({
     sub_affix_id: z.number(),

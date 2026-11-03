@@ -11,7 +11,7 @@ import useModelStore from "@/stores/modelStore";
 import { toast } from "react-toastify";
 import { useTranslations } from "next-intl";
 import { avatarEnkaDetailSchema, enkaResponseSchema } from "@/zod";
-import { z } from "zod";
+import * as z from "zod";
 import useDetailDataStore from "@/stores/detailDataStore";
 import { useShallow } from "zustand/react/shallow";
 import { 

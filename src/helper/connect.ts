@@ -1,5 +1,5 @@
 "use client"
-import { looksLikeHtml, normalizePsResponse, ProbeCollapseConnection, SendDataThroughProxy, SendDataToCollapse, SendDataToMarch7thHoney, SendDataToServer } from "@/lib/api/api"
+import { looksLikeHtml, normalizePsResponse } from "@/lib/api/response"
 import { isPrivateUrl } from "@/lib/net/ipRules"
 import useConnectStore from "@/stores/connectStore"
 import useUserDataStore from "@/stores/userDataStore"
@@ -10,6 +10,10 @@ import { ensureBattleData } from "@/lib/ensureBattleData"
 import useGlobalStore from "@/stores/globalStore"
 import { ActionResult, ConnectErrorCode, ExtraData, FreeSRJson, ProxyPayload, PSConnectType, PSResponse } from "@/types"
 
+
+// axios only loads when the user actually connects or syncs.
+const withApi = <T,>(run: (m: typeof import("@/lib/api/api")) => Promise<T | string>): Promise<T | string> =>
+    import("@/lib/api/api").then(run, (error: unknown) => (error as Error)?.message || "Failed to load the connection module")
 
 const buildPushPayload = (): FreeSRJson => {
     const { avatars, battle_type, moc_config, pf_config, as_config, ce_config, peak_config } = useUserDataStore.getState()
@@ -25,19 +29,21 @@ const sendData = (
     extraData?: ExtraData
 ): Promise<PSResponse | string> => {
     if (connectionType === PSConnectType.March7thHoney) {
-        return SendDataToMarch7thHoney(username, password, urlQuery, data)
+        return withApi(m => m.SendDataToMarch7thHoney(username, password, urlQuery, data))
     }
     if (connectionType === PSConnectType.Collapse) {
-        if (!data) return ProbeCollapseConnection(username, password, urlQuery)
+        if (!data) return withApi(m => m.ProbeCollapseConnection(username, password, urlQuery))
 
         const converted = converterToCollapseConnection(data, username, password)
-        return SendDataToCollapse(username, password, urlQuery, converted.Avatars)
+        return withApi(m => m.SendDataToCollapse(username, password, urlQuery, converted.Avatars))
     }
-    return SendDataToServer(username, password, urlQuery, data, extraData)
+    return withApi(m => m.SendDataToServer(username, password, urlQuery, data, extraData))
 }
 
 const sendThroughProxy = async (payload: ProxyPayload): Promise<PSResponse | string> => {
-    const result = await SendDataThroughProxy({ data: { ...payload, method: "POST" } })
+    const result = await import("@/lib/api/api")
+        .then(m => m.SendDataThroughProxy({ data: { ...payload, method: "POST" } }))
+        .catch((error: unknown) => error instanceof Error ? error : new Error("Failed to load the connection module"))
     if (result instanceof Error) return result.message
     return normalizePsResponse(result, 200)
 }

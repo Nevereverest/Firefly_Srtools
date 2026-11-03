@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import React, { useState, useRef, memo, useMemo } from "react";
 import useFreeSRStore from "@/stores/freesrStore";
 import useModelStore from "@/stores/modelStore";
@@ -17,7 +18,7 @@ import { getLocaleName } from "@/helper/getName";
 import ParseText from "../parseText";
 import { useTranslations } from "next-intl";
 import { useShallow } from "zustand/react/shallow";
-import { z } from "zod";
+import * as z from "zod";
 import {
     UploadCloud,
     FileJson,
@@ -131,7 +132,7 @@ const FreeSRCharacterCard = memo(function FreeSRCharacterCard({
                     title={isSelected ? transI18n("deselectCharacter") : transI18n("selectCharacter")}
                 >
                     {isFullySelected ? (
-                        <Check className="w-3.5 h-3.5 stroke-[3]" />
+                        <Check className="w-3.5 h-3.5 stroke-3" />
                     ) : isPartiallySelected ? (
                         <span className="w-2 h-0.5 bg-white rounded-full" />
                     ) : null}
@@ -149,7 +150,10 @@ const FreeSRCharacterCard = memo(function FreeSRCharacterCard({
                 >
                     {avatar && (
                         <>
-                            <img
+                            <Image
+                                unoptimized
+                                width={376}
+                                height={512}
                                 src={`${process.env.CDN_URL}/${avatar.Image?.AvatarIconPath}`}
                                 alt={getLocaleName(locale, avatar.Name)}
                                 loading="lazy"
@@ -166,7 +170,8 @@ const FreeSRCharacterCard = memo(function FreeSRCharacterCard({
                                         className="p-1 rounded-lg bg-black/65 border border-white/15 shadow-sm"
                                         title={avatar.DamageType}
                                     >
-                                        <img
+                                        <Image
+                                            unoptimized
                                             width={16}
                                             height={16}
                                             src={`${process.env.CDN_URL}/${damageType[avatar.DamageType].Icon}`}
@@ -180,7 +185,8 @@ const FreeSRCharacterCard = memo(function FreeSRCharacterCard({
                                         className="p-1 rounded-lg bg-black/65 border border-white/15 shadow-sm"
                                         title={avatar.BaseType}
                                     >
-                                        <img
+                                        <Image
+                                            unoptimized
                                             width={16}
                                             height={16}
                                             src={`${process.env.CDN_URL}/${baseType[avatar.BaseType].Icon}`}
@@ -262,7 +268,7 @@ const FreeSRCharacterCard = memo(function FreeSRCharacterCard({
                                                 }`}
                                                 title={isProfSelected ? transI18n("deselectBuild") : transI18n("selectBuild")}
                                             >
-                                                <Check className="w-2.5 h-2.5 stroke-[3]" />
+                                                <Check className="w-2.5 h-2.5 stroke-3" />
                                             </button>
                                             <span className="text-[11px] truncate font-medium">
                                                 {displayName}
@@ -326,7 +332,10 @@ const FreeSRCharacterCard = memo(function FreeSRCharacterCard({
                                     title={tooltipText}
                                 >
                                     <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center bg-base-100/90 border border-amber-500/40 hover:border-amber-400 transition-colors shadow-xs">
-                                        <img
+                                        <Image
+                                            unoptimized
+                                            width={124}
+                                            height={124}
                                             src={`${process.env.CDN_URL}/spriteoutput/relicfigures/iconrelic_${relic.relic_set_id}_${slotKey}.webp`}
                                             alt={transI18n("relic")}
                                             loading="lazy"
@@ -349,7 +358,10 @@ const FreeSRCharacterCard = memo(function FreeSRCharacterCard({
                                 title={tooltipText}
                             >
                                 {slotInfo?.icon && (
-                                    <img
+                                    <Image
+                                        unoptimized
+                                        width={18}
+                                        height={18}
                                         src={slotInfo.icon}
                                         alt={`Slot ${slotKey}`}
                                         className="w-3.5 h-3.5 sm:w-4 sm:h-4 object-contain opacity-25 grayscale"
@@ -364,7 +376,10 @@ const FreeSRCharacterCard = memo(function FreeSRCharacterCard({
                     {activeLc && activeProfile.lightcone ? (
                         <>
                             <div className="h-9 w-7 shrink-0 flex items-center justify-center rounded bg-base-100 overflow-hidden border border-white/10 shadow-xs">
-                                <img
+                                <Image
+                                    unoptimized
+                                    width={72}
+                                    height={96}
                                     src={`${process.env.CDN_URL}/${activeLc.Image?.ImagePath}`}
                                     alt={transI18n("lightcone")}
                                     loading="lazy"
